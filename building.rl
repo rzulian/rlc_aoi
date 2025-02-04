@@ -23,8 +23,7 @@ cls Building:
 
     fun coin_income()->Int:
         let incomes = [0,2,0,0,0]
-        if self.is_builded:
-            return incomes[self.building_type.value]
+        return incomes[self.building_type.value]
         return 0
 
 fun make_building(BuildingType building_type) -> Building:
@@ -42,7 +41,6 @@ fun test_coin_cost() -> Bool:
 
 fun test_coin_income() -> Bool:
     let guild = make_building( BuildingType::guild )
-    guild.is_builded = true
     return guild.coin_income() == 2
 
     
