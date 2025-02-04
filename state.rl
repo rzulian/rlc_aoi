@@ -8,7 +8,6 @@ import classes
 using PlayerID = BInt<0, 5>
 
 cls State:
-    Colour competition_colour
     Board board
     BoundedVector<Player, 4> players
     PlayerID current_player
