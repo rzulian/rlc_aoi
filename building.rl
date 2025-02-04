@@ -24,7 +24,7 @@ cls Building:
     fun coin_income()->Int:
         let incomes = [0,2,0,0,0]
         return incomes[self.building_type.value]
-        return 0
+
 
 fun make_building(BuildingType building_type) -> Building:
     let building : Building

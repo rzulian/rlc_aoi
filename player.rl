@@ -1,6 +1,7 @@
 import collections.vector
 import bounded_arg
 import building
+import range
 
 cls Player:
     BInt<0,50> tools
@@ -21,31 +22,27 @@ fun make_player() -> Player:
     let player : Player
     player.coins = 15
     player.tools = 3
-    let i=0
-
-    while i < 9:
+    
+    for i in range(9):
         let building = make_building (BuildingType::workshop)
         player.buildings.append(building)
-        i = i + 1
 
-    let i=0
-    while i < 4:
+    for i in range(4):
         let building = make_building (BuildingType::guild)
         player.buildings.append(building)
-        i = i + 1
-
-    let i=0
-    while i < 3:
+    
+    for i in range(3):
         let building = make_building (BuildingType::school)
         player.buildings.append(building)
-        i = i + 1
+    
     player.buildings.append(make_building(BuildingType::palace))
     player.buildings.append(make_building(BuildingType::university))
     
     return player
 
-fun test_coin_income() -> Bool:
+fun test_player_coin_income() -> Bool:
     let player = make_player()
     player.buildings[9].is_builded = true
     player.update_income()
     return player.coins == 17
+

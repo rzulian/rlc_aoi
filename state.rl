@@ -4,6 +4,7 @@ import serialization.print
 import math.numeric
 import board
 import player
+import range
 
 using PlayerID = BInt<0, 5>
 
@@ -20,11 +21,9 @@ cls State:
         self.is_done = false
 
         # setup players
-        let i = 0
-        while i != 4:
+        for i in range(4):
             let player = make_player()
             self.players.append(player)
-            i = i + 1
 
         self.current_player = 0
 
