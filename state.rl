@@ -22,9 +22,7 @@ cls State:
         # setup players
         let i = 0
         while i != 4:
-            let player: Player
-            player.coins = 15
-            player.tools = 6
+            let player = make_player()
             self.players.append(player)
             i = i + 1
 

@@ -27,22 +27,23 @@ cls Building:
             return incomes[self.building_type.value]
         return 0
 
+fun make_building(BuildingType building_type) -> Building:
+    let building : Building
+    building.building_type = building_type
+    building.is_builded = false
+    return building
+
 
 
 
 fun test_coin_cost() -> Bool:
-    let workshop : Building
-    workshop.building_type = BuildingType::workshop
-    workshop.is_builded = false
-
+    let workshop = make_building( BuildingType::workshop )
     return workshop.coin_cost() == 2 
 
 fun test_coin_income() -> Bool:
-    let guild : Building
-    guild.building_type = BuildingType::guild
+    let guild = make_building( BuildingType::guild )
     guild.is_builded = true
-
-    return guild.coin_income() == 2 
+    return guild.coin_income() == 2
 
     
         
