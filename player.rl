@@ -16,6 +16,7 @@ cls Player:
         for building in self.buildings:
             if building.is_builded:
                 self.coins = self.coins + building.coin_income()
+                self.tools = self.tools + building.tool_income()
 
 
 fun make_player() -> Player:
@@ -45,4 +46,12 @@ fun test_player_coin_income() -> Bool:
     player.buildings[9].is_builded = true
     player.update_income()
     return player.coins == 17
+
+fun test_player_tool_income() -> Bool:
+    let player = make_player()
+    player.buildings[0].is_builded = true
+    player.update_income()
+    return player.tools == 4
+
+
 
