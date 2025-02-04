@@ -3,7 +3,7 @@ import serialization.to_byte_vector
 import serialization.print
 import math.numeric
 import board
-import classes
+import player
 
 using PlayerID = BInt<0, 5>
 

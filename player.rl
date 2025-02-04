@@ -8,3 +8,5 @@ cls Player:
     fun score() -> Float:
         let score = 0.0
         return score
+
+

@@ -2,12 +2,12 @@ import collections.vector
 import serialization.to_byte_vector
 import serialization.print
 import math.numeric
-import classes
+import player
 import state
 import none
 import machine_learning
 
-
+@classes
 act play() -> Game:
 
     frm state : State
