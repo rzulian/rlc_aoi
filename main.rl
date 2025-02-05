@@ -11,10 +11,11 @@ act action_phase(ctx State state) -> ActionPhase:
     ref player = state.players[state.current_player.value]
     while true:
         actions:
-            act build_workshop() {
-                player.can_build_workshop() 
-            }
+            act build_workshop() {player.can_build_workshop() }
                 player.build_workshop()
+            act build_guild() {player.can_build_guild() }
+                player.build_guild()
+            
 
             act pass_turn()
                 return
