@@ -1,7 +1,10 @@
 import collections.vector
 import bounded_arg
-import building
 import range
+
+import building
+
+using BuildingArgType = BInt<0, 18>
 
 cls Player:
     BInt<0,50> tools
@@ -17,6 +20,27 @@ cls Player:
             if building.is_builded:
                 self.coins = self.coins + building.coin_income()
                 self.tools = self.tools + building.tool_income()
+
+    fun can_pay_building(Building building) -> Bool :
+        if self.coins >= building.coin_cost() and self.tools >= building.tool_cost():
+            return true
+        return false
+            
+    fun can_build_workshop() -> Building :
+        for building in self.buildings:
+            if building.building_type == BuildingType.workshop and not(building.is_builded):
+                return self.can_pay_building(building)
+        return false
+    
+    fun build_workshop() -> Void :
+        for building in self.buildings:
+            if building.building_type == BuildingType.workshop and not(building.is_builded):
+                    building.is_builded = true
+                    self.coins = self.coins - building.coin_cost()
+                    self.tools = self.tools - building.tool_cost()
+                    continue
+        
+
 
 
 fun make_player() -> Player:
@@ -40,6 +64,8 @@ fun make_player() -> Player:
     player.buildings.append(make_building(BuildingType::university))
     
     return player
+
+
 
 fun test_player_coin_income() -> Bool:
     let player = make_player()

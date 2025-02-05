@@ -7,6 +7,18 @@ import state
 import none
 import machine_learning
 
+act action_phase(ctx State state) -> ActionPhase:
+    ref player = state.players[state.current_player.value]
+    while true:
+        actions:
+            act build_workshop() {
+                player.can_build_workshop() 
+            }
+                player.build_workshop()
+
+            act pass_turn()
+                return
+
 @classes
 act play() -> Game:
 
@@ -17,16 +29,7 @@ act play() -> Game:
         
         state.current_player = 0
         while state.current_player < 4:
-    
-            frm pass_move = false
-            while pass_move == false:
-                actions:
-                    act move()
-                        ref player = state.players[state.current_player.value]
-                        if player.coins == 0:
-                            pass_move = true
-                    act pass_move()
-                        pass_move = true
+            subaction*(state) player_frame = action_phase(state)
 
             state.current_player = state.current_player + 1
         state.new_phase()
