@@ -26,15 +26,15 @@ cls Player:
             return true
         return false
             
-    fun can_build_workshop() -> Building :
+    fun can_build_workshop() -> Bool :
         for building in self.buildings:
-            if building.building_type == BuildingType.workshop and not(building.is_builded):
+            if building.building_type == BuildingType::workshop and building.is_builded == false:
                 return self.can_pay_building(building)
         return false
     
     fun build_workshop() -> Void :
         for building in self.buildings:
-            if building.building_type == BuildingType.workshop and not(building.is_builded):
+            if building.building_type == BuildingType::workshop and building.is_builded ==false:
                     building.is_builded = true
                     self.coins = self.coins - building.coin_cost()
                     self.tools = self.tools - building.tool_cost()
