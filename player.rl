@@ -20,6 +20,7 @@ cls Player:
    
     fun score() -> Float:
         let score = 0.0
+        score = float(self.coins.value) * 1.0 + float(self.tools.value) * 3.0
         return score
 
     fun update_income() -> Void:
