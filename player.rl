@@ -45,6 +45,9 @@ cls Player:
         self.workshops = self.workshops - 1
         self.pay_building(BuildingType::workshop)
 
+    fun build_free_workshop() -> Void :
+        self.workshops = self.workshops - 1
+
     fun build_guild() -> Void :
         self.guilds = self.guilds - 1
         self.workshops = self.workshops + 1

@@ -8,15 +8,12 @@ import none
 import machine_learning
 
 act action_phase(ctx State state) -> ActionPhase:
-    ref player = state.players[state.current_player.value]
     while true:
         actions:
-            act build_workshop() {player.can_build_workshop() }
-                player.build_workshop()
-            act build_guild() {player.can_build_guild() }
-                player.build_guild()
-            
-
+            act build_workshop() {state.players[state.current_player.value].can_build_workshop() }
+                state.players[state.current_player.value].build_workshop()
+            act build_guild() {state.players[state.current_player.value].can_build_guild() }
+                state.players[state.current_player.value].build_guild()
             act pass_turn()
                 return
 
@@ -25,11 +22,12 @@ act play() -> Game:
 
     frm state : State
     state.setup_game()
+    state.new_phase()
 
     while !state.is_done:
         
         state.current_player = 0
-        while state.current_player < 4:
+        while state.current_player < state.players.size():
             subaction*(state) player_frame = action_phase(state)
 
             state.current_player = state.current_player + 1
@@ -53,7 +51,7 @@ fun main() -> Int:
     let game = play()
     print(game.state)
     ref player = game.state.players[0]
-    game.pass_move()
+    game.pass_turn()
     return 0
 
 fun fuzz(Vector<Byte> input):
@@ -86,5 +84,14 @@ fun fuzz(Vector<Byte> input):
         print(executable.get(num_action % executable.size()))
         apply(executable.get(num_action % executable.size()), state)
 
+fun test_game_setup()-> Bool:
+    let game = play()
+    game.build_workshop()
+    return game.state.players[0].workshops == 6
 
+
+fun test_game_setup2()-> Bool:
+    let game = play()
+    game.build_guild()
+    return game.state.players[0].guilds == 3
  

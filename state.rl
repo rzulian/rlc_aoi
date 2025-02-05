@@ -12,17 +12,19 @@ cls State:
     Board board
     BoundedVector<Player, 4> players
     PlayerID current_player
-    BInt<1, 8> phase
+    BInt<0, 8> phase
     Bool is_done
 
     fun setup_game():
         self.board = make_board()
-        self.phase = 1
+        self.phase = 0
         self.is_done = false
 
         # setup players
-        for i in range(4):
+        for i in range(1):
             let player = make_player()
+            player.build_free_workshop()
+            player.build_free_workshop() 
             self.players.append(player)
 
         self.current_player = 0
@@ -34,6 +36,10 @@ cls State:
         else:
             self.phase = self.phase + 1
             print("PHASE=>"s + to_string(self.phase))
+            # income
+            for player in self.players:
+                player.update_income()
+
         return
 
 
