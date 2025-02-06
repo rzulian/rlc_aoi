@@ -20,23 +20,39 @@ cls Player:
     BInt<0,2> universities
     BInt<0,8> scholars
     BInt<0,8> scholars_on_hand
+    BInt<0,10> competency_tiles
+    Float URP
+    Float last_phase_URP
 
     BoundedVector<Building, 18> buildings
    
-    fun score() -> Float:
+    fun score(Int current_phase) -> Float:
         let score = 0.0
-        score = float(self.coins.value) * 1.0 + float(self.tools.value) * 3.0
+        # virtual income for remaining phases
+        score = self.URP + self.last_phase_URP * float( 6 - current_phase )
         return score
 
     fun update_income() -> Void:
-        let coin_income = [0,2,4,6,8]
-        let tool_income = [1,2,3,4,5,5,6,7,8,9]
+        let tool_income_by_workshops = [1,2,3,4,5,5,6,7,8,9]
+        let coin_income_by_guilds = [0,2,4,6,8]
+        let power_income_by_guilds = [0,1,2,4,6]
 
-        self.coins = self.coins + coin_income[ NUM_GUILDS - self.guilds.value]
-        self.tools = self.tools + tool_income[ NUM_WORKSHOPS - self.workshops.value]
+        let tool_income = tool_income_by_workshops[ NUM_WORKSHOPS - self.workshops.value]
+        let coin_income = coin_income_by_guilds[ NUM_GUILDS - self.guilds.value]
+        let power_income = power_income_by_guilds[ NUM_GUILDS - self.guilds.value]
         let scholar_income = min( (NUM_SCHOOLS - self.schools.value) + (1- self.universities.value), self.scholars.value)
+
+        self.coins = self.coins + coin_income
+        self.tools = self.tools + tool_income
         self.scholars_on_hand = self.scholars_on_hand + scholar_income
         self.scholars = self.scholars - scholar_income
+        
+        let URP_competency_tile = float(self.competency_tiles.value) * 25.0 / 5.0
+        let URP_palace_tile = float( 1 - self.palaces.value ) * 40.0 / 5.0
+
+        self.last_phase_URP = float(power_income) * 0.5 + float(coin_income) * 1.0 + float(tool_income) * 3.0 + float(scholar_income) * 3.75 + URP_competency_tile + URP_palace_tile
+        self.URP = self.URP + self.last_phase_URP
+
 
     fun can_pay_building(BuildingType building_type) -> Bool :
         return self.coins >= building_type.coin_cost() and self.tools >= building_type.tool_cost()
@@ -58,7 +74,7 @@ cls Player:
         return self.palaces > 0 and self.guilds < NUM_GUILDS and self.can_pay_building( BuildingType::palace)
 
     fun can_build_university() -> Bool :
-        return self.universities > 0 and self.schools < NUM_GUILDS and self.can_pay_building( BuildingType::university)
+        return self.universities > 0 and self.schools < NUM_SCHOOLS and self.can_pay_building( BuildingType::university)
     
     fun build_workshop() -> Void :
         self.workshops = self.workshops - 1
@@ -74,6 +90,7 @@ cls Player:
 
     fun build_school() -> Void :
         self.schools = self.schools - 1
+        self.competency_tiles = self.competency_tiles + 1 
         self.guilds = self.guilds + 1
         self.pay_building(BuildingType::school)
     
@@ -84,6 +101,7 @@ cls Player:
 
     fun build_university() -> Void :
         self.universities = self.universities - 1
+        self.competency_tiles = self.competency_tiles + 1 
         self.schools = self.schools + 1
         self.pay_building(BuildingType::university)
         
@@ -98,6 +116,8 @@ fun make_player() -> Player:
     player.schools = NUM_SCHOOLS
     player.universities = 1
     player.palaces = 1
+    player.competency_tiles = 0
+    player.URP = 0.0
     return player
 
 fun pretty_print(Player player):

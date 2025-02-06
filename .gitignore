@@ -1,2 +1,5 @@
 executable
 fuzzer_executable
+game.log
+log.txt
+network

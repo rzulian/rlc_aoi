@@ -35,20 +35,17 @@ act play() -> Game:
         state.current_player = 0
         while state.current_player < state.players.size():
             subaction*(state) player_frame = action_phase(state)
-
             state.current_player = state.current_player + 1
         state.new_phase()
-
-    
 
 fun get_current_player(Game g) -> Int:
     return g.state.current_player.value
 
 fun score(Game g, Int player_id) -> Float:
-    return g.state.players[player_id].score()
+    return g.state.players[player_id].score(g.state.phase.value)
     
 fun get_num_players() -> Int:
-    return 4
+    return 1
 
 fun pretty_print(Game g):
     g.state.pretty_print_state()
@@ -92,47 +89,59 @@ fun fuzz(Vector<Byte> input):
 
 fun test_game_setup()-> Bool:
     let game = play()
+    ref player = game.state.players[0]
     game.build_workshop()
-    return game.state.players[0].workshops == 6
+    return player.workshops == 6
 
 
 fun test_game_setup2()-> Bool:
     let game = play()
+    ref player = game.state.players[0]
     game.build_guild()
-    return game.state.players[0].guilds == 3
+    return player.guilds == 3
  
 fun test_game_build_school()-> Bool:
     let game = play()
+    ref player = game.state.players[0]
     game.build_guild()
     game.build_school()
-    return game.state.players[0].schools == 2 and game.state.players[0].guilds == 4
+    return player.schools == 2 and player.guilds == 4
 
 fun test_game_schoolar_income()-> Bool:
     let game = play()
+    ref player = game.state.players[0]
     game.build_guild()
     game.build_school()
     game.pass_turn()
-    return game.state.players[0].scholars_on_hand == 1 and game.state.players[0].scholars == 6
+    return player.scholars_on_hand == 1 and player.scholars == 6
 
 fun test_game_schoolar_income_no_scholar()-> Bool:
     let game = play()
+    ref player = game.state.players[0]
     game.state.players[0].scholars=0
     game.build_guild()
     game.build_school()
     game.pass_turn()
-    return game.state.players[0].scholars_on_hand == 0 and game.state.players[0].scholars == 0
+    return player.scholars_on_hand == 0 and player.scholars == 0
 
 fun test_game_build_palace()-> Bool:
     let game = play()
+    ref player = game.state.players[0]
     game.build_guild()
     game.build_palace()
-    return game.state.players[0].palaces == 0 and game.state.players[0].guilds == 4
+    return player.palaces == 0 and player.guilds == 4
+
 
 fun test_game_build_university()-> Bool:
     let game = play()
-    game.state.players[0].tools=10
-    game.state.players[0].coins=16
+    ref player = game.state.players[0]
+
+    player.tools=10
+    player.coins=16
     game.build_guild()
     game.build_school()
+    let first_competency_tile = player.competency_tiles.value == 1
     game.build_university()
-    return game.state.players[0].universities == 0 and game.state.players[0].guilds == 4 and game.state.players[0].schools == 3
+    let second_competency_tile = player.competency_tiles.value == 2
+    return player.universities == 0 and player.guilds == 4 and player.schools == 3 and first_competency_tile and second_competency_tile
+

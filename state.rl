@@ -37,11 +37,10 @@ cls State:
             self.is_done = true
         else:
             self.phase = self.phase + 1
-            print("PHASE=>"s + to_string(self.phase))
+            # print("PHASE=>"s + to_string(self.phase))
             # income
             for player in self.players:
                 player.update_income()
-
         return
 
 
