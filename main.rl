@@ -14,6 +14,8 @@ act action_phase(ctx State state) -> ActionPhase:
                 state.players[state.current_player.value].build_workshop()
             act build_guild() {state.players[state.current_player.value].can_build_guild() }
                 state.players[state.current_player.value].build_guild()
+            act build_school() {state.players[state.current_player.value].can_build_school() }
+                state.players[state.current_player.value].build_school()
             act pass_turn()
                 return
 
@@ -95,3 +97,9 @@ fun test_game_setup2()-> Bool:
     game.build_guild()
     return game.state.players[0].guilds == 3
  
+fun test_game_build_school()-> Bool:
+    let game = play()
+    game.build_guild()
+    print(game.state.players[0])
+    game.build_school()
+    return game.state.players[0].schools == 2 and game.state.players[0].guilds == 4

@@ -29,7 +29,6 @@ cls State:
 
         self.current_player = 0
 
-    
     fun new_phase():  
         if self.phase == 2:
             self.is_done = true

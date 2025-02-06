@@ -6,6 +6,9 @@ import serialization.print
 import building
 
 using BuildingArgType = BInt<0, 18>
+# using NUM_WORKSHOPS = 9
+# using NUM_GUILDS = 4
+# using NUM_SCHOOLS = 3
 
 cls Player:
     BInt<0,50> tools
@@ -15,6 +18,7 @@ cls Player:
     BInt<0,4> schools
     BInt<0,2> palaces
     BInt<0,2> universities
+
 
     BoundedVector<Building, 18> buildings
    
@@ -40,7 +44,10 @@ cls Player:
         return self.workshops.value > 0 and self.can_pay_building( BuildingType::workshop)
     
     fun can_build_guild() -> Bool :
-        return self.guilds.value > 0 and self.workshops.value<9 and self.can_pay_building( BuildingType::guild)
+        return self.guilds.value > 0 and self.workshops.value < 9 and self.can_pay_building( BuildingType::guild)
+
+    fun can_build_school() -> Bool :
+        return self.schools.value > 0 and self.guilds.value < 4 and self.can_pay_building( BuildingType::school)
     
     fun build_workshop() -> Void :
         self.workshops = self.workshops - 1
@@ -53,13 +60,19 @@ cls Player:
         self.guilds = self.guilds - 1
         self.workshops = self.workshops + 1
         self.pay_building(BuildingType::guild)
+
+    fun build_school() -> Void :
+        self.schools = self.schools - 1
+        self.guilds = self.guilds + 1
+        self.pay_building(BuildingType::school)
         
 fun make_player() -> Player:
     let player : Player
     player.coins = 15
     player.tools = 3
     player.workshops = 9
-    player.guilds = 4    
+    player.guilds = 4
+    player.schools = 3
     return player
 
 fun pretty_print(Player player):
