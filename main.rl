@@ -18,6 +18,8 @@ act action_phase(ctx State state) -> ActionPhase:
                 state.get_current_player().build_school()
             act build_palace() {state.get_current_player().can_build_palace() }
                 state.get_current_player().build_palace()
+            act build_university() {state.get_current_player().can_build_university() }
+                state.get_current_player().build_university()
             act pass_turn()
                 return
 
@@ -125,3 +127,12 @@ fun test_game_build_palace()-> Bool:
     game.build_guild()
     game.build_palace()
     return game.state.players[0].palaces == 0 and game.state.players[0].guilds == 4
+
+fun test_game_build_university()-> Bool:
+    let game = play()
+    game.state.players[0].tools=10
+    game.state.players[0].coins=16
+    game.build_guild()
+    game.build_school()
+    game.build_university()
+    return game.state.players[0].universities == 0 and game.state.players[0].guilds == 4 and game.state.players[0].schools == 3

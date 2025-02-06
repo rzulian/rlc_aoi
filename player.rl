@@ -56,6 +56,9 @@ cls Player:
 
     fun can_build_palace() -> Bool :
         return self.palaces > 0 and self.guilds < NUM_GUILDS and self.can_pay_building( BuildingType::palace)
+
+    fun can_build_university() -> Bool :
+        return self.universities > 0 and self.schools < NUM_GUILDS and self.can_pay_building( BuildingType::university)
     
     fun build_workshop() -> Void :
         self.workshops = self.workshops - 1
@@ -78,6 +81,11 @@ cls Player:
         self.palaces = self.palaces - 1
         self.guilds = self.guilds + 1
         self.pay_building(BuildingType::palace)
+
+    fun build_university() -> Void :
+        self.universities = self.universities - 1
+        self.schools = self.schools + 1
+        self.pay_building(BuildingType::university)
         
 fun make_player() -> Player:
     let player : Player
