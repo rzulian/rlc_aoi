@@ -100,6 +100,20 @@ fun test_game_setup2()-> Bool:
 fun test_game_build_school()-> Bool:
     let game = play()
     game.build_guild()
-    print(game.state.players[0])
     game.build_school()
     return game.state.players[0].schools == 2 and game.state.players[0].guilds == 4
+
+fun test_game_schoolar_income()-> Bool:
+    let game = play()
+    game.build_guild()
+    game.build_school()
+    game.pass_turn()
+    return game.state.players[0].scholars_on_hand == 1 and game.state.players[0].scholars == 6
+
+fun test_game_schoolar_income_no_scholar()-> Bool:
+    let game = play()
+    game.state.players[0].scholars=0
+    game.build_guild()
+    game.build_school()
+    game.pass_turn()
+    return game.state.players[0].scholars_on_hand == 0 and game.state.players[0].scholars == 0

@@ -6,9 +6,9 @@ import serialization.print
 import building
 
 using BuildingArgType = BInt<0, 18>
-# using NUM_WORKSHOPS = 9
-# using NUM_GUILDS = 4
-# using NUM_SCHOOLS = 3
+const NUM_WORKSHOPS = 9
+const NUM_GUILDS = 4
+const NUM_SCHOOLS = 3
 
 cls Player:
     BInt<0,50> tools
@@ -18,7 +18,8 @@ cls Player:
     BInt<0,4> schools
     BInt<0,2> palaces
     BInt<0,2> universities
-
+    BInt<0,8> scholars
+    BInt<0,8> scholars_on_hand
 
     BoundedVector<Building, 18> buildings
    
@@ -30,8 +31,12 @@ cls Player:
     fun update_income() -> Void:
         let coin_income = [0,2,4,6,8]
         let tool_income = [1,2,3,4,5,5,6,7,8,9]
-        self.coins = self.coins + coin_income[ 4 - self.guilds.value]
-        self.tools = self.tools + tool_income[ 9 - self.workshops.value]
+
+        self.coins = self.coins + coin_income[ NUM_GUILDS - self.guilds.value]
+        self.tools = self.tools + tool_income[ NUM_WORKSHOPS - self.workshops.value]
+        let scholar_income = min( (NUM_SCHOOLS - self.schools.value) + (1- self.universities.value), self.scholars.value)
+        self.scholars_on_hand = self.scholars_on_hand + scholar_income
+        self.scholars = self.scholars - scholar_income
 
     fun can_pay_building(BuildingType building_type) -> Bool :
         return self.coins >= building_type.coin_cost() and self.tools >= building_type.tool_cost()
@@ -44,10 +49,10 @@ cls Player:
         return self.workshops.value > 0 and self.can_pay_building( BuildingType::workshop)
     
     fun can_build_guild() -> Bool :
-        return self.guilds.value > 0 and self.workshops.value < 9 and self.can_pay_building( BuildingType::guild)
+        return self.guilds.value > 0 and self.workshops.value < NUM_WORKSHOPS and self.can_pay_building( BuildingType::guild)
 
     fun can_build_school() -> Bool :
-        return self.schools.value > 0 and self.guilds.value < 4 and self.can_pay_building( BuildingType::school)
+        return self.schools.value > 0 and self.guilds.value < NUM_GUILDS and self.can_pay_building( BuildingType::school)
     
     fun build_workshop() -> Void :
         self.workshops = self.workshops - 1
@@ -70,9 +75,13 @@ fun make_player() -> Player:
     let player : Player
     player.coins = 15
     player.tools = 3
-    player.workshops = 9
-    player.guilds = 4
-    player.schools = 3
+    player.scholars = 7
+    player.scholars_on_hand = 0
+    player.workshops = NUM_WORKSHOPS
+    player.guilds = NUM_GUILDS
+    player.schools = NUM_SCHOOLS
+    player.universities = 1
+    player.palaces = 1
     return player
 
 fun pretty_print(Player player):
