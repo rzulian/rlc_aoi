@@ -46,13 +46,16 @@ cls Player:
         self.tools = self.tools - building_type.tool_cost()
          
     fun can_build_workshop() -> Bool :
-        return self.workshops.value > 0 and self.can_pay_building( BuildingType::workshop)
+        return self.workshops > 0 and self.can_pay_building( BuildingType::workshop)
     
     fun can_build_guild() -> Bool :
-        return self.guilds.value > 0 and self.workshops.value < NUM_WORKSHOPS and self.can_pay_building( BuildingType::guild)
+        return self.guilds > 0 and self.workshops < NUM_WORKSHOPS and self.can_pay_building( BuildingType::guild)
 
     fun can_build_school() -> Bool :
-        return self.schools.value > 0 and self.guilds.value < NUM_GUILDS and self.can_pay_building( BuildingType::school)
+        return self.schools > 0 and self.guilds < NUM_GUILDS and self.can_pay_building( BuildingType::school)
+
+    fun can_build_palace() -> Bool :
+        return self.palaces > 0 and self.guilds < NUM_GUILDS and self.can_pay_building( BuildingType::palace)
     
     fun build_workshop() -> Void :
         self.workshops = self.workshops - 1
@@ -70,6 +73,11 @@ cls Player:
         self.schools = self.schools - 1
         self.guilds = self.guilds + 1
         self.pay_building(BuildingType::school)
+    
+    fun build_palace() -> Void :
+        self.palaces = self.palaces - 1
+        self.guilds = self.guilds + 1
+        self.pay_building(BuildingType::palace)
         
 fun make_player() -> Player:
     let player : Player
@@ -86,8 +94,6 @@ fun make_player() -> Player:
 
 fun pretty_print(Player player):
     print(player.coins.value)
-
-
 
 fun test_player_coin_income() -> Bool:
     let player = make_player()

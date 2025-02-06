@@ -28,7 +28,10 @@ cls State:
             self.players.append(player)
 
         self.current_player = 0
-
+    
+    fun get_current_player() -> ref Player:
+        return self.players[self.current_player.value]
+    
     fun new_phase():  
         if self.phase == 2:
             self.is_done = true

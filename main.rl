@@ -10,12 +10,14 @@ import machine_learning
 act action_phase(ctx State state) -> ActionPhase:
     while true:
         actions:
-            act build_workshop() {state.players[state.current_player.value].can_build_workshop() }
-                state.players[state.current_player.value].build_workshop()
-            act build_guild() {state.players[state.current_player.value].can_build_guild() }
-                state.players[state.current_player.value].build_guild()
-            act build_school() {state.players[state.current_player.value].can_build_school() }
-                state.players[state.current_player.value].build_school()
+            act build_workshop() {state.get_current_player().can_build_workshop() }
+                state.get_current_player().build_workshop()
+            act build_guild() {state.get_current_player().can_build_guild() }
+                state.get_current_player().build_guild()
+            act build_school() {state.get_current_player().can_build_school() }
+                state.get_current_player().build_school()
+            act build_palace() {state.get_current_player().can_build_palace() }
+                state.get_current_player().build_palace()
             act pass_turn()
                 return
 
@@ -117,3 +119,9 @@ fun test_game_schoolar_income_no_scholar()-> Bool:
     game.build_school()
     game.pass_turn()
     return game.state.players[0].scholars_on_hand == 0 and game.state.players[0].scholars == 0
+
+fun test_game_build_palace()-> Bool:
+    let game = play()
+    game.build_guild()
+    game.build_palace()
+    return game.state.players[0].palaces == 0 and game.state.players[0].guilds == 4
