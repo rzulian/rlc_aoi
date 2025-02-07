@@ -33,14 +33,12 @@ cls State:
         return self.players[self.current_player.value]
     
     fun new_phase():  
+        for player in self.players:
+            player.update_income()
         if self.phase == 2:
             self.is_done = true
         else:
             self.phase = self.phase + 1
-            # print("PHASE=>"s + to_string(self.phase))
-            # income
-            for player in self.players:
-                player.update_income()
         return
 
 

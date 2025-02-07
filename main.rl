@@ -84,7 +84,7 @@ fun fuzz(Vector<Byte> input):
         #print(state)
         #return
 
-        print(executable.get(num_action % executable.size()))
+        #print(executable.get(num_action % executable.size()))
         apply(executable.get(num_action % executable.size()), state)
 
 fun test_game_setup()-> Bool:
@@ -94,11 +94,12 @@ fun test_game_setup()-> Bool:
     return player.workshops == 6
 
 
-fun test_game_setup2()-> Bool:
+fun test_game_build_guild()-> Bool:
     let game = play()
     ref player = game.state.players[0]
     game.build_guild()
-    return player.guilds == 3
+    game.pass_turn()
+    return player.guilds == 3 and player.powers[0] == 4
  
 fun test_game_build_school()-> Bool:
     let game = play()

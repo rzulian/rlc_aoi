@@ -13,6 +13,7 @@ const NUM_SCHOOLS = 3
 cls Player:
     BInt<0,50> tools
     BInt<0,50> coins
+    BInt<0,14>[3] powers
     BInt<0,10> workshops
     BInt<0,5> guilds
     BInt<0,4> schools
@@ -44,6 +45,7 @@ cls Player:
 
         self.coins = self.coins + coin_income
         self.tools = self.tools + tool_income
+        self.gain_power(power_income)
         self.scholars_on_hand = self.scholars_on_hand + scholar_income
         self.scholars = self.scholars - scholar_income
         
@@ -53,6 +55,14 @@ cls Player:
         self.last_phase_URP = float(power_income) * 0.5 + float(coin_income) * 1.0 + float(tool_income) * 3.0 + float(scholar_income) * 3.75 + URP_competency_tile + URP_palace_tile
         self.URP = self.URP + self.last_phase_URP
 
+    fun gain_power(Int power):
+        let to_bowl2 = min( power, self.powers[0].value )
+        self.powers[0] = self.powers[0] - to_bowl2
+        self.powers[1] = self.powers[1] + to_bowl2
+        power = power - to_bowl2
+        let to_bowl3 = min( power, self.powers[1].value )
+        self.powers[1] = self.powers[1] - to_bowl3
+        self.powers[2] = self.powers[2] + to_bowl3
 
     fun can_pay_building(BuildingType building_type) -> Bool :
         return self.coins >= building_type.coin_cost() and self.tools >= building_type.tool_cost()
@@ -109,6 +119,10 @@ fun make_player() -> Player:
     let player : Player
     player.coins = 15
     player.tools = 3
+    player.powers[0] = 5
+    player.powers[1] = 7
+    player.powers[2] = 0
+    
     player.scholars = 7
     player.scholars_on_hand = 0
     player.workshops = NUM_WORKSHOPS
@@ -136,5 +150,16 @@ fun test_player_tool_income() -> Bool:
     player.update_income()
     return player.tools == 4
 
-
+fun test_gain_power() -> Bool:
+    let player = make_player()
+    player.gain_power(3)
+    assert( player.powers[0] == 2 and player.powers[1] == 10 and player.powers[2] == 0, "gain power bowl1->2")
+    player.gain_power(2)
+    assert( player.powers[0] == 0 and player.powers[1] == 12 and player.powers[2] == 0, "gain additional power bowl1-2 ")
+    player.gain_power(5)
+    assert( player.powers[0] == 0 and player.powers[1] == 7 and player.powers[2] == 5, "gain power bowl2->3")
+    player.gain_power(10)
+    assert( player.powers[0] == 0 and player.powers[1] == 0 and player.powers[2] == 12 , "gain more power than available")
+    
+    return true
 
