@@ -24,15 +24,26 @@ act action_phase(ctx State state) -> ActionPhase:
                 state.get_current_player().convert_scholars_to_tools( num_scholars.value )
             act convert_tools_to_coins(BInt<1, 20> num_tools) {state.get_current_player().tools.value >= num_tools.value}
                 state.get_current_player().convert_tools_to_coins( num_tools.value )
+            
             act convert_power_to_coins(BInt<1, 20> num_power) {state.get_current_player().powers[2].value >= num_power.value}
-                state.get_current_player().convert_power_to_coins( num_power.value )
+                state.get_current_player().convert_power_to_coins( num_power.value , num_power.value )
             act convert_3power_to_tool() {state.get_current_player().powers[2].value >= 3}
-                state.get_current_player().convert_3power_to_tool( )
+                state.get_current_player().convert_power_to_tools( 3 , 1)
             act convert_5power_to_scholar() {state.get_current_player().powers[2].value >= 5}
-                state.get_current_player().convert_5power_to_scholar( )
+                state.get_current_player().convert_power_to_scholars( 5 , 1)
 
-            act sacrifice_power(BInt<0, 20> num_power) {state.get_current_player().powers[1].value >= num_power.value*2}
+            act sacrifice_power(BInt<1, 20> num_power) {state.get_current_player().powers[1].value >= num_power.value*2}
                 state.get_current_player().sacrifice_power( num_power.value )
+
+            act power_action_7coins(){state.power_action_7coins, state.get_current_player().powers[2].value >= 4 }
+                state.power_action_7coins = false
+                state.get_current_player().convert_power_to_coins( 4, 7 )
+            act power_action_2tools(){ state.power_action_2tools, state.get_current_player().powers[2].value >= 4 }
+                state.power_action_2tools = false
+                state.get_current_player().convert_power_to_tools( 4, 2 )
+            act power_action_scholar(){ state.power_action_scholar, state.get_current_player().powers[2].value >= 3 }
+                state.power_action_scholar = false
+                state.get_current_player().convert_power_to_scholars( 3, 1 )
             act pass_turn()
                 return
 
@@ -158,4 +169,32 @@ fun test_game_build_university()-> Bool:
     game.build_university()
     let second_competency_tile = player.competency_tiles.value == 2
     return player.universities == 0 and player.guilds == 4 and player.schools == 3 and first_competency_tile and second_competency_tile
+
+
+fun test_game_power_actions()-> Bool:
+    let game = play()
+    ref player = game.state.players[0]
+
+    player.tools=0
+    player.coins=0
+    player.scholars_on_hand=0
+    player.powers[0]=0
+    player.powers[1]=0
+    player.powers[2]=12
+    game.power_action_7coins()
+    assert (player.coins == 7 and player.powers[2]==8 and player.powers[0]==4, "power action 7 coins")
+    game.power_action_2tools()
+    assert (player.tools == 2 and player.powers[2]==4 and player.powers[0]==8, "power action 2 tools")
+    game.power_action_scholar()
+    assert (player.scholars_on_hand == 1 and  player.scholars == 6 and player.powers[2]==1 and player.powers[0]==11, "power action 1 scholar")
+    return true
+
+fun test_URP()-> Bool:
+    let game = play()
+    ref player = game.state.players[0]
+    game.pass_turn()
+    game.pass_turn()
+    
+    return player.score(2) == 63.0
+
 

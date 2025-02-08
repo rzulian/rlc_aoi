@@ -8,17 +8,23 @@ import range
 
 using PlayerID = BInt<0, 5>
 
+
+
 cls State:
     Board board
     BoundedVector<Player, 4> players
     PlayerID current_player
     BInt<0, 8> phase
     Bool is_done
+    Bool power_action_scholar
+    Bool power_action_2tools
+    Bool power_action_7coins
 
     fun setup_game():
         self.board = make_board()
         self.phase = 0
         self.is_done = false
+
 
         # setup players
         for i in range(1):
@@ -35,6 +41,11 @@ cls State:
     fun new_phase():  
         for player in self.players:
             player.update_income()
+
+        self.power_action_2tools = true
+        self.power_action_7coins = true
+        self.power_action_scholar= true
+
         if self.phase == 2:
             self.is_done = true
         else:

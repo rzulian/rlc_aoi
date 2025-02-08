@@ -30,6 +30,10 @@ cls Player:
     fun score(Int current_phase) -> Float:
         let score = 0.0
         # virtual income for remaining phases
+        # print("PHASE=>"s + to_string(current_phase))
+        # print(self)
+
+        # phase 0 is setup, 6 phases to complete the game
         score = self.URP + self.last_phase_URP * float( 6 - current_phase )
         return score
 
@@ -134,17 +138,17 @@ cls Player:
         self.tools = self.tools - num_tools
         self.coins = self.coins + num_tools
 
-    fun convert_power_to_coins( Int num_power) -> Void :
+    fun convert_power_to_coins( Int num_power, Int num_coins) -> Void :
         self.use_power( num_power )
-        self.coins = self.coins + num_power
+        self.coins = self.coins + num_coins
 
-    fun convert_3power_to_tool() -> Void :
-        self.use_power( 3)
-        self.tools = self.tools + 1
+    fun convert_power_to_tools(Int num_power, Int num_tools) -> Void :
+        self.use_power( num_power )
+        self.tools = self.tools + num_tools
 
-    fun convert_5power_to_scholar( ) -> Void :
-        self.use_power( 5 )
-        self.gain_scholar( 1 )
+    fun convert_power_to_scholars( Int num_power, Int num_scholars) -> Void :
+        self.use_power( num_power )
+        self.gain_scholar( num_scholars )
 
 
 fun make_player() -> Player:
@@ -201,9 +205,9 @@ fun test_convert_power() -> Bool:
     player.powers[2] = 0
     player.sacrifice_power(6)
     assert( player.powers[0] == 0 and player.powers[1] == 1 and player.powers[2] == 6, "sacrifice")
-    player.convert_5power_to_scholar()
+    player.convert_power_to_scholars(5,1)
     assert( player.powers[0] == 5 and player.powers[1] == 1 and player.powers[2] == 1 and player.scholars == 6 and player.scholars_on_hand == 1, "5power scholar")
-    player.convert_power_to_coins(1)
+    player.convert_power_to_coins(1, 1)
     assert( player.powers[0] == 6 and player.powers[1] == 1 and player.powers[2] == 0 and player.coins == 16 , "power to coin")
    
     return true
