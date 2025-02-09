@@ -46,7 +46,7 @@ cls State:
         self.power_action_7coins = true
         self.power_action_scholar= true
 
-        if self.phase == 2:
+        if self.phase == 3:
             self.is_done = true
         else:
             self.phase = self.phase + 1

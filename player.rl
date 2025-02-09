@@ -2,6 +2,7 @@ import collections.vector
 import bounded_arg
 import range
 import serialization.print
+import math.numeric
 
 import building
 
@@ -9,6 +10,7 @@ using BuildingArgType = BInt<0, 18>
 const NUM_WORKSHOPS = 9
 const NUM_GUILDS = 4
 const NUM_SCHOOLS = 3
+const URP_SPADES = 3.75
 
 cls Player:
     BInt<0,50> tools
@@ -72,12 +74,18 @@ cls Player:
         self.powers[2] = self.powers[2] + to_bowl3
 
     fun use_power(Int power):
-        self.powers[2] = self.powers[2] - power
+        let power_bowl2 = min( power, self.powers[2].value )
+        let power_bowl1 = (power - power_bowl2) * 2
+        self.powers[2] = self.powers[2] - power_bowl2
+        self.powers[1] = self.powers[1] - power_bowl1
         self.powers[0] = self.powers[0] + power
 
     fun sacrifice_power(Int power):
         self.powers[1] = self.powers[1] - 2*power
         self.powers[2] = self.powers[2] + power
+
+    fun has_power(Int power) -> Bool:
+        return self.powers[2] + self.powers[1].value / 2  >= power
 
     fun can_pay_building(BuildingType building_type) -> Bool :
         return self.coins >= building_type.coin_cost() and self.tools >= building_type.tool_cost()
@@ -102,8 +110,10 @@ cls Player:
         return self.universities > 0 and self.schools < NUM_SCHOOLS and self.can_pay_building( BuildingType::university)
     
     fun build_workshop() -> Void :
+        #consider spade costs
         self.workshops = self.workshops - 1
         self.pay_building(BuildingType::workshop)
+        self.URP = self.URP - URP_SPADES
 
     fun build_free_workshop() -> Void :
         self.workshops = self.workshops - 1
@@ -155,8 +165,8 @@ fun make_player() -> Player:
     let player : Player
     player.coins = 15
     player.tools = 3
-    player.powers[0] = 5
-    player.powers[1] = 7
+    player.powers[0] = 4
+    player.powers[1] = 8
     player.powers[2] = 0
     
     player.scholars = 7
@@ -188,6 +198,9 @@ fun test_player_tool_income() -> Bool:
 
 fun test_gain_power() -> Bool:
     let player = make_player()
+    player.powers[0] = 5
+    player.powers[1] = 7
+    
     player.gain_power(3)
     assert( player.powers[0] == 2 and player.powers[1] == 10 and player.powers[2] == 0, "gain power bowl1->2")
     player.gain_power(2)
