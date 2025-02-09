@@ -26,6 +26,7 @@ cls Player:
     BInt<0,10> competency_tiles
     BInt<0,6> cities
     BInt<0,6> spades
+    BInt<0,4> terraformig_track_level
     Float URP
     Float last_phase_URP
 
@@ -40,6 +41,17 @@ cls Player:
         # phase 0 is setup, 6 phases to complete the game
         score = self.URP + self.last_phase_URP * float( 6 - current_phase )
         return score
+
+    fun num_buildings() -> Int:
+        let workshops_built = NUM_WORKSHOPS - self.workshops.value
+        let guilds_built = NUM_GUILDS - self.guilds.value
+        let schools_built = NUM_SCHOOLS - self.schools.value
+        let palaces_built = 1 - self.palaces.value
+        let universities_built = 1 - self.universities.value
+
+        #one workshop is not in the first cluster
+        return workshops_built-1 + guilds_built + schools_built + palaces_built + universities_built
+
 
     fun update_income() -> Void:
         let tool_income_by_workshops = [1,2,3,4,5,5,6,7,8,9]
@@ -119,9 +131,13 @@ cls Player:
     fun pay_building(BuildingType building_type) -> Void :
         self.coins = self.coins - building_type.coin_cost()
         self.tools = self.tools - building_type.tool_cost()
+
+    fun spades_needed() -> Int:
+        let cluster_spades = [0,1,1,2,2,3,3]
+        return cluster_spades[self.num_buildings()]      
          
     fun can_build_workshop() -> Bool :
-        return self.workshops > 0 and self.can_pay_building( BuildingType::workshop)
+        return self.workshops > 0 and self.can_pay_building( BuildingType::workshop) and self.spades >= self.spades_needed()
     
     fun can_build_guild() -> Bool :
         return self.guilds > 0 and self.workshops < NUM_WORKSHOPS and self.can_pay_building( BuildingType::guild)
@@ -136,10 +152,10 @@ cls Player:
         return self.universities > 0 and self.schools < NUM_SCHOOLS and self.can_pay_building( BuildingType::university)
     
     fun build_workshop() -> Void :
-        #consider spade costs
+        #considering spade costs
+        self.spades = self.spades - self.spades_needed()
         self.workshops = self.workshops - 1
         self.pay_building(BuildingType::workshop)
-        self.URP = self.URP - URP_SPADES
 
     fun build_free_workshop() -> Void :
         self.workshops = self.workshops - 1
@@ -174,6 +190,10 @@ cls Player:
         self.tools = self.tools - num_tools
         self.coins = self.coins + num_tools
 
+    fun convert_tools_to_spades( Int num_spades) -> Void :
+        self.tools = self.tools - num_spades * self.terraforming_cost()
+        self.spades = self.spades + num_spades
+
     fun convert_power_to_coins( Int num_power, Int num_coins) -> Void :
         self.use_power( num_power )
         self.coins = self.coins + num_coins
@@ -189,6 +209,10 @@ cls Player:
     fun convert_power_to_spades( Int num_power, Int num_spades) -> Void :
         self.use_power( num_power )
         self.spades = self.spades + num_spades
+
+    fun terraforming_cost() -> Int:
+        # track level 1 -> 3 tools
+        return 4 - self.terraformig_track_level.value
 
 fun make_player() -> Player:
     let player : Player
@@ -209,6 +233,8 @@ fun make_player() -> Player:
     player.URP = 0.0
     player.cities = 0
     player.spades = 0
+    player.terraformig_track_level = 1 
+
     return player
 
 fun pretty_print(Player player):
@@ -216,16 +242,16 @@ fun pretty_print(Player player):
 
 fun test_player_coin_income() -> Bool:
     let player = make_player()
-    player.build_workshop()
+    player.build_free_workshop()
     player.build_guild()
     player.update_income()
-    return player.coins == 12
+    return player.coins == 14
 
 fun test_player_tool_income() -> Bool:
     let player = make_player()
-    player.build_workshop()
+    player.build_free_workshop()
     player.update_income()
-    return player.tools == 4
+    return player.tools == 5
 
 fun test_gain_power() -> Bool:
     let player = make_player()

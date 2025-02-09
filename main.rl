@@ -25,6 +25,9 @@ act action_phase(ctx State state) -> ActionPhase:
                 state.get_current_player().convert_scholars_to_tools( num_scholars.value )
             act convert_tools_to_coins(BInt<1, 20> num_tools) {state.get_current_player().tools.value >= num_tools.value}
                 state.get_current_player().convert_tools_to_coins( num_tools.value )
+
+            act convert_tools_to_spades(BInt<1, 4> num_spades) {state.get_current_player().tools.value >= num_spades.value * state.get_current_player().terraforming_cost() }
+                state.get_current_player().convert_tools_to_spades( num_spades.value )
             
             act convert_power_to_coins(BInt<1, 20> num_power) {state.get_current_player().has_power(num_power.value) }
                 state.get_current_player().convert_power_to_coins( num_power.value , num_power.value )
@@ -121,9 +124,14 @@ fun fuzz(Vector<Byte> input):
 fun test_game_setup()-> Bool:
     let game = play()
     ref player = game.state.players[0]
+    return player.workshops == 7
+
+fun test_game_build_workshop()-> Bool:
+    let game = play()
+    ref player = game.state.players[0]
+    player.spades = 1
     game.build_workshop()
     return player.workshops == 6
-
 
 fun test_game_build_guild()-> Bool:
     # check also power income
