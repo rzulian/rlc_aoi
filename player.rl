@@ -24,6 +24,7 @@ cls Player:
     BInt<0,8> scholars
     BInt<0,8> scholars_on_hand
     BInt<0,10> competency_tiles
+    BInt<0,6> cities
     Float URP
     Float last_phase_URP
 
@@ -44,18 +45,42 @@ cls Player:
         let coin_income_by_guilds = [0,2,4,6,8]
         let power_income_by_guilds = [0,1,2,4,6]
 
-        let tool_income = tool_income_by_workshops[ NUM_WORKSHOPS - self.workshops.value]
-        let coin_income = coin_income_by_guilds[ NUM_GUILDS - self.guilds.value]
-        let power_income = power_income_by_guilds[ NUM_GUILDS - self.guilds.value]
-        let scholar_income = min( (NUM_SCHOOLS - self.schools.value) + (1- self.universities.value), self.scholars.value)
+        let workshops_built = NUM_WORKSHOPS - self.workshops.value
+        let guilds_built = NUM_GUILDS - self.guilds.value
+        let schools_built = NUM_SCHOOLS - self.schools.value
+        let palaces_built = 1 - self.palaces.value
+        let universities_built = 1 - self.universities.value
+
+        #one workshop is not in the first cluster
+        let num_buildings = workshops_built + guilds_built + schools_built + palaces_built + universities_built
+        let num_buildings_cluster1 = num_buildings - 1
+        let power_buildings = workshops_built *BuildingType::workshop.power() + guilds_built*BuildingType::guild.power() + schools_built*BuildingType::school.power()+ palaces_built*BuildingType::palace.power() + universities_built*BuildingType::university.power()
+        let power_buildings_cluster1 = power_buildings - BuildingType::workshop.power()
+        let has_one_city = power_buildings_cluster1 >= 7 and ( num_buildings_cluster1>= 4 or (num_buildings_cluster1==3 and universities_built==1)) 
+        let has_two_cities = power_buildings  >= 14 and ( num_buildings>= 8 or (num_buildings>=7 and universities_built==1))
+        let cities = 0
+        if has_one_city:
+            cities = 1
+        if has_two_cities:
+            cities = 2 
+
+        let tool_income = tool_income_by_workshops[ workshops_built ]
+        let coin_income = coin_income_by_guilds[ guilds_built ]
+        let power_income = power_income_by_guilds[ guilds_built ]
+        let scholar_income = min( (schools_built) + (universities_built), self.scholars.value)
 
         self.coins = self.coins + coin_income
         self.tools = self.tools + tool_income
         self.gain_power(power_income)
         self.gain_scholar(scholar_income)
+
         
         let URP_competency_tile = float(self.competency_tiles.value) * 25.0 / 5.0
-        let URP_palace_tile = float( 1 - self.palaces.value ) * 40.0 / 5.0
+        let URP_palace_tile = float( palaces_built ) * 40.0 / 5.0
+
+        # add city URp only for new founded cities
+        self.URP = self.URP + float(cities - self.cities.value) * 13.0
+        self.cities = cities
 
         self.last_phase_URP = float(power_income) * 0.5 + float(coin_income) * 1.0 + float(tool_income) * 3.0 + float(scholar_income) * 3.75 + URP_competency_tile + URP_palace_tile
         self.URP = self.URP + self.last_phase_URP
@@ -160,7 +185,6 @@ cls Player:
         self.use_power( num_power )
         self.gain_scholar( num_scholars )
 
-
 fun make_player() -> Player:
     let player : Player
     player.coins = 15
@@ -224,3 +248,33 @@ fun test_convert_power() -> Bool:
     assert( player.powers[0] == 6 and player.powers[1] == 1 and player.powers[2] == 0 and player.coins == 16 , "power to coin")
    
     return true
+
+fun test_city_palace() -> Bool:
+    let player = make_player()
+    player.coins = 20
+    player.tools = 20
+    player.build_free_workshop()
+    player.build_free_workshop()
+    player.build_workshop()
+    player.build_workshop()
+    player.build_workshop()
+    player.build_guild()
+    player.build_guild()
+    player.build_palace()
+    player.update_income()
+    return player.cities == 1
+
+fun test_city_university() -> Bool:
+    let player = make_player()
+    player.coins = 20
+    player.tools = 20
+    player.build_free_workshop()
+    player.build_free_workshop()
+    player.build_workshop()
+    player.build_workshop()
+    player.build_guild()
+    player.build_guild()
+    player.build_guild()
+    player.build_university()
+    player.update_income()
+    return player.cities == 1

@@ -5,18 +5,23 @@ enum BuildingType:
     workshop:
         Int tool_cost = 1
         Int coin_cost = 2
+        Int power = 1
     guild:
         Int tool_cost = 2
         Int coin_cost = 3
+        Int power = 2
     palace:
         Int tool_cost = 4
         Int coin_cost = 6
+        Int power = 3
     school:
         Int tool_cost = 3
         Int coin_cost = 5
+        Int power = 2
     university:
         Int tool_cost = 5
         Int coin_cost = 8
+        Int power = 3
 
     fun equal(BuildingType other) -> Bool:
         return self.value == other.value
