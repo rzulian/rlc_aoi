@@ -20,7 +20,7 @@ act action_phase(ctx State state) -> ActionPhase:
                 state.get_current_player().build_palace()
             act build_university() {state.get_current_player().can_build_university() }
                 state.get_current_player().build_university()
-                
+
             act convert_scholars_to_tools(BInt<1, 20> num_scholars) {state.get_current_player().scholars_on_hand.value >= num_scholars.value }
                 state.get_current_player().convert_scholars_to_tools( num_scholars.value )
             act convert_tools_to_coins(BInt<1, 20> num_tools) {state.get_current_player().tools.value >= num_tools.value}
@@ -45,6 +45,12 @@ act action_phase(ctx State state) -> ActionPhase:
             act power_action_scholar(){ state.power_action_scholar, state.get_current_player().has_power(3)  }
                 state.power_action_scholar = false
                 state.get_current_player().convert_power_to_scholars( 3, 1 )
+            act power_action_1spade(){ state.get_current_player().has_power(4)  }
+                state.power_action_1spade = false                
+                state.get_current_player().convert_power_to_spades( 4, 1 )
+            act power_action_2spades(){ state.get_current_player().has_power(6)  }
+                state.power_action_2spades = false                
+                state.get_current_player().convert_power_to_spades( 6, 2 )
             act pass_turn()
                 return
 
@@ -191,6 +197,23 @@ fun test_game_power_actions()-> Bool:
     game.power_action_scholar()
     assert (player.scholars_on_hand == 1 and  player.scholars == 6 and player.powers[2]==1 and player.powers[0]==11, "power action 1 scholar")
     return true
+
+fun test_game_power_action_spade()-> Bool:
+    let game = play()
+    ref player = game.state.players[0]
+
+    player.tools=0
+    player.coins=0
+    player.scholars_on_hand=0
+    player.powers[0]=0
+    player.powers[1]=0
+    player.powers[2]=12
+    game.power_action_2spades()
+    assert (player.spades == 2 and player.powers[2]==6 and player.powers[0]==6, "power action 2spades")
+    game.power_action_1spade()
+    assert (player.spades == 3 and player.powers[2]==2 and player.powers[0]==10, "power action 1spade")
+    return true
+
 
 fun test_URP()-> Bool:
     let game = play()

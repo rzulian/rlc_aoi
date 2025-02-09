@@ -19,6 +19,8 @@ cls State:
     Bool power_action_scholar
     Bool power_action_2tools
     Bool power_action_7coins
+    Bool power_action_1spade
+    Bool power_action_2spades
 
     fun setup_game():
         self.board = make_board()
@@ -45,6 +47,8 @@ cls State:
         self.power_action_2tools = true
         self.power_action_7coins = true
         self.power_action_scholar= true
+        self.power_action_1spade = true
+        self.power_action_2spades= true
 
         if self.phase == 3:
             self.is_done = true

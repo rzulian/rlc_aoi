@@ -25,6 +25,7 @@ cls Player:
     BInt<0,8> scholars_on_hand
     BInt<0,10> competency_tiles
     BInt<0,6> cities
+    BInt<0,6> spades
     Float URP
     Float last_phase_URP
 
@@ -185,6 +186,10 @@ cls Player:
         self.use_power( num_power )
         self.gain_scholar( num_scholars )
 
+    fun convert_power_to_spades( Int num_power, Int num_spades) -> Void :
+        self.use_power( num_power )
+        self.spades = self.spades + num_spades
+
 fun make_player() -> Player:
     let player : Player
     player.coins = 15
@@ -202,6 +207,8 @@ fun make_player() -> Player:
     player.palaces = 1
     player.competency_tiles = 0
     player.URP = 0.0
+    player.cities = 0
+    player.spades = 0
     return player
 
 fun pretty_print(Player player):
