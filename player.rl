@@ -50,7 +50,7 @@ cls Player:
         let universities_built = 1 - self.universities.value
 
         #one workshop is not in the first cluster
-        return workshops_built - 1 + guilds_built + schools_built + palaces_built + universities_built
+        return workshops_built + guilds_built + schools_built + palaces_built + universities_built - 1
 
     fun update_income() -> Void:
         let tool_income_by_workshops = [1,2,3,4,5,5,6,7,8,9]

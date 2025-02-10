@@ -132,12 +132,7 @@ fun test_game_build_workshop()-> Bool:
     player.powers[2]=12
     game.power_action_1spade()
     game.build_workshop()
-    game.build_guild()
-    print(player)
-    print(player.num_buildings())
-    print(player.spades_needed())
-    game.build_workshop()
-    return player.workshops == 6
+    return player.workshops == 6 and player.spades==0
 
 fun test_game_build_guild()-> Bool:
     # check also power income
