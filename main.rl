@@ -7,67 +7,73 @@ import state
 import none
 import machine_learning
 
-act action_phase(ctx State state) -> ActionPhase:
+fun do_move_steps_action(  State state,  Player player,  Int discipline_id,  Int num_steps) -> Void:
+    let starting_level =  player.discipline_level[discipline_id].value
+    let power = state.disciplines[discipline_id].power_from_track( starting_level, num_steps)
+    let new_level = state.disciplines[discipline_id].next_level( starting_level, num_steps)
+    player.gain_power( power )
+    player.discipline_level[discipline_id] = new_level
+
+act action_phase(ctx State state, ctx Player player) -> ActionPhase:
     while true:
         actions:
-            act build_workshop() {state.get_current_player().can_build_workshop() }
-                state.get_current_player().build_workshop()
-            act build_guild() {state.get_current_player().can_build_guild() }
-                state.get_current_player().build_guild()
-            act build_school() {state.get_current_player().can_build_school() }
-                state.get_current_player().build_school()
-            act build_palace() {state.get_current_player().can_build_palace() }
-                state.get_current_player().build_palace()
-            act build_university() {state.get_current_player().can_build_university() }
-                state.get_current_player().build_university()
+            act build_workshop() {player.can_build_workshop() }
+                player.build_workshop()
+            act build_guild() {player.can_build_guild() }
+                player.build_guild()
+            act build_school() {player.can_build_school() }
+                player.build_school()
+                act get_competency_tile(BInt<0,4> discipline_id , BInt<0,3> level){player.can_get_competency_tile( discipline_id.value, level.value) }
+                    player.get_competency_tile( discipline_id.value, level.value)
 
-            act convert_scholars_to_tools(BInt<1, 20> num_scholars) {state.get_current_player().scholars_on_hand.value >= num_scholars.value }
-                state.get_current_player().convert_scholars_to_tools( num_scholars.value )
-            act convert_tools_to_coins(BInt<1, 20> num_tools) {state.get_current_player().tools.value >= num_tools.value}
-                state.get_current_player().convert_tools_to_coins( num_tools.value )
+            act build_palace() {player.can_build_palace() }
+                player.build_palace()   
+            act build_university() {player.can_build_university() }
+                player.build_university()
+                act get_competency_tile(BInt<0,4> discipline_id , BInt<0,3> level){player.can_get_competency_tile( discipline_id.value, level.value) }
+                    player.get_competency_tile( discipline_id.value, level.value)
 
-            act convert_tools_to_spades(BInt<1, 4> num_spades) {state.get_current_player().tools.value >= num_spades.value * state.get_current_player().terraforming_cost() }
-                state.get_current_player().convert_tools_to_spades( num_spades.value )
+            act convert_scholars_to_tools(BInt<1, 20> num_scholars) {player.scholars_on_hand.value >= num_scholars.value }
+                player.convert_scholars_to_tools( num_scholars.value )
+            act convert_tools_to_coins(BInt<1, 20> num_tools) {player.tools.value >= num_tools.value}
+                player.convert_tools_to_coins( num_tools.value )
+
+            act convert_tools_to_spades(BInt<1, 4> num_spades) {player.tools.value >= num_spades.value * player.terraforming_cost() }
+                player.convert_tools_to_spades( num_spades.value )
             
-            act convert_power_to_coins(BInt<1, 20> num_power) {state.get_current_player().has_power(num_power.value) }
-                state.get_current_player().convert_power_to_coins( num_power.value , num_power.value )
-            act convert_3power_to_tool() {state.get_current_player().has_power(3) }
-                state.get_current_player().convert_power_to_tools( 3 , 1)
-            act convert_5power_to_scholar() {state.get_current_player().has_power(5) }
-                state.get_current_player().convert_power_to_scholars( 5 , 1)
+            act convert_power_to_coins(BInt<1, 20> num_power) {player.has_power(num_power.value) }
+                player.convert_power_to_coins( num_power.value , num_power.value )
+            act convert_3power_to_tool() {player.has_power(3) }
+                player.convert_power_to_tools( 3 , 1)
+            act convert_5power_to_scholar() {player.has_power(5) }
+                player.convert_power_to_scholars( 5 , 1)
 
-            act sacrifice_power(BInt<1, 20> num_power) {state.get_current_player().powers[1].value >= num_power.value*2}
-                state.get_current_player().sacrifice_power( num_power.value )
+            act sacrifice_power(BInt<1, 20> num_power) {player.powers[1].value >= num_power.value*2}
+                player.sacrifice_power( num_power.value )
 
-            act power_action_7coins(){state.power_action_7coins, state.get_current_player().has_power(4)  }
+            act power_action_7coins(){state.power_action_7coins, player.has_power(4)  }
                 state.power_action_7coins = false
-                state.get_current_player().convert_power_to_coins( 4, 7 )
-            act power_action_2tools(){ state.power_action_2tools, state.get_current_player().has_power(4)  }
+                player.convert_power_to_coins( 4, 7 )
+            act power_action_2tools(){ state.power_action_2tools, player.has_power(4)  }
                 state.power_action_2tools = false
-                state.get_current_player().convert_power_to_tools( 4, 2 )
-            act power_action_scholar(){ state.power_action_scholar, state.get_current_player().has_power(3)  }
+                player.convert_power_to_tools( 4, 2 )
+            act power_action_scholar(){ state.power_action_scholar, player.has_power(3)  }
                 state.power_action_scholar = false
-                state.get_current_player().convert_power_to_scholars( 3, 1 )
-            act power_action_1spade(){ state.get_current_player().has_power(4)  }
+                player.convert_power_to_scholars( 3, 1 )
+            act power_action_1spade(){ player.has_power(4)  }
                 state.power_action_1spade = false                
-                state.get_current_player().convert_power_to_spades( 4, 1 )
-            act power_action_2spades(){ state.get_current_player().has_power(6)  }
+                player.convert_power_to_spades( 4, 1 )
+            act power_action_2spades(){ player.has_power(6)  }
                 state.power_action_2spades = false                
-                state.get_current_player().convert_power_to_spades( 6, 2 )
+                player.convert_power_to_spades( 6, 2 )
 
-            act send_scholar(BInt<0,4> discipline_id ){state.get_current_player().scholars_on_hand.value > 0 and state.disciplines[discipline_id.value].first_space < 4 }
-                let result = state.disciplines[discipline_id.value].send_scholar(state.get_current_player().discipline_level[discipline_id.value].value )
-                state.get_current_player().discipline_level[discipline_id.value] = result[0]
-                state.get_current_player().scholars_on_hand = state.get_current_player().scholars_on_hand - 1 
-                state.get_current_player().gain_power(result[1])
+            act send_scholar(BInt<0,4> discipline_id ){player.scholars_on_hand.value > 0 and state.disciplines[discipline_id.value].can_send_scholar() }
+                let num_steps = state.disciplines[discipline_id.value].steps_for_send_scholar()
+                do_move_steps_action(state, player, discipline_id.value, num_steps)
+                state.disciplines[discipline_id.value].send_scholar()
 
-            act return_scholar(BInt<0,4> discipline_id ){state.get_current_player().scholars_on_hand.value > 0 }
-                let result = state.disciplines[discipline_id.value].return_scholar(state.get_current_player().discipline_level[discipline_id.value].value )
-                state.get_current_player().discipline_level[discipline_id.value] = result[0]
-                state.get_current_player().scholars_on_hand = state.get_current_player().scholars_on_hand - 1 
-                state.get_current_player().scholars = state.get_current_player().scholars + 1 
-                state.get_current_player().gain_power(result[1])
-                
+            act return_scholar(BInt<0,4> discipline_id ){player.scholars_on_hand.value > 0 }
+                do_move_steps_action(state, player, discipline_id.value, 1)
             act pass_turn()
                 return
 
@@ -82,7 +88,7 @@ act play() -> Game:
         
         state.current_player = 0
         while state.current_player < state.players.size():
-            subaction*(state) player_frame = action_phase(state)
+            subaction*(state) player_frame = action_phase(state , state.get_current_player())
             state.current_player = state.current_player + 1
         state.new_phase()
 
@@ -169,6 +175,11 @@ fun test_game_schoolar_income()-> Bool:
     ref player = game.state.players[0]
     game.build_guild()
     game.build_school()
+    let discipline_id : BInt<0,4>
+    let level : BInt<0,3>
+    discipline_id=1
+    level=2
+    game.get_competency_tile(discipline_id, level)
     game.pass_turn()
     return player.scholars_on_hand == 1 and player.scholars == 6
 
@@ -178,6 +189,11 @@ fun test_game_schoolar_income_no_scholar()-> Bool:
     game.state.players[0].scholars=0
     game.build_guild()
     game.build_school()
+    let discipline_id : BInt<0,4>
+    let level : BInt<0,3>
+    discipline_id=1
+    level=2
+    game.get_competency_tile(discipline_id, level)
     game.pass_turn()
     return player.scholars_on_hand == 0 and player.scholars == 0
 
@@ -192,15 +208,23 @@ fun test_game_build_palace()-> Bool:
 fun test_game_build_university()-> Bool:
     let game = play()
     ref player = game.state.players[0]
-
+    player.powers[0]=5
+    player.powers[1]=7
+    player.powers[2]=0
     player.tools=10
     player.coins=16
+    let discipline_id : BInt<0,4>
+    let level : BInt<0,3>
+    discipline_id=1
+    level=2
     game.build_guild()
     game.build_school()
-    let first_competency_tile = player.competency_tiles.value == 1
+    game.get_competency_tile(discipline_id, level)
+    assert( player.competency_tiles.value == 1 and player.powers[0].value == 2, "first competency tile")
     game.build_university()
-    let second_competency_tile = player.competency_tiles.value == 2
-    return player.universities == 0 and player.guilds == 4 and player.schools == 3 and first_competency_tile and second_competency_tile
+    game.get_competency_tile(discipline_id, level)
+    assert(player.universities == 0 and player.guilds == 4 and player.schools == 3 and player.competency_tiles.value == 2 and player.powers[0].value == 0 and player.powers[1].value == 11, "second competency tile")
+    return  true
 
 
 fun test_game_power_actions()-> Bool:

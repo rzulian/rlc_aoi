@@ -8,6 +8,7 @@ import action
 import board
 import player
 import discipline
+import competency
 
 using PlayerID = BInt<0, 5>
 
@@ -23,6 +24,7 @@ cls State:
     Bool power_action_1spade
     Bool power_action_2spades
     BoundedVector<DisciplineTrack, 4> disciplines
+    BoundedVector<CompetencyTile, 13> competency_tiles
 
 
     fun setup_game():
@@ -30,11 +32,11 @@ cls State:
         self.phase = 0
         self.is_done = false
 
-
-
         for dn in enumerate(DisciplineName::banking):
             let discipline = make_discipline_track(dn)
             self.disciplines.append(discipline)
+
+        self.competency_tiles = make_competency_tiles()
 
         # setup players
         for i in range(1):

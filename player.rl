@@ -11,6 +11,7 @@ const NUM_WORKSHOPS = 9
 const NUM_GUILDS = 4
 const NUM_SCHOOLS = 3
 const URP_SPADES = 3.75
+const URP_BOOKS = 3.50
 
 cls Player:
     BInt<0,50> tools
@@ -32,6 +33,7 @@ cls Player:
 
     BoundedVector<Building, 18> buildings
     BInt<0,14>[4] discipline_level
+    BInt<0,14>[4] books
    
     fun score(Int current_phase) -> Float:
         let score = 0.0
@@ -167,7 +169,6 @@ cls Player:
 
     fun build_school() -> Void :
         self.schools = self.schools - 1
-        self.competency_tiles = self.competency_tiles + 1 
         self.guilds = self.guilds + 1
         self.pay_building(BuildingType::school)
     
@@ -178,7 +179,6 @@ cls Player:
 
     fun build_university() -> Void :
         self.universities = self.universities - 1
-        self.competency_tiles = self.competency_tiles + 1 
         self.schools = self.schools + 1
         self.pay_building(BuildingType::university)
 
@@ -214,6 +214,19 @@ cls Player:
         # track level 1 -> 3 tools
         return 4 - self.terraformig_track_level.value
 
+    fun can_get_competency_tile( Int discipline_id, Int level) -> Bool:
+        #TODO check if player has already this competency tile
+        return true
+
+    fun get_competency_tile( Int discipline_id, Int level) -> Void:
+        #TODO add the correct competency tile
+        let num_steps = level + 1
+
+        self.competency_tiles = self.competency_tiles + 1
+        self.books[discipline_id] = self.books[discipline_id] + (2-level)
+
+
+
 fun make_player() -> Player:
     let player : Player
     player.coins = 15
@@ -236,6 +249,7 @@ fun make_player() -> Player:
     player.terraformig_track_level = 1 
     for i in range(4):
         player.discipline_level[i] = 0
+        player.books[i] = 0
     return player
 
 fun pretty_print(Player player):
