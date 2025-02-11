@@ -31,6 +31,7 @@ cls Player:
     Float last_phase_URP
 
     BoundedVector<Building, 18> buildings
+    BInt<0,14>[4] discipline_level
    
     fun score(Int current_phase) -> Float:
         let score = 0.0
@@ -50,7 +51,7 @@ cls Player:
         let universities_built = 1 - self.universities.value
 
         #one workshop is not in the first cluster
-        return workshops_built + guilds_built + schools_built + palaces_built + universities_built - 1
+        return workshops_built -1  + guilds_built + schools_built + palaces_built + universities_built
 
     fun update_income() -> Void:
         let tool_income_by_workshops = [1,2,3,4,5,5,6,7,8,9]
@@ -217,8 +218,8 @@ fun make_player() -> Player:
     let player : Player
     player.coins = 15
     player.tools = 3
-    player.powers[0] = 4
-    player.powers[1] = 8
+    player.powers[0] = 5
+    player.powers[1] = 7
     player.powers[2] = 0
     
     player.scholars = 7
@@ -233,7 +234,8 @@ fun make_player() -> Player:
     player.cities = 0
     player.spades = 0
     player.terraformig_track_level = 1 
-
+    for i in range(4):
+        player.discipline_level[i] = 0
     return player
 
 fun pretty_print(Player player):

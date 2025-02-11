@@ -54,6 +54,20 @@ act action_phase(ctx State state) -> ActionPhase:
             act power_action_2spades(){ state.get_current_player().has_power(6)  }
                 state.power_action_2spades = false                
                 state.get_current_player().convert_power_to_spades( 6, 2 )
+
+            act send_scholar(BInt<0,4> discipline_id ){state.get_current_player().scholars_on_hand.value > 0 and state.disciplines[discipline_id.value].first_space < 4 }
+                let result = state.disciplines[discipline_id.value].send_scholar(state.get_current_player().discipline_level[discipline_id.value].value )
+                state.get_current_player().discipline_level[discipline_id.value] = result[0]
+                state.get_current_player().scholars_on_hand = state.get_current_player().scholars_on_hand - 1 
+                state.get_current_player().gain_power(result[1])
+
+            act return_scholar(BInt<0,4> discipline_id ){state.get_current_player().scholars_on_hand.value > 0 }
+                let result = state.disciplines[discipline_id.value].return_scholar(state.get_current_player().discipline_level[discipline_id.value].value )
+                state.get_current_player().discipline_level[discipline_id.value] = result[0]
+                state.get_current_player().scholars_on_hand = state.get_current_player().scholars_on_hand - 1 
+                state.get_current_player().scholars = state.get_current_player().scholars + 1 
+                state.get_current_player().gain_power(result[1])
+                
             act pass_turn()
                 return
 
@@ -232,4 +246,30 @@ fun test_URP()-> Bool:
     
     return player.score(2) == 63.0
 
+fun test_game_send_scholar()-> Bool:
+    let game = play()
+    ref player = game.state.players[0]
+    player.powers[0]=4
+    player.powers[1]=8
+    player.powers[2]=0
+    player.scholars_on_hand = 2
+    let discipline_id : BInt<0,4>
+    discipline_id = 1 
+    game.send_scholar( discipline_id)
+    assert ( game.state.disciplines[discipline_id.value].first_space == 1 and player.discipline_level[discipline_id.value] == 3 and player.powers[0] == 3 and player.scholars_on_hand == 1 , "send 1 scholar")
+    game.send_scholar( discipline_id)
+    assert ( game.state.disciplines[discipline_id.value].first_space == 2 and player.discipline_level[discipline_id.value] == 5 and player.powers[0] == 1 and player.scholars_on_hand == 0 , "send 2 scholar")
+    return true
 
+fun test_game_return_scholar()-> Bool:
+    let game = play()
+    ref player = game.state.players[0]
+    player.powers[0]=4
+    player.powers[1]=8
+    player.powers[2]=0
+    player.scholars_on_hand = 2
+    let discipline_id : BInt<0,4>
+    discipline_id = 1 
+    game.return_scholar( discipline_id)
+    assert ( game.state.disciplines[discipline_id.value].first_space == 0 and player.discipline_level[discipline_id.value] == 1 and player.powers[0] == 4 and player.scholars_on_hand == 1 , "return 1 scholar")
+    return true

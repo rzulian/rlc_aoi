@@ -2,13 +2,14 @@ import collections.vector
 import serialization.to_byte_vector
 import serialization.print
 import math.numeric
+import range
+import action
+
 import board
 import player
-import range
+import discipline
 
 using PlayerID = BInt<0, 5>
-
-
 
 cls State:
     Board board
@@ -21,12 +22,19 @@ cls State:
     Bool power_action_7coins
     Bool power_action_1spade
     Bool power_action_2spades
+    BoundedVector<DisciplineTrack, 4> disciplines
+
 
     fun setup_game():
         self.board = make_board()
         self.phase = 0
         self.is_done = false
 
+
+
+        for dn in enumerate(DisciplineName::banking):
+            let discipline = make_discipline_track(dn)
+            self.disciplines.append(discipline)
 
         # setup players
         for i in range(1):
@@ -60,5 +68,6 @@ cls State:
     fun pretty_print_state():
         let to_print : String
         let player_id = 0 
+        print(self)
         print(self.players)
         print('\n')

@@ -4,3 +4,4 @@ game.log
 log.txt
 network
 OUTPUT
+test_cuda.py
