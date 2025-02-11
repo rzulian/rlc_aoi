@@ -12,6 +12,7 @@ const NUM_GUILDS = 4
 const NUM_SCHOOLS = 3
 const URP_SPADES = 3.75
 const URP_BOOKS = 3.50
+const URP_SCIENCE_STEP = 2.29
 
 cls Player:
     BInt<0,50> tools
@@ -220,10 +221,10 @@ cls Player:
 
     fun get_competency_tile( Int discipline_id, Int level) -> Void:
         #TODO add the correct competency tile
-        let num_steps = level + 1
 
         self.competency_tiles = self.competency_tiles + 1
         self.books[discipline_id] = self.books[discipline_id] + (2-level)
+        self.URP = self.URP + float(2*level)*URP_BOOKS
 
 
 
