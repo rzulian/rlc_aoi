@@ -10,6 +10,8 @@ using BuildingArgType = BInt<0, 18>
 const NUM_WORKSHOPS = 9
 const NUM_GUILDS = 4
 const NUM_SCHOOLS = 3
+const NUM_PALACES = 1
+const NUM_UNIVERSITIES = 1
 const URP_SPADES = 3.75
 const URP_BOOKS = 3.50
 const URP_SCIENCE_STEP = 2.29
@@ -47,43 +49,31 @@ cls Player:
         return score
 
     fun num_buildings() -> Int:
-        let workshops_built = NUM_WORKSHOPS - self.workshops.value
-        let guilds_built = NUM_GUILDS - self.guilds.value
-        let schools_built = NUM_SCHOOLS - self.schools.value
-        let palaces_built = 1 - self.palaces.value
-        let universities_built = 1 - self.universities.value
-
         #one workshop is not in the first cluster
-        return workshops_built -1  + guilds_built + schools_built + palaces_built + universities_built
+        return self.workshops.value + self.guilds.value + self.schools.value + self.palaces.value + self.universities.value - 1 
 
     fun update_income() -> Void:
         let tool_income_by_workshops = [1,2,3,4,5,5,6,7,8,9]
         let coin_income_by_guilds = [0,2,4,6,8]
         let power_income_by_guilds = [0,1,2,4,6]
 
-        let workshops_built = NUM_WORKSHOPS - self.workshops.value
-        let guilds_built = NUM_GUILDS - self.guilds.value
-        let schools_built = NUM_SCHOOLS - self.schools.value
-        let palaces_built = 1 - self.palaces.value
-        let universities_built = 1 - self.universities.value
-
         #one workshop is not in the first cluster
-        let num_buildings = workshops_built + guilds_built + schools_built + palaces_built + universities_built
-        let num_buildings_cluster1 = num_buildings - 1
-        let power_buildings = workshops_built *BuildingType::workshop.power() + guilds_built*BuildingType::guild.power() + schools_built*BuildingType::school.power()+ palaces_built*BuildingType::palace.power() + universities_built*BuildingType::university.power()
+     
+        let num_buildings_cluster1 = self.num_buildings()
+        let power_buildings = self.workshops.value *BuildingType::workshop.power() + self.guilds.value*BuildingType::guild.power() + self.schools.value*BuildingType::school.power()+ self.palaces.value*BuildingType::palace.power() + self.universities.value*BuildingType::university.power()
         let power_buildings_cluster1 = power_buildings - BuildingType::workshop.power()
-        let has_one_city = power_buildings_cluster1 >= 7 and ( num_buildings_cluster1>= 4 or (num_buildings_cluster1==3 and universities_built==1)) 
-        let has_two_cities = power_buildings  >= 14 and ( num_buildings>= 8 or (num_buildings>=7 and universities_built==1))
+        let has_one_city = power_buildings_cluster1 >= 7 and ( num_buildings_cluster1>= 4 or (num_buildings_cluster1==3 and self.universities.value==1)) 
+        let has_two_cities = power_buildings  >= 14 and ( num_buildings_cluster1 +1 >= 8 or (num_buildings_cluster1 + 1 >=7 and self.universities.value==1))
         let cities = 0
         if has_one_city:
             cities = 1
         if has_two_cities:
             cities = 2 
 
-        let tool_income = tool_income_by_workshops[ workshops_built ]
-        let coin_income = coin_income_by_guilds[ guilds_built ]
-        let power_income = power_income_by_guilds[ guilds_built ]
-        let scholar_income = min( (schools_built) + (universities_built), self.scholars.value)
+        let tool_income = tool_income_by_workshops[ self.workshops.value ]
+        let coin_income = coin_income_by_guilds[ self.guilds.value ]
+        let power_income = power_income_by_guilds[ self.guilds.value ]
+        let scholar_income = min( self.schools.value + self.universities.value , self.scholars.value)
 
         self.gain_coin(coin_income)
         self.gain_tool(tool_income)
@@ -92,7 +82,7 @@ cls Player:
 
         
         let URP_competency_tile = float(self.competency_tiles.value) * 25.0 / 5.0
-        let URP_palace_tile = float( palaces_built ) * 40.0 / 5.0
+        let URP_palace_tile = float( self.palaces.value ) * 40.0 / 5.0
 
         # add city URp only for new founded cities
         self.URP = self.URP + float(cities - self.cities.value) * 13.0
@@ -163,47 +153,47 @@ cls Player:
         return cluster_spades[self.num_buildings()]      
          
     fun can_build_workshop() -> Bool :
-        return self.workshops > 0 and self.can_pay_building( BuildingType::workshop) and self.spades >= self.spades_needed()
+        return self.workshops < NUM_WORKSHOPS and self.can_pay_building( BuildingType::workshop) and self.spades >= self.spades_needed()
     
     fun can_build_guild() -> Bool :
-        return self.guilds > 0 and self.workshops < NUM_WORKSHOPS and self.can_pay_building( BuildingType::guild)
+        return self.guilds < NUM_GUILDS and self.workshops > 0 and self.can_pay_building( BuildingType::guild)
 
     fun can_build_school() -> Bool :
-        return self.schools > 0 and self.guilds < NUM_GUILDS and self.can_pay_building( BuildingType::school)
+        return self.schools < NUM_SCHOOLS and self.guilds > 0 and self.can_pay_building( BuildingType::school)
 
     fun can_build_palace() -> Bool :
-        return self.palaces > 0 and self.guilds < NUM_GUILDS and self.can_pay_building( BuildingType::palace)
+        return self.palaces < NUM_PALACES and self.guilds > 0 and self.can_pay_building( BuildingType::palace)
 
     fun can_build_university() -> Bool :
-        return self.universities > 0 and self.schools < NUM_SCHOOLS and self.can_pay_building( BuildingType::university)
+        return self.universities< NUM_UNIVERSITIES and self.schools > 0 and self.can_pay_building( BuildingType::university)
     
     fun build_workshop() -> Void :
         #considering spade costs
         self.spades = self.spades - self.spades_needed()
-        self.workshops = self.workshops - 1
+        self.workshops = self.workshops + 1
         self.pay_building(BuildingType::workshop)
 
     fun build_free_workshop() -> Void :
-        self.workshops = self.workshops - 1
+        self.workshops = self.workshops + 1
 
     fun build_guild() -> Void :
-        self.guilds = self.guilds - 1
-        self.workshops = self.workshops + 1
+        self.guilds = self.guilds + 1
+        self.workshops = self.workshops - 1
         self.pay_building(BuildingType::guild)
 
     fun build_school() -> Void :
-        self.schools = self.schools - 1
-        self.guilds = self.guilds + 1
+        self.schools = self.schools + 1
+        self.guilds = self.guilds - 1
         self.pay_building(BuildingType::school)
     
     fun build_palace() -> Void :
-        self.palaces = self.palaces - 1
-        self.guilds = self.guilds + 1
+        self.palaces = self.palaces + 1
+        self.guilds = self.guilds - 1
         self.pay_building(BuildingType::palace)
 
     fun build_university() -> Void :
-        self.universities = self.universities - 1
-        self.schools = self.schools + 1
+        self.universities = self.universities + 1
+        self.schools = self.schools - 1
         self.pay_building(BuildingType::university)
 
     fun convert_scholars_to_tools( Int num_scholars) -> Void :
@@ -276,11 +266,11 @@ fun make_player() -> Player:
     
     player.scholars = 7
     player.scholars_on_hand = 0
-    player.workshops = NUM_WORKSHOPS
-    player.guilds = NUM_GUILDS
-    player.schools = NUM_SCHOOLS
-    player.universities = 1
-    player.palaces = 1
+    player.workshops = 0
+    player.guilds = 0
+    player.schools = 0
+    player.universities = 0
+    player.palaces = 0
     player.competency_tiles = 0
     player.URP = 0.0
     player.cities = 0

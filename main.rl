@@ -153,7 +153,7 @@ fun fuzz(Vector<Byte> input):
 fun test_game_setup()-> Bool:
     let game = play()
     ref player = game.state.players[0]
-    return player.workshops == 7
+    return player.workshops == 2
 
 fun test_game_build_workshop()-> Bool:
     let game = play()
@@ -161,7 +161,7 @@ fun test_game_build_workshop()-> Bool:
     player.powers[2]=12
     game.power_action_1spade()
     game.build_workshop()
-    return player.workshops == 6 and player.spades==0
+    return player.workshops == 3 and player.spades==0
 
 fun test_game_build_guild()-> Bool:
     # check also power income
@@ -170,14 +170,14 @@ fun test_game_build_guild()-> Bool:
     player.powers[0] = 1
     game.build_guild()
     game.pass_turn()
-    return player.guilds == 3 and player.powers[0] == 0
+    return player.guilds == 1 and player.powers[0] == 0
  
 fun test_game_build_school()-> Bool:
     let game = play()
     ref player = game.state.players[0]
     game.build_guild()
     game.build_school()
-    return player.schools == 2 and player.guilds == 4
+    return player.schools == 1 and player.guilds == 0
 
 fun test_game_schoolar_income()-> Bool:
     let game = play()
@@ -211,7 +211,7 @@ fun test_game_build_palace()-> Bool:
     ref player = game.state.players[0]
     game.build_guild()
     game.build_palace()
-    return player.palaces == 0 and player.guilds == 4
+    return player.palaces == 1 and player.guilds == 0
 
 
 fun test_game_build_university()-> Bool:
@@ -232,7 +232,7 @@ fun test_game_build_university()-> Bool:
     assert( player.competency_tiles.value == 1 and player.powers[0].value == 4 and player.discipline_level[discipline_id.value].value == 3, "first competency tile")
     game.build_university()
     game.get_competency_tile(discipline_id, level)
-    assert(player.universities == 0 and player.guilds == 4 and player.schools == 3 and player.competency_tiles.value == 2 and player.powers[0].value == 2 and player.powers[1].value == 10, "second competency tile")
+    assert(player.universities == 1 and player.guilds == 0 and player.schools == 0 and player.competency_tiles.value == 2 and player.powers[0].value == 2 and player.powers[1].value == 10, "second competency tile")
     return  true
 
 
