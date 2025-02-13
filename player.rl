@@ -85,8 +85,8 @@ cls Player:
         let power_income = power_income_by_guilds[ guilds_built ]
         let scholar_income = min( (schools_built) + (universities_built), self.scholars.value)
 
-        self.coins = self.coins + coin_income
-        self.tools = self.tools + tool_income
+        self.gain_coin(coin_income)
+        self.gain_tool(tool_income)
         self.gain_power(power_income)
         self.gain_scholar(scholar_income)
 
@@ -116,6 +116,13 @@ cls Player:
     fun gain_scholar( Int num_scholars):
         self.scholars_on_hand = self.scholars_on_hand + num_scholars
         self.scholars = self.scholars - num_scholars
+
+    fun pay_scholar( Int num_scholars):
+        self.scholars_on_hand = self.scholars_on_hand - num_scholars
+        self.scholars = self.scholars + num_scholars
+
+    fun send_scholar( Int num_scholars):
+        self.scholars_on_hand = self.scholars_on_hand - num_scholars
 
     fun gain_book( Int discipline_id, Int num_books):
         self.books[discipline_id] = self.books[discipline_id] + num_books
@@ -246,9 +253,9 @@ cls Player:
         return self.scholars_on_hand>0 and self.coins>=5 and self.tools>=1
 
     fun upgrade_terraforming() -> Void:
-        self.scholars_on_hand = self.scholars_on_hand - 1
+        self.pay_scholar( 1 )
         self.pay_tool( 1 )
-        self.coins = self.coins - 5
+        self.pay_coin( 5 )
         self.terraformig_track_level = self.terraformig_track_level + 1
         if self.terraformig_track_level == 1:
             #TODO action for books

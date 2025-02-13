@@ -73,13 +73,12 @@ act action_phase(ctx State state, ctx Player player) -> ActionPhase:
             act send_scholar(BInt<0,4> discipline_id ){player.scholars_on_hand.value > 0 and state.disciplines[discipline_id.value].can_send_scholar() }
                 let num_steps = state.disciplines[discipline_id.value].steps_for_send_scholar()
                 do_move_steps_action(state, player, discipline_id.value, num_steps)
-                player.scholars_on_hand = player.scholars_on_hand - 1
+                player.send_scholar(1)
                 state.disciplines[discipline_id.value].send_scholar()
 
             act return_scholar(BInt<0,4> discipline_id ){player.scholars_on_hand.value > 0 }
                 do_move_steps_action(state, player, discipline_id.value, 1)
-                player.scholars_on_hand = player.scholars_on_hand - 1
-                player.scholars = player.scholars + 1
+                player.pay_scholar(1)
 
             act upgrade_terraforming(){ player.terraformig_track_level <= 2 and player.can_upgrade_terraforming()}
                 player.upgrade_terraforming()
