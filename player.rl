@@ -107,6 +107,11 @@ cls Player:
     fun pay_tool( Int num_tools):
         self.tools = self.tools - num_tools
 
+    fun gain_coin( Int num_coins):
+        self.coins = self.coins + num_coins
+    
+    fun pay_coin( Int num_coins):
+        self.coins = self.coins - num_coins
 
     fun gain_scholar( Int num_scholars):
         self.scholars_on_hand = self.scholars_on_hand + num_scholars
@@ -143,7 +148,7 @@ cls Player:
         return self.coins >= building_type.coin_cost() and self.tools >= building_type.tool_cost()
     
     fun pay_building(BuildingType building_type) -> Void :
-        self.coins = self.coins - building_type.coin_cost()
+        self.pay_coin( building_type.coin_cost() )
         self.pay_tool( building_type.tool_cost() )
 
     fun spades_needed() -> Int:
@@ -200,7 +205,7 @@ cls Player:
         
     fun convert_tools_to_coins( Int num_tools) -> Void :
         self.pay_tool( num_tools )
-        self.coins = self.coins + num_tools
+        self.gain_coin( num_tools )
 
     fun convert_tools_to_spades( Int num_spades) -> Void :
         self.pay_tool( num_spades * self.terraforming_cost() )
@@ -208,7 +213,7 @@ cls Player:
 
     fun convert_power_to_coins( Int num_power, Int num_coins) -> Void :
         self.use_power( num_power )
-        self.coins = self.coins + num_coins
+        self.gain_coin( num_coins )
 
     fun convert_power_to_tools(Int num_power, Int num_tools) -> Void :
         self.use_power( num_power )
