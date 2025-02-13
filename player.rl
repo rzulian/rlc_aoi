@@ -101,6 +101,13 @@ cls Player:
         self.last_phase_URP = float(power_income) * 0.5 + float(coin_income) * 1.0 + float(tool_income) * 3.0 + float(scholar_income) * 3.75 + URP_competency_tile + URP_palace_tile
         self.URP = self.URP + self.last_phase_URP
 
+    fun gain_tool( Int num_tools):
+        self.tools = self.tools + num_tools
+    
+    fun pay_tool( Int num_tools):
+        self.tools = self.tools - num_tools
+
+
     fun gain_scholar( Int num_scholars):
         self.scholars_on_hand = self.scholars_on_hand + num_scholars
         self.scholars = self.scholars - num_scholars
@@ -137,7 +144,7 @@ cls Player:
     
     fun pay_building(BuildingType building_type) -> Void :
         self.coins = self.coins - building_type.coin_cost()
-        self.tools = self.tools - building_type.tool_cost()
+        self.pay_tool( building_type.tool_cost() )
 
     fun spades_needed() -> Int:
         let cluster_spades = [0,1,1,2,2,3,3]
@@ -189,14 +196,14 @@ cls Player:
 
     fun convert_scholars_to_tools( Int num_scholars) -> Void :
         self.gain_scholar( -1*num_scholars)
-        self.tools = self.tools + num_scholars
+        self.gain_tool( num_scholars )
         
     fun convert_tools_to_coins( Int num_tools) -> Void :
-        self.tools = self.tools - num_tools
+        self.pay_tool( num_tools )
         self.coins = self.coins + num_tools
 
     fun convert_tools_to_spades( Int num_spades) -> Void :
-        self.tools = self.tools - num_spades * self.terraforming_cost()
+        self.pay_tool( num_spades * self.terraforming_cost() )
         self.spades = self.spades + num_spades
 
     fun convert_power_to_coins( Int num_power, Int num_coins) -> Void :
@@ -205,7 +212,7 @@ cls Player:
 
     fun convert_power_to_tools(Int num_power, Int num_tools) -> Void :
         self.use_power( num_power )
-        self.tools = self.tools + num_tools
+        self.gain_tool( num_tools )
 
     fun convert_power_to_scholars( Int num_power, Int num_scholars) -> Void :
         self.use_power( num_power )
@@ -235,7 +242,7 @@ cls Player:
 
     fun upgrade_terraforming() -> Void:
         self.scholars_on_hand = self.scholars_on_hand - 1
-        self.tools = self.tools - 1
+        self.pay_tool( 1 )
         self.coins = self.coins - 5
         self.terraformig_track_level = self.terraformig_track_level + 1
         if self.terraformig_track_level == 1:
