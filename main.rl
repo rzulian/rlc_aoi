@@ -27,14 +27,17 @@ act action_phase(ctx State state, ctx Player player) -> ActionPhase:
                 act get_competency_tile(BInt<0,4> discipline_id , BInt<0,3> level){player.can_get_competency_tile( discipline_id.value, level.value) }
                     do_move_steps_action(state, player, discipline_id.value, level.value + 1)
                     player.get_competency_tile( discipline_id.value, level.value)
+                    player.URP = player.URP + URP_COMPETENCY_TILE * float(6-state.phase.value)/5.0
 
             act build_palace() {player.can_build_palace() }
-                player.build_palace()   
+                player.build_palace()
+                player.URP = player.URP + URP_PALACE * float(6-state.phase.value)/5.0
             act build_university() {player.can_build_university() }
                 player.build_university()
                 act get_competency_tile(BInt<0,4> discipline_id , BInt<0,3> level){player.can_get_competency_tile( discipline_id.value, level.value) }
                     do_move_steps_action(state, player, discipline_id.value, level.value + 1)
                     player.get_competency_tile( discipline_id.value, level.value)
+                    player.URP = player.URP +  URP_COMPETENCY_TILE * float(6-state.phase.value)/5.0
 
             act convert_scholars_to_tools(BInt<1, 20> num_scholars) {player.scholars_on_hand.value >= num_scholars.value }
                 player.convert_scholars_to_tools( num_scholars.value )
@@ -48,7 +51,7 @@ act action_phase(ctx State state, ctx Player player) -> ActionPhase:
                 player.convert_power_to_coins( num_power.value , num_power.value )
             act convert_3power_to_tool() {player.has_power(3) }
                 player.convert_power_to_tools( 3 , 1)
-            act convert_5power_to_scholar() {player.has_power(5) }
+            act convert_5power_to_scholar() {player.scholars.value > 0, player.has_power(5) }
                 player.convert_power_to_scholars( 5 , 1)
 
             act sacrifice_power(BInt<1, 20> num_power) {player.powers[1].value >= num_power.value*2}
@@ -60,7 +63,7 @@ act action_phase(ctx State state, ctx Player player) -> ActionPhase:
             act power_action_2tools(){ state.power_action_2tools, player.has_power(4)  }
                 state.power_action_2tools = false
                 player.convert_power_to_tools( 4, 2 )
-            act power_action_scholar(){ state.power_action_scholar, player.has_power(3)  }
+            act power_action_scholar(){ state.power_action_scholar, player.scholars.value > 0,  player.has_power(3)  }
                 state.power_action_scholar = false
                 player.convert_power_to_scholars( 3, 1 )
             act power_action_1spade(){ player.has_power(4)  }
@@ -80,7 +83,7 @@ act action_phase(ctx State state, ctx Player player) -> ActionPhase:
                 do_move_steps_action(state, player, discipline_id.value, 1)
                 player.pay_scholar(1)
 
-            act upgrade_terraforming(){ player.terraformig_track_level <= 2 and player.can_upgrade_terraforming()}
+            act upgrade_terraforming(){player.can_upgrade_terraforming()}
                 player.upgrade_terraforming()
 
             act pass_turn()

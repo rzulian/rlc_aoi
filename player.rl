@@ -15,6 +15,8 @@ const NUM_UNIVERSITIES = 1
 const URP_SPADES = 3.75
 const URP_BOOKS = 3.50
 const URP_SCIENCE_STEP = 2.29
+const URP_COMPETENCY_TILE = 25.0
+const URP_PALACE = 40.0
 
 cls Player:
     BInt<0,50> tools
@@ -52,24 +54,25 @@ cls Player:
         #one workshop is not in the first cluster
         return self.workshops.value + self.guilds.value + self.schools.value + self.palaces.value + self.universities.value - 1 
 
-    fun update_income() -> Void:
-        let tool_income_by_workshops = [1,2,3,4,5,5,6,7,8,9]
-        let coin_income_by_guilds = [0,2,4,6,8]
-        let power_income_by_guilds = [0,1,2,4,6]
-
-        #one workshop is not in the first cluster
-     
+    fun num_cities() -> Int:
+        let cities = 0
         let num_buildings_cluster1 = self.num_buildings()
         let power_buildings = self.workshops.value *BuildingType::workshop.power() + self.guilds.value*BuildingType::guild.power() + self.schools.value*BuildingType::school.power()+ self.palaces.value*BuildingType::palace.power() + self.universities.value*BuildingType::university.power()
         let power_buildings_cluster1 = power_buildings - BuildingType::workshop.power()
         let has_one_city = power_buildings_cluster1 >= 7 and ( num_buildings_cluster1>= 4 or (num_buildings_cluster1==3 and self.universities.value==1)) 
         let has_two_cities = power_buildings  >= 14 and ( num_buildings_cluster1 +1 >= 8 or (num_buildings_cluster1 + 1 >=7 and self.universities.value==1))
-        let cities = 0
         if has_one_city:
             cities = 1
         if has_two_cities:
-            cities = 2 
+            cities = 2
+        return cities 
 
+    fun update_income() -> Void:
+        let tool_income_by_workshops = [1,2,3,4,5,5,6,7,8,9]
+        let coin_income_by_guilds = [0,2,4,6,8]
+        let power_income_by_guilds = [0,1,2,4,6]
+
+ 
         let tool_income = tool_income_by_workshops[ self.workshops.value ]
         let coin_income = coin_income_by_guilds[ self.guilds.value ]
         let power_income = power_income_by_guilds[ self.guilds.value ]
@@ -80,16 +83,12 @@ cls Player:
         self.gain_power(power_income)
         self.gain_scholar(scholar_income)
 
-        
-        let URP_competency_tile = float(self.competency_tiles.value) * 25.0 / 5.0
-        let URP_palace_tile = float( self.palaces.value ) * 40.0 / 5.0
-
         # add city URp only for new founded cities
+        let cities = self.num_cities()
         self.URP = self.URP + float(cities - self.cities.value) * 13.0
         self.cities = cities
 
-        self.last_phase_URP = float(power_income) * 0.5 + float(coin_income) * 1.0 + float(tool_income) * 3.0 + float(scholar_income) * 3.75 + URP_competency_tile + URP_palace_tile
-        self.URP = self.URP + self.last_phase_URP
+        self.last_phase_URP = float(power_income) * 0.5 + float(coin_income) * 1.0 + float(tool_income) * 3.0 + float(scholar_income) * 3.75 
 
     fun gain_tool( Int num_tools):
         self.tools = self.tools + num_tools
@@ -240,7 +239,7 @@ cls Player:
         self.gain_book(discipline_id, 2-level)
 
     fun can_upgrade_terraforming() -> Bool:
-        return self.scholars_on_hand>0 and self.coins>=5 and self.tools>=1
+        return self.scholars_on_hand>0 and self.coins>=5 and self.tools>=1 and self.terraformig_track_level <= 2
 
     fun upgrade_terraforming() -> Void:
         self.pay_scholar( 1 )
