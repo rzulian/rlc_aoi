@@ -6,6 +6,7 @@ import math.numeric
 import machine_learning
 
 import building
+import competency
 
 using BuildingArgType = BInt<0, 18>
 const NUM_WORKSHOPS = 9
@@ -30,7 +31,7 @@ cls Player:
     BInt<0,2> universities
     BInt<0,8> scholars
     BInt<0,8> scholars_on_hand
-    BInt<0,10> competency_tiles
+    BoundedVector<CompetencyTile, NUM_COMPETENCY_TILES> competency_tiles
     BInt<0,6> cities
     BInt<0,6> spades
     BInt<0,4> terraformig_track_level
@@ -228,14 +229,15 @@ cls Player:
         # track level 1 -> 3 tools
         return 4 - self.terraformig_track_level.value
 
-    fun can_get_competency_tile( Int discipline_id, Int level) -> Bool:
-        #TODO check if player has already this competency tile
+    fun can_get_competency_tile(CompetencyTile tile) -> Bool:
+        # check if the player has already the tile
+        for comp_tile in self.competency_tiles:
+            if tile.id == comp_tile.id:
+                return false
         return true
 
-    fun get_competency_tile( Int discipline_id, Int level) -> Void:
-        #TODO add the correct competency tile
-
-        self.competency_tiles = self.competency_tiles + 1
+    fun get_competency_tile( CompetencyTile comp_tile, Int discipline_id, Int level ) -> Void:
+        self.competency_tiles.append(comp_tile)
         self.books[discipline_id] = self.books[discipline_id] + (2-level)
         self.gain_book(discipline_id, 2-level)
 
@@ -271,7 +273,6 @@ fun make_player() -> Player:
     player.schools = 0
     player.universities = 0
     player.palaces = 0
-    player.competency_tiles = 0
     player.URP = 0.0
     player.cities = 0
     player.spades = 0

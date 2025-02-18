@@ -2,6 +2,7 @@ import bounded_arg
 import collections.vector
 import range
 
+const NUM_COMPETENCY_TILES = 12
 
 cls CompetencyTile:
     Int id
@@ -14,10 +15,10 @@ fun make_competency_tile(Int id, String name) -> CompetencyTile:
     competency_tile.name = name
     return competency_tile
 
-fun make_competency_tiles() -> BoundedVector<CompetencyTile, 13> :
-    let tiles : BoundedVector<CompetencyTile,13> 
-    for i in range(13):
+fun make_competency_tiles() -> CompetencyTile[NUM_COMPETENCY_TILES] :
+    let tiles : CompetencyTile[NUM_COMPETENCY_TILES]
+    for i in range(NUM_COMPETENCY_TILES):
         let competency_tile = make_competency_tile( i, to_string(i))
-        tiles.append(competency_tile)
+        tiles[i]=competency_tile
     return tiles
 

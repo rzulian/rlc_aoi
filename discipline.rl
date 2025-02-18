@@ -34,8 +34,8 @@ cls DisciplineTrack:
     fun can_send_scholar()->Bool:
         return self.first_space<4
 
-    fun send_scholar( ) -> Void:
-        self.first_space = min( self.first_space + 1, 4)
+    fun send_scholar() -> Void:
+        self.first_space = min(self.first_space + 1, 4)
 
 
 
