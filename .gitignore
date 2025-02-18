@@ -2,7 +2,7 @@ executable
 fuzzer_executable
 game*.log
 log.txt
-network
+network*
 OUTPUT
 test_cuda.py
 aoi.py

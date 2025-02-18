@@ -104,11 +104,12 @@ act play() -> Game:
             state.current_player = state.current_player + 1
         state.new_phase()
 
+
 fun get_current_player(Game g) -> Int:
     return g.state.current_player.value
 
 fun score(Game g, Int player_id) -> Float:
-    return g.state.players[player_id].score(g.state.phase.value)
+    return g.state.players[player_id].score(g.state.phase.value) / 100.0
     
 fun get_num_players() -> Int:
     return 1

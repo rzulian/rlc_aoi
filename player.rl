@@ -3,6 +3,7 @@ import bounded_arg
 import range
 import serialization.print
 import math.numeric
+import machine_learning
 
 import building
 
@@ -88,7 +89,7 @@ cls Player:
         self.URP = self.URP + float(cities - self.cities.value) * 13.0
         self.cities = cities
 
-        self.last_phase_URP = float(power_income) * 0.5 + float(coin_income) * 1.0 + float(tool_income) * 3.0 + float(scholar_income) * 3.75 
+        self.last_phase_URP = float(power_income) * 0.5 + float(coin_income) * 1.0 + float(tool_income) * 5.0 + float(scholar_income) * 3.75 
 
     fun gain_tool( Int num_tools):
         self.tools = self.tools + num_tools

@@ -60,7 +60,7 @@ cls State:
         self.power_action_1spade = true
         self.power_action_2spades= true
 
-        if self.phase == 3:
+        if self.phase == 6:
             self.is_done = true
         else:
             self.phase = self.phase + 1
