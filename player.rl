@@ -17,7 +17,7 @@ const NUM_UNIVERSITIES = 1
 const URP_SPADES = 3.75
 const URP_BOOKS = 3.50
 const URP_SCIENCE_STEP = 2.29
-const URP_COMPETENCY_TILE = 25.0
+const URP_COMPETENCY_TILE = 10.0
 const URP_PALACE = 40.0
 
 cls Player:
@@ -80,6 +80,19 @@ cls Player:
         let power_income = power_income_by_guilds[ self.guilds.value ]
         let scholar_income = min( self.schools.value + self.universities.value , self.scholars.value)
 
+        for tile in self.competency_tiles:
+            if tile.id==11:
+                tool_income = tool_income + 1
+                self.gain_science_step(1)
+                continue
+            if tile.id==8:
+                coin_income = coin_income + 2
+                self.URP = self.URP + 3.0
+                continue
+            if tile.id==5: #double spades
+                continue
+            self.URP = self.URP + URP_COMPETENCY_TILE/5.0
+
         self.gain_coin(coin_income)
         self.gain_tool(tool_income)
         self.gain_power(power_income)
@@ -141,6 +154,9 @@ cls Player:
 
     fun has_power(Int power) -> Bool:
         return self.powers[2] + self.powers[1].value / 2  >= power
+
+    fun gain_science_step(Int num):
+        self.URP = self.URP + float(num)*URP_SCIENCE_STEP
 
     fun can_pay_building(BuildingType building_type) -> Bool :
         return self.coins >= building_type.coin_cost() and self.tools >= building_type.tool_cost()
@@ -240,6 +256,8 @@ cls Player:
         self.competency_tiles.append(comp_tile)
         self.books[discipline_id] = self.books[discipline_id] + (2-level)
         self.gain_book(discipline_id, 2-level)
+        if comp_tile.id == 5:
+            self.spades = self.spades + 2
 
     fun can_upgrade_terraforming() -> Bool:
         return self.scholars_on_hand>0 and self.coins>=5 and self.tools>=1 and self.terraformig_track_level <= 2

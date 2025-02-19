@@ -13,7 +13,7 @@ fun do_move_steps_action(State state, Player player, Int discipline_id, Int num_
     let new_level = state.disciplines[discipline_id].next_level( starting_level, num_steps)
     player.gain_power( power )
     player.discipline_level[discipline_id] = new_level
-    player.URP = player.URP + float(new_level-starting_level)*URP_SCIENCE_STEP
+    player.gain_science_step(new_level-starting_level)
 
 fun get_competency_tile(State state, Player player, Int tile_pos) -> Void:
     let discipline_id = tile_pos / 3
@@ -21,7 +21,7 @@ fun get_competency_tile(State state, Player player, Int tile_pos) -> Void:
     let num_steps = level + 1
     do_move_steps_action( state, player, discipline_id, num_steps)
     player.get_competency_tile( state.innovation_display[tile_pos], discipline_id, level)
-    player.URP = player.URP + URP_COMPETENCY_TILE * float(6-state.phase.value)/5.0
+    
 
 
 act action_phase(ctx State state, ctx Player player) -> ActionPhase:
