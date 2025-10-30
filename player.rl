@@ -55,11 +55,14 @@ cls Player:
     fun num_buildings() -> Int:
         #one workshop is not in the first cluster
         return self.workshops.value + self.guilds.value + self.schools.value + self.palaces.value + self.universities.value - 1 
+    
+    fun power_buildings() -> Int:
+        return self.workshops.value *BuildingType::workshop.power() + self.guilds.value*BuildingType::guild.power() + self.schools.value*BuildingType::school.power()+ self.palaces.value*BuildingType::palace.power() + self.universities.value*BuildingType::university.power()
 
     fun num_cities() -> Int:
         let cities = 0
         let num_buildings_cluster1 = self.num_buildings()
-        let power_buildings = self.workshops.value *BuildingType::workshop.power() + self.guilds.value*BuildingType::guild.power() + self.schools.value*BuildingType::school.power()+ self.palaces.value*BuildingType::palace.power() + self.universities.value*BuildingType::university.power()
+        let power_buildings = self.power_buildings()
         let power_buildings_cluster1 = power_buildings - BuildingType::workshop.power()
         let has_one_city = power_buildings_cluster1 >= 7 and ( num_buildings_cluster1>= 4 or (num_buildings_cluster1==3 and self.universities.value==1)) 
         let has_two_cities = power_buildings  >= 14 and ( num_buildings_cluster1 +1 >= 8 or (num_buildings_cluster1 + 1 >=7 and self.universities.value==1))
@@ -79,6 +82,9 @@ cls Player:
         let coin_income = coin_income_by_guilds[ self.guilds.value ]
         let power_income = power_income_by_guilds[ self.guilds.value ]
         let scholar_income = min( self.schools.value + self.universities.value , self.scholars.value)
+
+        #coin_income = coin_income + 6
+        tool_income = tool_income + 0
 
         for tile in self.competency_tiles:
             if tile.id==11:
@@ -100,7 +106,7 @@ cls Player:
 
         # add city URp only for new founded cities
         let cities = self.num_cities()
-        self.URP = self.URP + float(cities - self.cities.value) * 13.0
+        self.URP = self.URP + float(cities - self.cities.value) * 13.0 
         self.cities = cities
 
         self.last_phase_URP = float(power_income) * 0.5 + float(coin_income) * 1.0 + float(tool_income) * 5.0 + float(scholar_income) * 3.75 
@@ -164,6 +170,7 @@ cls Player:
     fun pay_building(BuildingType building_type) -> Void :
         self.pay_coin( building_type.coin_cost() )
         self.pay_tool( building_type.tool_cost() )
+        self.URP = self.URP + float(building_type.power())
 
     fun spades_needed() -> Int:
         let cluster_spades = [0,1,1,2,2,3,3]
@@ -245,10 +252,10 @@ cls Player:
         # track level 1 -> 3 tools
         return 4 - self.terraformig_track_level.value
 
-    fun can_get_competency_tile(CompetencyTile tile) -> Bool:
+    fun can_get_competency_tile(Int tile_id) -> Bool:
         # check if the player has already the tile
         for comp_tile in self.competency_tiles:
-            if tile.id == comp_tile.id:
+            if comp_tile.id==tile_id:
                 return false
         return true
 
@@ -279,7 +286,7 @@ cls Player:
 fun make_player() -> Player:
     let player : Player
     player.coins = 15
-    player.tools = 3
+    player.tools = 5
     player.powers[0] = 5
     player.powers[1] = 7
     player.powers[2] = 0
@@ -293,7 +300,7 @@ fun make_player() -> Player:
     player.palaces = 0
     player.URP = 0.0
     player.cities = 0
-    player.spades = 0
+    player.spades = 2
     player.terraformig_track_level = 1 
     for i in range(4):
         player.discipline_level[i] = 0
@@ -312,9 +319,10 @@ fun test_player_coin_income() -> Bool:
 
 fun test_player_tool_income() -> Bool:
     let player = make_player()
+    let tools = player.tools
     player.build_free_workshop()
     player.update_income()
-    return player.tools == 5
+    return player.tools == tools - 2 
 
 fun test_gain_power() -> Bool:
     let player = make_player()

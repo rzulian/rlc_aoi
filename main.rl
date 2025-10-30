@@ -7,20 +7,21 @@ import state
 import none
 import machine_learning
 
-fun do_move_steps_action(State state, Player player, Int discipline_id, Int num_steps) -> Void:
+fun do_move_advance_discipline(State state, Player player, Int discipline_id, Int num_levels) -> Void:
     let starting_level =  player.discipline_level[discipline_id].value
-    let power = state.disciplines[discipline_id].power_from_track( starting_level, num_steps)
-    let new_level = state.disciplines[discipline_id].next_level( starting_level, num_steps)
+    let power = state.disciplines[discipline_id].power_from_track( starting_level, num_levels)
+    let new_level = state.disciplines[discipline_id].next_level( starting_level, num_levels)
     player.gain_power( power )
     player.discipline_level[discipline_id] = new_level
     player.gain_science_step(new_level-starting_level)
 
-fun get_competency_tile(State state, Player player, Int tile_pos) -> Void:
+fun get_competency_tile(State state, Player player, Int tile_id) -> Void:
+    let tile_pos = state.innovation_display[tile_id].value
     let discipline_id = tile_pos / 3
     let level = tile_pos % 3 
-    let num_steps = level + 1
-    do_move_steps_action( state, player, discipline_id, num_steps)
-    player.get_competency_tile( state.innovation_display[tile_pos], discipline_id, level)
+    let num_levels = level + 1
+    do_move_advance_discipline( state, player, discipline_id, num_levels)
+    player.get_competency_tile( state.competency_tiles[tile_id], discipline_id, level)
     
 
 
@@ -33,16 +34,16 @@ act action_phase(ctx State state, ctx Player player) -> ActionPhase:
                 player.build_guild()
             act build_school() {player.can_build_school() }
                 player.build_school()
-                act get_competency_tile(BInt<0,12> tile_pos){player.can_get_competency_tile(state.innovation_display[tile_pos.value])}
-                    get_competency_tile(state, player, tile_pos.value)
+                act get_competency_tile(BInt<0,12> tile_id){player.can_get_competency_tile(tile_id.value)}
+                    get_competency_tile(state, player, tile_id.value)
 
             act build_palace() {player.can_build_palace() }
                 player.build_palace()
                 player.URP = player.URP + URP_PALACE * float(6-state.phase.value)/5.0
             act build_university() {player.can_build_university() }
                 player.build_university()
-                act get_competency_tile(BInt<0,12> tile_pos){player.can_get_competency_tile(state.innovation_display[tile_pos.value])}
-                    get_competency_tile(state, player, tile_pos.value)
+                act get_competency_tile(BInt<0,12> tile_id){player.can_get_competency_tile(tile_id.value)}
+                    get_competency_tile(state, player, tile_id.value)
 
             act convert_scholars_to_tools(BInt<1, 20> num_scholars) {player.scholars_on_hand.value >= num_scholars.value }
                 player.convert_scholars_to_tools( num_scholars.value )
@@ -79,13 +80,13 @@ act action_phase(ctx State state, ctx Player player) -> ActionPhase:
                 player.convert_power_to_spades( 6, 2 )
 
             act send_scholar(BInt<0,4> discipline_id ){player.scholars_on_hand.value > 0 and state.disciplines[discipline_id.value].can_send_scholar() }
-                let num_steps = state.disciplines[discipline_id.value].steps_for_send_scholar()
-                do_move_steps_action(state, player, discipline_id.value, num_steps)
+                let num_levels = state.disciplines[discipline_id.value].steps_for_send_scholar()
+                do_move_advance_discipline(state, player, discipline_id.value, num_levels)
                 player.send_scholar(1)
                 state.disciplines[discipline_id.value].send_scholar()
 
             act return_scholar(BInt<0,4> discipline_id ){player.scholars_on_hand.value > 0 }
-                do_move_steps_action(state, player, discipline_id.value, 1)
+                do_move_advance_discipline(state, player, discipline_id.value, 1)
                 player.pay_scholar(1)
 
             act upgrade_terraforming(){player.can_upgrade_terraforming()}
@@ -194,9 +195,9 @@ fun test_game_schoolar_income()-> Bool:
     ref player = game.state.players[0]
     game.build_guild()
     game.build_school()
-    let tile_pos : BInt<0,12>
-    tile_pos=1
-    game.get_competency_tile(tile_pos)
+    let tile_id : BInt<0,12>
+    tile_id=1
+    game.get_competency_tile(tile_id)
     game.pass_turn()
     return player.scholars_on_hand == 1 and player.scholars == 6
 
@@ -206,9 +207,9 @@ fun test_game_schoolar_income_no_scholar()-> Bool:
     game.state.players[0].scholars=0
     game.build_guild()
     game.build_school()
-    let tile_pos : BInt<0,12>
-    tile_pos=1
-    game.get_competency_tile(tile_pos)
+    let tile_id : BInt<0,12>
+    tile_id=1
+    game.get_competency_tile(tile_id)
     game.pass_turn()
     return player.scholars_on_hand == 0 and player.scholars == 0
 
@@ -231,12 +232,12 @@ fun test_game_build_university()-> Bool:
 
     game.build_guild()
     game.build_school()
-    let tile_pos : BInt<0,12>
-    tile_pos=1
-    game.get_competency_tile(tile_pos)
+    let tile_id : BInt<0,12>
+    tile_id=1
+    game.get_competency_tile(tile_id)
     assert( player.competency_tiles.size() == 1 and player.powers[0].value == 5 and player.discipline_level[0].value == 2, "first competency tile")
     game.build_university()
-    game.get_competency_tile(tile_pos+1)
+    game.get_competency_tile(tile_id+1)
     assert(player.universities == 1 and player.guilds == 0 and player.schools == 0 and player.competency_tiles.size() == 2 and player.discipline_level[0].value == 5 and player.powers[0].value == 2 and player.powers[1].value == 10, "second competency tile")
     return  true
 
@@ -312,3 +313,37 @@ fun test_game_return_scholar()-> Bool:
     game.return_scholar( discipline_id)
     assert ( game.state.disciplines[discipline_id.value].first_space == 0 and player.discipline_level[discipline_id.value] == 1 and player.powers[0] == 4 and player.scholars_on_hand == 1  and player.scholars == 6, "return 1 scholar")
     return true
+
+fun test_game_city()-> Bool:
+    let game = play()
+    ref player = game.state.players[0]
+    player.powers[0]=5
+    player.powers[1]=7
+    player.powers[2]=0
+    player.tools=100
+    player.coins=160
+    player.spades=10
+
+    game.build_guild()
+    game.build_school()
+    let tile_id : BInt<0,12>
+    tile_id=1
+    game.get_competency_tile(tile_id)
+
+    game.build_workshop()
+    game.build_guild()
+    game.build_school()
+    game.get_competency_tile(tile_id+1)
+
+    game.build_workshop()
+    game.build_guild()
+    game.build_school()
+    game.get_competency_tile(tile_id+2)
+
+    game.build_university()
+    assert(player.num_cities() == 1, "first city")
+    game.get_competency_tile(tile_id+3)
+    game.pass_turn()
+    print(player)
+    assert(player.universities == 1 and player.guilds == 0 and player.schools == 2 and player.cities == 1, "first city after turn ")
+    return  true

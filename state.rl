@@ -25,7 +25,7 @@ cls State:
     Bool power_action_2spades
     BoundedVector<DisciplineTrack, 4> disciplines
     CompetencyTile[NUM_COMPETENCY_TILES] competency_tiles
-    CompetencyTile[NUM_COMPETENCY_TILES] innovation_display  
+    BInt<0,NUM_COMPETENCY_TILES>[NUM_COMPETENCY_TILES] innovation_display  
 
 
     fun setup_game():
@@ -38,11 +38,12 @@ cls State:
             self.disciplines.append(discipline)
 
         self.competency_tiles = make_competency_tiles()
-        # innovation_display contains the reference to the competency_tiles
+        # innovation_display contains the position of the corresponding competency_tiles
         # position is discipline_id*3 + level
         # TODO shuffle innovation display tiles
         for i in range(NUM_COMPETENCY_TILES):
-            self.innovation_display[i] = self.competency_tiles[i]
+            self.innovation_display[i] = i
+
 
         # setup players
         for i in range(1):
