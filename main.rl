@@ -270,10 +270,12 @@ fun test_game_power_action_spade()-> Bool:
     player.powers[0]=0
     player.powers[1]=0
     player.powers[2]=12
+    let spades = player.spades
+
     game.power_action_2spades()
-    assert (player.spades == 2 and player.powers[2]==6 and player.powers[0]==6, "power action 2spades")
+    assert (player.spades == spades + 2 and player.powers[2]==6 and player.powers[0]==6, "power action 2spades")
     game.power_action_1spade()
-    assert (player.spades == 3 and player.powers[2]==2 and player.powers[0]==10, "power action 1spade")
+    assert (player.spades == spades + 2 + 1 and player.powers[2]==2 and player.powers[0]==10, "power action 1spade")
     return true
 
 

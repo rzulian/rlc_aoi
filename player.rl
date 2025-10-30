@@ -300,7 +300,7 @@ fun make_player() -> Player:
     player.palaces = 0
     player.URP = 0.0
     player.cities = 0
-    player.spades = 2
+    player.spades = 0
     player.terraformig_track_level = 1 
     for i in range(4):
         player.discipline_level[i] = 0
@@ -308,7 +308,7 @@ fun make_player() -> Player:
     return player
 
 fun pretty_print(Player player):
-    print(player.coins.value)
+    print_indented(player)
 
 fun test_player_coin_income() -> Bool:
     let player = make_player()
@@ -322,7 +322,7 @@ fun test_player_tool_income() -> Bool:
     let tools = player.tools
     player.build_free_workshop()
     player.update_income()
-    return player.tools == tools - 2 
+    return player.tools == tools + 2
 
 fun test_gain_power() -> Bool:
     let player = make_player()
