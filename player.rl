@@ -127,7 +127,7 @@ cls Player:
         self.scholars_on_hand = self.scholars_on_hand + num_scholars
         self.scholars = self.scholars - num_scholars
 
-    fun pay_scholar( Int num_scholars):
+    fun pay_scholar( Int num_scholars): 
         self.scholars_on_hand = self.scholars_on_hand - num_scholars
         self.scholars = self.scholars + num_scholars
 
@@ -166,16 +166,15 @@ cls Player:
 
     fun can_pay_building(BuildingType building_type) -> Bool :
         return self.coins >= building_type.coin_cost() and self.tools >= building_type.tool_cost()
-    
+
     fun pay_building(BuildingType building_type) -> Void :
         self.pay_coin( building_type.coin_cost() )
         self.pay_tool( building_type.tool_cost() )
-        self.URP = self.URP + float(building_type.power())
-
+        
     fun spades_needed() -> Int:
         let cluster_spades = [0,1,1,2,2,3,3]
         return cluster_spades[self.num_buildings()]      
-         
+
     fun can_build_workshop() -> Bool :
         return self.workshops < NUM_WORKSHOPS and self.can_pay_building( BuildingType::workshop) and self.spades >= self.spades_needed()
     

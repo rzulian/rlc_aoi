@@ -7,6 +7,8 @@ import state
 import none
 import machine_learning
 
+const NUM_PLAYERS = 1
+
 fun do_move_advance_discipline(State state, Player player, Int discipline_id, Int num_levels) -> Void:
     let starting_level =  player.discipline_level[discipline_id].value
     let power = state.disciplines[discipline_id].power_from_track( starting_level, num_levels)
@@ -15,7 +17,7 @@ fun do_move_advance_discipline(State state, Player player, Int discipline_id, In
     player.discipline_level[discipline_id] = new_level
     player.gain_science_step(new_level-starting_level)
 
-fun get_competency_tile(State state, Player player, Int tile_id) -> Void:
+fun do_move_get_competency_tile(State state, Player player, Int tile_id) -> Void:
     let tile_pos = state.innovation_display[tile_id].value
     let discipline_id = tile_pos / 3
     let level = tile_pos % 3 
@@ -35,7 +37,7 @@ act action_phase(ctx State state, ctx Player player) -> ActionPhase:
             act build_school() {player.can_build_school() }
                 player.build_school()
                 act get_competency_tile(BInt<0,12> tile_id){player.can_get_competency_tile(tile_id.value)}
-                    get_competency_tile(state, player, tile_id.value)
+                    do_move_get_competency_tile(state, player, tile_id.value)
 
             act build_palace() {player.can_build_palace() }
                 player.build_palace()
@@ -43,7 +45,7 @@ act action_phase(ctx State state, ctx Player player) -> ActionPhase:
             act build_university() {player.can_build_university() }
                 player.build_university()
                 act get_competency_tile(BInt<0,12> tile_id){player.can_get_competency_tile(tile_id.value)}
-                    get_competency_tile(state, player, tile_id.value)
+                    do_move_get_competency_tile(state, player, tile_id.value)
 
             act convert_scholars_to_tools(BInt<1, 20> num_scholars) {player.scholars_on_hand.value >= num_scholars.value }
                 player.convert_scholars_to_tools( num_scholars.value )
@@ -99,7 +101,7 @@ act action_phase(ctx State state, ctx Player player) -> ActionPhase:
 act play() -> Game:
 
     frm state : State
-    state.setup_game()
+    state.setup_game(NUM_PLAYERS)
     state.new_phase()
 
     while !state.is_done:
@@ -118,7 +120,7 @@ fun score(Game g, Int player_id) -> Float:
     return g.state.players[player_id].score(g.state.phase.value) / 100.0
     
 fun get_num_players() -> Int:
-    return 1
+    return NUM_PLAYERS
 
 fun pretty_print(Game g):
     g.state.pretty_print_state()
