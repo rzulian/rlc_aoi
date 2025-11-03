@@ -28,7 +28,7 @@ cls State:
     BInt<0,NUM_COMPETENCY_TILES>[NUM_COMPETENCY_TILES] innovation_display  
 
 
-    fun setup_game():
+    fun setup_game(Int num_players):
         self.board = make_board()
         self.phase = 0
         self.is_done = false
@@ -46,7 +46,7 @@ cls State:
 
 
         # setup players
-        for i in range(1):
+        for i in range(num_players):
             let player = make_player()
             player.build_free_workshop()
             player.build_free_workshop() 
