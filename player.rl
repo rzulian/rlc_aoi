@@ -14,11 +14,16 @@ const NUM_GUILDS = 4
 const NUM_SCHOOLS = 3
 const NUM_PALACES = 1
 const NUM_UNIVERSITIES = 1
-const URP_SPADES = 3.75
-const URP_BOOKS = 3.50
+const URP_POWER = 0.7
+const URP_COIN = 1.0
+const URP_TOOL = 2.5
+const URP_SCHOLAR = 4.0
+const URP_SPADE = 5.0
+const URP_BOOK = 3.5
 const URP_SCIENCE_STEP = 2.29
 const URP_COMPETENCY_TILE = 10.0
 const URP_PALACE = 40.0
+const URP_CITY = 13.0
 
 cls Player:
     BInt<0,50> tools
@@ -104,12 +109,16 @@ cls Player:
         self.gain_power(power_income)
         self.gain_scholar(scholar_income)
 
+        #scenario 11 power bonus
+        self.gain_power(6)
+        self.URP = self.URP - 3.0
+
         # add city URp only for new founded cities
         let cities = self.num_cities()
-        self.URP = self.URP + float(cities - self.cities.value) * 13.0 
+        self.URP = self.URP + float(cities - self.cities.value) * URP_CITY
         self.cities = cities
 
-        self.last_phase_URP = float(power_income) * 0.5 + float(coin_income) * 1.0 + float(tool_income) * 5.0 + float(scholar_income) * 3.75 
+        self.last_phase_URP = float(power_income) * URP_POWER + float(coin_income) * URP_COIN + float(tool_income) * URP_TOOL + float(scholar_income) * URP_SCHOLAR
 
     fun gain_tool( Int num_tools):
         self.tools = self.tools + num_tools
@@ -136,7 +145,7 @@ cls Player:
 
     fun gain_book( Int discipline_id, Int num_books):
         self.books[discipline_id] = self.books[discipline_id] + num_books
-        self.URP = self.URP + float(num_books)*URP_BOOKS
+        self.URP = self.URP + float(num_books)*URP_BOOK
 
     fun gain_power(Int power):
         let to_bowl2 = min( power, self.powers[0].value )
@@ -172,7 +181,7 @@ cls Player:
         self.pay_tool( building_type.tool_cost() )
         
     fun spades_needed() -> Int:
-        let cluster_spades = [0,1,1,2,2,3,3]
+        let cluster_spades = [0,1,2,1,2,1,2]
         return cluster_spades[self.num_buildings()]      
 
     fun can_build_workshop() -> Bool :
