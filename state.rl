@@ -57,20 +57,22 @@ cls State:
     fun get_current_player() -> ref Player:
         return self.players[self.current_player.value]
     
-    fun new_phase():  
-        for player in self.players:
-            player.update_income()
+    fun new_phase():
+        if self.phase == 6:
+            self.is_done = true
+            return
+        else:
+            self.phase = self.phase + 1
 
+        for player in self.players:
+            player.update_income( self.phase.value )
+
+        # power actions return available
         self.power_action_2tools = true
         self.power_action_7coins = true
         self.power_action_scholar= true
         self.power_action_1spade = true
         self.power_action_2spades= true
-
-        if self.phase == 6:
-            self.is_done = true
-        else:
-            self.phase = self.phase + 1
         return
 
 

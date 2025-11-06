@@ -23,7 +23,7 @@ const URP_BOOK = 3.5
 const URP_SCIENCE_STEP = 2.29
 const URP_COMPETENCY_TILE = 10.0
 const URP_PALACE = 40.0
-const URP_CITY = 13.0
+const VP_CITY = 13
 
 cls Player:
     BInt<0,50> tools
@@ -54,7 +54,7 @@ cls Player:
         # print(self)
 
         # phase 0 is setup, 6 phases to complete the game
-        score = self.URP + self.last_phase_URP * float( 6 - current_phase )
+        score = self.URP + self.last_phase_URP
         return score
 
     fun num_buildings() -> Int:
@@ -77,18 +77,22 @@ cls Player:
             cities = 2
         return cities 
 
-    fun update_income() -> Void:
+    fun update_income( Int phase_num ) -> Void:
+        # beginning of a new phase. get new production from building, competency tile,
         let tool_income_by_workshops = [1,2,3,4,5,5,6,7,8,9]
         let coin_income_by_guilds = [0,2,4,6,8]
         let power_income_by_guilds = [0,1,2,4,6]
+        let urp_for_production = [ 0.0, 3.0, 3.0, 2.6, 2.1, 1.5, 0.83]
+        let urp_for_vp = [0.0, 0.58, 0.69, 0.83, 1.0, 1.2, 1.44]
 
  
         let tool_income = tool_income_by_workshops[ self.workshops.value ]
         let coin_income = coin_income_by_guilds[ self.guilds.value ]
         let power_income = power_income_by_guilds[ self.guilds.value ]
         let scholar_income = min( self.schools.value + self.universities.value , self.scholars.value)
+        let vp_income = 0
 
-        #coin_income = coin_income + 6
+        coin_income = coin_income + 0
         tool_income = tool_income + 0
 
         for tile in self.competency_tiles:
@@ -98,27 +102,28 @@ cls Player:
                 continue
             if tile.id==8:
                 coin_income = coin_income + 2
-                self.URP = self.URP + 3.0
+                vp_income = vp_income + 3
                 continue
             if tile.id==5: #double spades
                 continue
             self.URP = self.URP + URP_COMPETENCY_TILE/5.0
+
+        #scenario 11 power bonus on every phase
+        power_income = power_income + 6
+        vp_income = vp_income - 3
+
+        # add city VPs only for new founded cities
+        let cities = self.num_cities()
+        vp_income = vp_income + (cities - self.cities.value) * VP_CITY
+        self.cities = cities
 
         self.gain_coin(coin_income)
         self.gain_tool(tool_income)
         self.gain_power(power_income)
         self.gain_scholar(scholar_income)
 
-        #scenario 11 power bonus
-        self.gain_power(6)
-        self.URP = self.URP - 3.0
-
-        # add city URp only for new founded cities
-        let cities = self.num_cities()
-        self.URP = self.URP + float(cities - self.cities.value) * URP_CITY
-        self.cities = cities
-
-        self.last_phase_URP = float(power_income) * URP_POWER + float(coin_income) * URP_COIN + float(tool_income) * URP_TOOL + float(scholar_income) * URP_SCHOLAR
+        self.URP = self.URP + urp_for_vp[phase_num] * float(vp_income)
+        self.last_phase_URP = urp_for_production[phase_num] * (float(power_income) * URP_POWER + float(coin_income) * URP_COIN + float(tool_income) * URP_TOOL + float(scholar_income) * URP_SCHOLAR)
 
     fun gain_tool( Int num_tools):
         self.tools = self.tools + num_tools
@@ -151,8 +156,8 @@ cls Player:
         let to_bowl2 = min( power, self.powers[0].value )
         self.powers[0] = self.powers[0] - to_bowl2
         self.powers[1] = self.powers[1] + to_bowl2
-        power = power - to_bowl2
-        let to_bowl3 = min( power, self.powers[1].value )
+        let power3 = power - to_bowl2
+        let to_bowl3 = min( power3, self.powers[1].value )
         self.powers[1] = self.powers[1] - to_bowl3
         self.powers[2] = self.powers[2] + to_bowl3
 
@@ -287,9 +292,6 @@ cls Player:
             self.gain_book(0, 2)
         if self.terraformig_track_level == 2:
             self.URP = self.URP + 6.0
-            
-
-
 
 fun make_player() -> Player:
     let player : Player
@@ -322,14 +324,14 @@ fun test_player_coin_income() -> Bool:
     let player = make_player()
     player.build_free_workshop()
     player.build_guild()
-    player.update_income()
+    player.update_income(1)
     return player.coins == 14
 
 fun test_player_tool_income() -> Bool:
     let player = make_player()
     let tools = player.tools
     player.build_free_workshop()
-    player.update_income()
+    player.update_income(1)
     return player.tools == tools + 2
 
 fun test_gain_power() -> Bool:
@@ -373,7 +375,7 @@ fun test_city_palace() -> Bool:
     player.build_guild()
     player.build_guild()
     player.build_palace()
-    player.update_income()
+    player.update_income(1)
     return player.cities == 1
 
 fun test_city_university() -> Bool:
@@ -388,5 +390,18 @@ fun test_city_university() -> Bool:
     player.build_guild()
     player.build_guild()
     player.build_university()
-    player.update_income()
+    player.update_income(1)
     return player.cities == 1
+
+fun test_urp_for_production() -> Bool:
+    # 1 workshop, 1 guild, 1 school -> 2 tool, 2 coins, 1 power, 1 scholar
+    # + 6power from standard gain
+    let player = make_player()
+    player.build_free_workshop()
+    player.build_free_workshop()
+    player.build_workshop()
+    player.build_guild()
+    player.build_guild()
+    player.build_school()
+    player.update_income(1)
+    return int( player.last_phase_URP * 100.0) == int(47.7 * 100.0)
