@@ -22,8 +22,9 @@ fun do_move_get_competency_tile(State state, Player player, Int tile_id) -> Void
     let discipline_id = tile_pos / 3
     let level = tile_pos % 3 
     let num_levels = level + 1
+    player.get_competency_tile( state.competency_tiles[tile_id] )
     do_move_advance_discipline( state, player, discipline_id, num_levels)
-    player.get_competency_tile( state.competency_tiles[tile_id], discipline_id, level)
+    player.gain_book(discipline_id, 2 - level)
 
 act action_phase(ctx State state, ctx Player player) -> ActionPhase:
     while true:
@@ -101,6 +102,11 @@ act income_phase(ctx State state, ctx Player player) -> IncomePhase:
             act advance_science_step(BInt<0,4> discipline_id){player.science_step_income > 0 }
                 do_move_advance_discipline( state, player, discipline_id.value, 1)
                 player.science_step_income = player.science_step_income - 1
+            act gain_book(BInt<0,4> discipline_id){player.book_income > 0 }
+                player.gain_book(discipline_id.value,1)
+                player.book_income = player.book_income - 1
+
+
 
 @classes
 act play() -> Game:
@@ -366,15 +372,9 @@ fun test_game_city()-> Bool:
     assert(player.universities == 1 and player.guilds == 0 and player.schools == 2 and player.cities == 1, "first city after turn ")
     return  true
 
-fun test_game_income_phase()->Bool:
+fun test_game_income_phase_science_step()->Bool:
     let game = play()
     ref player = game.state.players[0]
-    player.powers[0]=5
-    player.powers[1]=7
-    player.powers[2]=0
-    player.tools=100
-    player.coins=160
-    player.spades=10
 
     game.build_guild()
     game.build_school()
@@ -390,4 +390,21 @@ fun test_game_income_phase()->Bool:
 
     return true
 
+fun test_game_income_phase_gain_book()->Bool:
+    let game = play()
+    ref player = game.state.players[0]
+
+    game.build_guild()
+    game.build_school()
+    let tile_id : BInt<0,12>
+    tile_id=6 # 1 book income phase
+    game.get_competency_tile(tile_id)
+    game.pass_turn()
+    assert(player.book_income==1,"has to get a book")
+    let discipline_id: BInt<0,4>
+    discipline_id=0
+    game.gain_book(discipline_id)
+    assert(player.books[0]==1,"got a book")
+
+    return true
 

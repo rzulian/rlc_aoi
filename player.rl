@@ -48,6 +48,7 @@ cls Player:
     Int scholar_income
     Int vp_income
     Int science_step_income
+    Int book_income
 
 
     BoundedVector<Building, 18> buildings
@@ -99,6 +100,7 @@ cls Player:
         self.scholar_income = min( self.schools.value + self.universities.value , self.scholars.value)
         self.vp_income = 0
         self.science_step_income = 0
+        self.book_income = 0
 
         self.get_round_competency_tile_bonus()
 
@@ -120,8 +122,8 @@ cls Player:
         self.last_phase_URP = urp_for_production[phase_num] * (float(self.power_income) * URP_POWER + float(self.coin_income) * URP_COIN + float(self.tool_income) * URP_TOOL + float(self.scholar_income) * URP_SCHOLAR)
 
     fun has_income_phase() -> Bool:
-        # player can decide to advance a science_step
-        return self.science_step_income > 0
+        # player can decide to advance a science_step or gain a book
+        return (self.science_step_income + self.book_income) > 0
 
     fun gain_tool( Int num_tools):
         self.tools = self.tools + num_tools
@@ -148,7 +150,6 @@ cls Player:
 
     fun gain_book( Int discipline_id, Int num_books):
         self.books[discipline_id] = self.books[discipline_id] + num_books
-        self.URP = self.URP + float(num_books)*URP_BOOK
 
     fun gain_power(Int power):
         let to_bowl2 = min( power, self.powers[0].value )
@@ -174,7 +175,8 @@ cls Player:
         return self.powers[2] + self.powers[1].value / 2  >= power
 
     fun gain_science_step(Int num):
-        self.URP = self.URP + float(num)*URP_SCIENCE_STEP
+        # no need for this, science steps are fully implemented self.URP = self.URP + float(num)*URP_SCIENCE_STEP
+        return
 
     fun can_pay_building(BuildingType building_type) -> Bool :
         return self.coins >= building_type.coin_cost() and self.tools >= building_type.tool_cost()
@@ -270,10 +272,8 @@ cls Player:
                 return false
         return true
 
-    fun get_competency_tile( CompetencyTile comp_tile, Int discipline_id, Int level ) -> Void:
+    fun get_competency_tile( CompetencyTile comp_tile ) -> Void:
         self.competency_tiles.append(comp_tile)
-        self.books[discipline_id] = self.books[discipline_id] + (2-level)
-        self.gain_book(discipline_id, 2-level)
         if comp_tile.id == 5:
             self.spades = self.spades + 2
 
@@ -282,6 +282,10 @@ cls Player:
             if tile.id==11:
                 self.tool_income = self.tool_income + 1
                 self.science_step_income = self.science_step_income + 1
+                continue
+            if tile.id==6:
+                self.book_income = self.book_income + 1
+                self.power_income = self.power_income + 1
                 continue
             if tile.id==8:
                 self.coin_income = self.coin_income + 2
