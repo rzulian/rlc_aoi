@@ -24,8 +24,6 @@ fun do_move_get_competency_tile(State state, Player player, Int tile_id) -> Void
     let num_levels = level + 1
     do_move_advance_discipline( state, player, discipline_id, num_levels)
     player.get_competency_tile( state.competency_tiles[tile_id], discipline_id, level)
-    
-
 
 act action_phase(ctx State state, ctx Player player) -> ActionPhase:
     while true:
@@ -75,7 +73,7 @@ act action_phase(ctx State state, ctx Player player) -> ActionPhase:
                 state.power_action_scholar = false
                 player.convert_power_to_scholars( 3, 1 )
             act power_action_1spade(){ player.has_power(4)  }
-                state.power_action_1spade = false                
+                state.power_action_1spade = false
                 player.convert_power_to_spades( 4, 1 )
             act power_action_2spades(){ player.has_power(6)  }
                 state.power_action_2spades = false                
@@ -97,20 +95,37 @@ act action_phase(ctx State state, ctx Player player) -> ActionPhase:
             act pass_turn()
                 return
 
+act income_phase(ctx State state, ctx Player player) -> IncomePhase:
+    while player.has_income_phase():
+        actions:
+            act advance_science_step(BInt<0,4> discipline_id){player.science_step_income > 0 }
+                do_move_advance_discipline( state, player, discipline_id.value, 1)
+                player.science_step_income = player.science_step_income - 1
+
 @classes
 act play() -> Game:
 
     frm state : State
     state.setup_game(NUM_PLAYERS)
-    state.new_phase()
 
-    while !state.is_done:
-        
+    while state.phase<6:
+        state.new_phase()
+
+        for player in state.players:
+            player.update_income( state.phase.value )
+
+        state.current_player = 0
+        while state.current_player < state.players.size():
+            subaction*(state, state.get_current_player() ) player_frame = income_phase(state , state.get_current_player())
+            state.current_player = state.current_player + 1
+
+        #TODO update income after level update
         state.current_player = 0
         while state.current_player < state.players.size():
             subaction*(state, state.get_current_player() ) player_frame = action_phase(state , state.get_current_player())
             state.current_player = state.current_player + 1
-        state.new_phase()
+
+        state.phase = state.phase + 1
 
 
 fun get_current_player(Game g) -> Int:
@@ -348,6 +363,31 @@ fun test_game_city()-> Bool:
     assert(player.num_cities() == 1, "first city")
     game.get_competency_tile(tile_id+3)
     game.pass_turn()
-    print(player)
     assert(player.universities == 1 and player.guilds == 0 and player.schools == 2 and player.cities == 1, "first city after turn ")
     return  true
+
+fun test_game_income_phase()->Bool:
+    let game = play()
+    ref player = game.state.players[0]
+    player.powers[0]=5
+    player.powers[1]=7
+    player.powers[2]=0
+    player.tools=100
+    player.coins=160
+    player.spades=10
+
+    game.build_guild()
+    game.build_school()
+    let tile_id : BInt<0,12>
+    tile_id=11 # 1 tool and 1 science step income phase
+    game.get_competency_tile(tile_id)
+    game.pass_turn()
+    assert(player.science_step_income==1,"has to advance one science step")
+    let discipline_id: BInt<0,4>
+    discipline_id=0
+    game.advance_science_step(discipline_id)
+    assert(player.discipline_level[0]==1,"advanced one science step")
+
+    return true
+
+

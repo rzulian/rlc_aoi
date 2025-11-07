@@ -58,15 +58,7 @@ cls State:
         return self.players[self.current_player.value]
     
     fun new_phase():
-        if self.phase == 6:
-            self.is_done = true
-            return
-        else:
-            self.phase = self.phase + 1
-
-        for player in self.players:
-            player.update_income( self.phase.value )
-
+        # reset board
         # power actions return available
         self.power_action_2tools = true
         self.power_action_7coins = true

@@ -47,6 +47,7 @@ cls Player:
     Int power_income
     Int scholar_income
     Int vp_income
+    Int science_step_income
 
 
     BoundedVector<Building, 18> buildings
@@ -97,6 +98,7 @@ cls Player:
         self.power_income = power_income_by_guilds[ self.guilds.value ]
         self.scholar_income = min( self.schools.value + self.universities.value , self.scholars.value)
         self.vp_income = 0
+        self.science_step_income = 0
 
         self.get_round_competency_tile_bonus()
 
@@ -116,6 +118,10 @@ cls Player:
 
         self.URP = self.URP + urp_for_vp[phase_num] * float(self.vp_income)
         self.last_phase_URP = urp_for_production[phase_num] * (float(self.power_income) * URP_POWER + float(self.coin_income) * URP_COIN + float(self.tool_income) * URP_TOOL + float(self.scholar_income) * URP_SCHOLAR)
+
+    fun has_income_phase() -> Bool:
+        # player can decide to advance a science_step
+        return self.science_step_income > 0
 
     fun gain_tool( Int num_tools):
         self.tools = self.tools + num_tools
@@ -275,7 +281,7 @@ cls Player:
         for tile in self.competency_tiles:
             if tile.id==11:
                 self.tool_income = self.tool_income + 1
-                self.gain_science_step(1)
+                self.science_step_income = self.science_step_income + 1
                 continue
             if tile.id==8:
                 self.coin_income = self.coin_income + 2
@@ -320,6 +326,7 @@ fun make_player() -> Player:
     player.URP = 0.0
     player.cities = 0
     player.spades = 0
+    player.science_step_income = 0
     player.terraforming_track_level = 1
     for i in range(4):
         player.discipline_level[i] = 0
