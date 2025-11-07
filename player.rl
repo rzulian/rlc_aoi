@@ -39,9 +39,15 @@ cls Player:
     BoundedVector<CompetencyTile, NUM_COMPETENCY_TILES> competency_tiles
     BInt<0,6> cities
     BInt<0,6> spades
-    BInt<0,4> terraformig_track_level
+    BInt<0,4> terraforming_track_level
     Float URP
     Float last_phase_URP
+    Int coin_income
+    Int tool_income
+    Int power_income
+    Int scholar_income
+    Int vp_income
+
 
     BoundedVector<Building, 18> buildings
     BInt<0,14>[4] discipline_level
@@ -86,44 +92,30 @@ cls Player:
         let urp_for_vp = [0.0, 0.58, 0.69, 0.83, 1.0, 1.2, 1.44]
 
  
-        let tool_income = tool_income_by_workshops[ self.workshops.value ]
-        let coin_income = coin_income_by_guilds[ self.guilds.value ]
-        let power_income = power_income_by_guilds[ self.guilds.value ]
-        let scholar_income = min( self.schools.value + self.universities.value , self.scholars.value)
-        let vp_income = 0
+        self.tool_income = tool_income_by_workshops[ self.workshops.value ]
+        self.coin_income = coin_income_by_guilds[ self.guilds.value ]
+        self.power_income = power_income_by_guilds[ self.guilds.value ]
+        self.scholar_income = min( self.schools.value + self.universities.value , self.scholars.value)
+        self.vp_income = 0
 
-        coin_income = coin_income + 0
-        tool_income = tool_income + 0
-
-        for tile in self.competency_tiles:
-            if tile.id==11:
-                tool_income = tool_income + 1
-                self.gain_science_step(1)
-                continue
-            if tile.id==8:
-                coin_income = coin_income + 2
-                vp_income = vp_income + 3
-                continue
-            if tile.id==5: #double spades
-                continue
-            self.URP = self.URP + URP_COMPETENCY_TILE/5.0
+        self.get_round_competency_tile_bonus()
 
         #scenario 11 power bonus on every phase
-        power_income = power_income + 6
-        vp_income = vp_income - 3
+        self.power_income = self.power_income + 6
+        self.vp_income = self.vp_income - 3
 
         # add city VPs only for new founded cities
         let cities = self.num_cities()
-        vp_income = vp_income + (cities - self.cities.value) * VP_CITY
+        self.vp_income = self.vp_income + (cities - self.cities.value) * VP_CITY
         self.cities = cities
 
-        self.gain_coin(coin_income)
-        self.gain_tool(tool_income)
-        self.gain_power(power_income)
-        self.gain_scholar(scholar_income)
+        self.gain_coin(self.coin_income)
+        self.gain_tool(self.tool_income)
+        self.gain_power(self.power_income)
+        self.gain_scholar(self.scholar_income)
 
-        self.URP = self.URP + urp_for_vp[phase_num] * float(vp_income)
-        self.last_phase_URP = urp_for_production[phase_num] * (float(power_income) * URP_POWER + float(coin_income) * URP_COIN + float(tool_income) * URP_TOOL + float(scholar_income) * URP_SCHOLAR)
+        self.URP = self.URP + urp_for_vp[phase_num] * float(self.vp_income)
+        self.last_phase_URP = urp_for_production[phase_num] * (float(self.power_income) * URP_POWER + float(self.coin_income) * URP_COIN + float(self.tool_income) * URP_TOOL + float(self.scholar_income) * URP_SCHOLAR)
 
     fun gain_tool( Int num_tools):
         self.tools = self.tools + num_tools
@@ -263,7 +255,7 @@ cls Player:
 
     fun terraforming_cost() -> Int:
         # track level 1 -> 3 tools
-        return 4 - self.terraformig_track_level.value
+        return 4 - self.terraforming_track_level.value
 
     fun can_get_competency_tile(Int tile_id) -> Bool:
         # check if the player has already the tile
@@ -279,18 +271,35 @@ cls Player:
         if comp_tile.id == 5:
             self.spades = self.spades + 2
 
+    fun get_round_competency_tile_bonus() -> Void:
+        for tile in self.competency_tiles:
+            if tile.id==11:
+                self.tool_income = self.tool_income + 1
+                self.gain_science_step(1)
+                continue
+            if tile.id==8:
+                self.coin_income = self.coin_income + 2
+                self.vp_income = self.vp_income + 3
+                continue
+            if tile.id==5:
+                continue
+            # everything else
+            self.URP = self.URP + URP_COMPETENCY_TILE/5.0
+
+
+
     fun can_upgrade_terraforming() -> Bool:
-        return self.scholars_on_hand>0 and self.coins>=5 and self.tools>=1 and self.terraformig_track_level <= 2
+        return self.scholars_on_hand>0 and self.coins>=5 and self.tools>=1 and self.terraforming_track_level <= 2
 
     fun upgrade_terraforming() -> Void:
         self.pay_scholar( 1 )
         self.pay_tool( 1 )
         self.pay_coin( 5 )
-        self.terraformig_track_level = self.terraformig_track_level + 1
-        if self.terraformig_track_level == 1:
+        self.terraforming_track_level = self.terraforming_track_level + 1
+        if self.terraforming_track_level == 1:
             #TODO action for books
             self.gain_book(0, 2)
-        if self.terraformig_track_level == 2:
+        if self.terraforming_track_level == 2:
             self.URP = self.URP + 6.0
 
 fun make_player() -> Player:
@@ -311,7 +320,7 @@ fun make_player() -> Player:
     player.URP = 0.0
     player.cities = 0
     player.spades = 0
-    player.terraformig_track_level = 1 
+    player.terraforming_track_level = 1
     for i in range(4):
         player.discipline_level[i] = 0
         player.books[i] = 0
@@ -334,7 +343,7 @@ fun test_player_tool_income() -> Bool:
     player.update_income(1)
     return player.tools == tools + 2
 
-fun test_gain_power() -> Bool:
+fun test_player_gain_power() -> Bool:
     let player = make_player()
     player.powers[0] = 5
     player.powers[1] = 7
@@ -360,8 +369,18 @@ fun test_convert_power() -> Bool:
     assert( player.powers[0] == 5 and player.powers[1] == 1 and player.powers[2] == 1 and player.scholars == 6 and player.scholars_on_hand == 1, "5power scholar")
     player.convert_power_to_coins(1, 1)
     assert( player.powers[0] == 6 and player.powers[1] == 1 and player.powers[2] == 0 and player.coins == 16 , "power to coin")
-   
     return true
+
+fun test_player_scholar_income() -> Bool:
+    let player = make_player()
+    let scholars = player.scholars
+    player.build_free_workshop()
+    player.build_guild()
+    player.build_school()
+    player.update_income(1)
+    assert( player.scholars == scholars - 1 and player.scholars_on_hand == 1, "new scholar")
+    return true
+
 
 fun test_city_palace() -> Bool:
     let player = make_player()
