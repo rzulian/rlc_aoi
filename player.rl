@@ -41,7 +41,7 @@ cls Player:
     BInt<0,6> spades
     BInt<0,4> terraforming_track_level
     Float URP
-    Float last_phase_URP
+    Float phase_production_URP
     Int coin_income
     Int tool_income
     Int power_income
@@ -49,20 +49,21 @@ cls Player:
     Int vp_income
     Int science_step_income
     Int book_income
-
+    Float urp_for_vp
 
     BoundedVector<Building, 18> buildings
     BInt<0,14>[4] discipline_level
     BInt<0,14>[4] books
    
     fun score(Int current_phase) -> Float:
+        let urp_for_production = [ 0.0, 3.0, 3.0, 2.6, 2.1, 1.5, 0.83]
         let score = 0.0
         # virtual income for remaining phases
         # print("PHASE=>"s + to_string(current_phase))
         # print(self)
 
         # phase 0 is setup, 6 phases to complete the game
-        score = self.URP + self.last_phase_URP
+        score = self.URP + urp_for_production[current_phase] * self.phase_production_URP
         return score
 
     fun num_buildings() -> Int:
@@ -83,43 +84,7 @@ cls Player:
             cities = 1
         if has_two_cities:
             cities = 2
-        return cities 
-
-    fun update_income( Int phase_num ) -> Void:
-        # beginning of a new phase. get new production from building, competency tile,
-        let tool_income_by_workshops = [1,2,3,4,5,5,6,7,8,9]
-        let coin_income_by_guilds = [0,2,4,6,8]
-        let power_income_by_guilds = [0,1,2,4,6]
-        let urp_for_production = [ 0.0, 3.0, 3.0, 2.6, 2.1, 1.5, 0.83]
-        let urp_for_vp = [0.0, 0.58, 0.69, 0.83, 1.0, 1.2, 1.44]
-
- 
-        self.tool_income = tool_income_by_workshops[ self.workshops.value ]
-        self.coin_income = coin_income_by_guilds[ self.guilds.value ]
-        self.power_income = power_income_by_guilds[ self.guilds.value ]
-        self.scholar_income = min( self.schools.value + self.universities.value , self.scholars.value)
-        self.vp_income = 0
-        self.science_step_income = 0
-        self.book_income = 0
-
-        self.get_round_competency_tile_bonus()
-
-        #scenario 11 power bonus on every phase
-        self.power_income = self.power_income + 6
-        self.vp_income = self.vp_income - 3
-
-        # add city VPs only for new founded cities
-        let cities = self.num_cities()
-        self.vp_income = self.vp_income + (cities - self.cities.value) * VP_CITY
-        self.cities = cities
-
-        self.gain_coin(self.coin_income)
-        self.gain_tool(self.tool_income)
-        self.gain_power(self.power_income)
-        self.gain_scholar(self.scholar_income)
-
-        self.URP = self.URP + urp_for_vp[phase_num] * float(self.vp_income)
-        self.last_phase_URP = urp_for_production[phase_num] * (float(self.power_income) * URP_POWER + float(self.coin_income) * URP_COIN + float(self.tool_income) * URP_TOOL + float(self.scholar_income) * URP_SCHOLAR)
+        return cities
 
     fun has_income_phase() -> Bool:
         # player can decide to advance a science_step or gain a book
@@ -174,9 +139,16 @@ cls Player:
     fun has_power(Int power) -> Bool:
         return self.powers[2] + self.powers[1].value / 2  >= power
 
-    fun gain_science_step(Int num):
-        # no need for this, science steps are fully implemented self.URP = self.URP + float(num)*URP_SCIENCE_STEP
+    fun gain_science_step(Int num_steps):
+        # no need for this, science steps are fully implemented self.URP = self.URP + float(num_steps)*URP_SCIENCE_STEP
         return
+
+    fun gain_spade( Int num_spades):
+        self.spades = self.spades + num_spades
+
+    fun gain_vp( Int VPs ):
+        #converts VPs into equivalent URPs
+        self.URP = self.URP + self.urp_for_vp*float(VPs)
 
     fun can_pay_building(BuildingType building_type) -> Bool :
         return self.coins >= building_type.coin_cost() and self.tools >= building_type.tool_cost()
@@ -243,7 +215,7 @@ cls Player:
 
     fun convert_tools_to_spades( Int num_spades) -> Void :
         self.pay_tool( num_spades * self.terraforming_cost() )
-        self.spades = self.spades + num_spades
+        self.gain_spade( num_spades )
 
     fun convert_power_to_coins( Int num_power, Int num_coins) -> Void :
         self.use_power( num_power )
@@ -259,7 +231,7 @@ cls Player:
 
     fun convert_power_to_spades( Int num_power, Int num_spades) -> Void :
         self.use_power( num_power )
-        self.spades = self.spades + num_spades
+        self.gain_spade( num_spades )
 
     fun terraforming_cost() -> Int:
         # track level 1 -> 3 tools
@@ -275,7 +247,11 @@ cls Player:
     fun get_competency_tile( CompetencyTile comp_tile ) -> Void:
         self.competency_tiles.append(comp_tile)
         if comp_tile.id == 5:
-            self.spades = self.spades + 2
+            self.gain_spade(2)
+        else if comp_tile.id == 10:
+            self.gain_coin(2)
+            self.gain_tool(1)
+            self.gain_vp(5)
 
     fun get_round_competency_tile_bonus() -> Void:
         for tile in self.competency_tiles:
@@ -291,7 +267,7 @@ cls Player:
                 self.coin_income = self.coin_income + 2
                 self.vp_income = self.vp_income + 3
                 continue
-            if tile.id==5:
+            if tile.id==5 or tile.id==10:
                 continue
             # everything else
             self.URP = self.URP + URP_COMPETENCY_TILE/5.0
@@ -312,6 +288,40 @@ cls Player:
         if self.terraforming_track_level == 2:
             self.URP = self.URP + 6.0
 
+    fun update_income() -> Void:
+        # beginning of a new phase. get new production from building, competency tile,
+        let tool_income_by_workshops = [1,2,3,4,5,5,6,7,8,9]
+        let coin_income_by_guilds = [0,2,4,6,8]
+        let power_income_by_guilds = [0,1,2,4,6]
+
+        self.tool_income = tool_income_by_workshops[ self.workshops.value ]
+        self.coin_income = coin_income_by_guilds[ self.guilds.value ]
+        self.power_income = power_income_by_guilds[ self.guilds.value ]
+        self.scholar_income = min( self.schools.value + self.universities.value , self.scholars.value)
+        self.vp_income = 0
+        self.science_step_income = 0
+        self.book_income = 0
+
+        self.get_round_competency_tile_bonus()
+
+        #scenario 11 power bonus on every phase
+        self.power_income = self.power_income + 6
+        self.vp_income = self.vp_income - 3
+
+        # add city VPs only for new founded cities
+        let cities = self.num_cities()
+        self.vp_income = self.vp_income + (cities - self.cities.value) * VP_CITY
+        self.cities = cities
+
+        self.gain_coin(self.coin_income)
+        self.gain_tool(self.tool_income)
+        self.gain_power(self.power_income)
+        self.gain_scholar(self.scholar_income)
+        self.gain_vp(self.vp_income)
+
+        self.phase_production_URP = float(self.power_income) * URP_POWER + float(self.coin_income) * URP_COIN + float(self.tool_income) * URP_TOOL + float(self.scholar_income) * URP_SCHOLAR
+
+
 fun make_player() -> Player:
     let player : Player
     player.coins = 15
@@ -328,6 +338,7 @@ fun make_player() -> Player:
     player.universities = 0
     player.palaces = 0
     player.URP = 0.0
+    player.phase_production_URP = 0.0
     player.cities = 0
     player.spades = 0
     player.science_step_income = 0
@@ -344,14 +355,14 @@ fun test_player_coin_income() -> Bool:
     let player = make_player()
     player.build_free_workshop()
     player.build_guild()
-    player.update_income(1)
+    player.update_income()
     return player.coins == 14
 
 fun test_player_tool_income() -> Bool:
     let player = make_player()
     let tools = player.tools
     player.build_free_workshop()
-    player.update_income(1)
+    player.update_income()
     return player.tools == tools + 2
 
 fun test_player_gain_power() -> Bool:
@@ -388,7 +399,7 @@ fun test_player_scholar_income() -> Bool:
     player.build_free_workshop()
     player.build_guild()
     player.build_school()
-    player.update_income(1)
+    player.update_income()
     assert( player.scholars == scholars - 1 and player.scholars_on_hand == 1, "new scholar")
     return true
 
@@ -405,7 +416,7 @@ fun test_city_palace() -> Bool:
     player.build_guild()
     player.build_guild()
     player.build_palace()
-    player.update_income(1)
+    player.update_income()
     return player.cities == 1
 
 fun test_city_university() -> Bool:
@@ -420,7 +431,7 @@ fun test_city_university() -> Bool:
     player.build_guild()
     player.build_guild()
     player.build_university()
-    player.update_income(1)
+    player.update_income()
     return player.cities == 1
 
 fun test_urp_for_production() -> Bool:
@@ -433,5 +444,5 @@ fun test_urp_for_production() -> Bool:
     player.build_guild()
     player.build_guild()
     player.build_school()
-    player.update_income(1)
-    return int( player.last_phase_URP * 100.0) == int(47.7 * 100.0)
+    player.update_income()
+    return int( (player.score(1) - player.URP) * 100.0) == int(47.7 * 100.0)

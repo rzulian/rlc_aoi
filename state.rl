@@ -58,6 +58,7 @@ cls State:
         return self.players[self.current_player.value]
     
     fun new_phase():
+        let urp_for_vp = [0.0, 0.58, 0.69, 0.83, 1.0, 1.2, 1.44]
         # reset board
         # power actions return available
         self.power_action_2tools = true
@@ -65,6 +66,11 @@ cls State:
         self.power_action_scholar= true
         self.power_action_1spade = true
         self.power_action_2spades= true
+
+        #assign urp_for_vp
+        for player in self.players:
+            player.urp_for_vp = urp_for_vp[self.phase.value]
+
         return
 
 

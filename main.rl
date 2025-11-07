@@ -118,7 +118,7 @@ act play() -> Game:
         state.new_phase()
 
         for player in state.players:
-            player.update_income( state.phase.value )
+            player.update_income()
 
         state.current_player = 0
         while state.current_player < state.players.size():
