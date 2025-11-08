@@ -88,7 +88,7 @@ act action_phase(ctx State state, ctx Player player) -> ActionPhase:
 
             act return_scholar(BInt<0,4> discipline_id ){player.scholars_on_hand.value > 0 }
                 do_move_advance_discipline(state, player, discipline_id.value, 1)
-                player.pay_scholar(1)
+                player.return_scholar(1)
 
             act upgrade_terraforming(){player.can_upgrade_terraforming()}
                 player.upgrade_terraforming()
@@ -408,3 +408,20 @@ fun test_game_income_phase_gain_book()->Bool:
 
     return true
 
+fun test_game_send_scholar_vp()->Bool:
+    let game = play()
+    ref player = game.state.players[0]
+
+    game.build_guild()
+    game.build_school()
+    let tile_id : BInt<0,12>
+    tile_id=7 # 2vp per send scholar
+    game.get_competency_tile(tile_id)
+    game.pass_turn()
+    let discipline_id: BInt<0,4>
+    discipline_id=0
+    let VP = player.VP
+    game.send_scholar(discipline_id)
+
+    assert(player.VP==VP + 2,"has get scholar vps")
+    return true

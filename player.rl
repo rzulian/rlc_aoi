@@ -40,6 +40,7 @@ cls Player:
     BInt<0,6> cities
     BInt<0,6> spades
     BInt<0,4> terraforming_track_level
+    Int VP
     Float URP
     Float phase_production_URP
     Int coin_income
@@ -50,6 +51,7 @@ cls Player:
     Int science_step_income
     Int book_income
     Float urp_for_vp
+    Int send_scholar_vp
 
     BoundedVector<Building, 18> buildings
     BInt<0,14>[4] discipline_level
@@ -110,8 +112,13 @@ cls Player:
         self.scholars_on_hand = self.scholars_on_hand - num_scholars
         self.scholars = self.scholars + num_scholars
 
+    fun return_scholar( Int num_scholars):
+        self.pay_scholar(num_scholars)
+        self.gain_vp(self.send_scholar_vp)
+
     fun send_scholar( Int num_scholars):
         self.scholars_on_hand = self.scholars_on_hand - num_scholars
+        self.gain_vp(self.send_scholar_vp)
 
     fun gain_book( Int discipline_id, Int num_books):
         self.books[discipline_id] = self.books[discipline_id] + num_books
@@ -146,9 +153,10 @@ cls Player:
     fun gain_spade( Int num_spades):
         self.spades = self.spades + num_spades
 
-    fun gain_vp( Int VPs ):
+    fun gain_vp( Int VP ):
         #converts VPs into equivalent URPs
-        self.URP = self.URP + self.urp_for_vp*float(VPs)
+        self.VP = self.VP + VP
+        self.URP = self.URP + self.urp_for_vp*float(VP)
 
     fun can_pay_building(BuildingType building_type) -> Bool :
         return self.coins >= building_type.coin_cost() and self.tools >= building_type.tool_cost()
@@ -252,6 +260,8 @@ cls Player:
             self.gain_coin(2)
             self.gain_tool(1)
             self.gain_vp(5)
+        else if comp_tile.id == 7:
+            self.send_scholar_vp = 2
 
     fun get_round_competency_tile_bonus() -> Void:
         for tile in self.competency_tiles:
@@ -267,7 +277,7 @@ cls Player:
                 self.coin_income = self.coin_income + 2
                 self.vp_income = self.vp_income + 3
                 continue
-            if tile.id==5 or tile.id==10:
+            if tile.id==5 or tile.id==10 or tile.id==7:
                 continue
             # everything else
             self.URP = self.URP + URP_COMPETENCY_TILE/5.0
@@ -286,7 +296,7 @@ cls Player:
             #TODO action for books
             self.gain_book(0, 2)
         if self.terraforming_track_level == 2:
-            self.URP = self.URP + 6.0
+            self.gain_vp(6)
 
     fun update_income() -> Void:
         # beginning of a new phase. get new production from building, competency tile,
@@ -337,6 +347,7 @@ fun make_player() -> Player:
     player.schools = 0
     player.universities = 0
     player.palaces = 0
+    player.VP = 0
     player.URP = 0.0
     player.phase_production_URP = 0.0
     player.cities = 0
