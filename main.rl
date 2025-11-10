@@ -25,15 +25,19 @@ fun do_move_get_competency_tile(State state, Player player, Int tile_id) -> Void
     player.get_competency_tile( state.competency_tiles[tile_id] )
     do_move_advance_discipline( state, player, discipline_id, num_levels)
     player.gain_book(discipline_id, 2 - level)
+    player.competency_tile_income = player.competency_tile_income - 1
 
 act build_phase(ctx State state, ctx Player player) -> BuildPhase:
+    # during build phase you can found a city and get competency tiles, player decide the order of actions
     while player.has_build_phase():
         actions:
             act get_competency_tile(BInt<0,12> tile_id){player.competency_tile_income > 0 and player.can_get_competency_tile(tile_id.value)}
                 do_move_get_competency_tile(state, player, tile_id.value)
-
-            act get_city_tile(CityTileKindID city_tile_kind_id){player.city_income > 0 and player.can_get_city_tile(state.city_tiles, city_tile_kind_id)}
+            act get_city_tile(CityTileKindID city_tile_kind_id){player.city_income > 0 and state.city_tiles.has_city_tile(city_tile_kind_id)}
                 player.get_city_tile(state.city_tiles, city_tile_kind_id)
+                player.city_income = player.city_income - 1
+            act pass_build_phase()
+                return
 
 
 
@@ -42,20 +46,21 @@ act action_phase(ctx State state, ctx Player player) -> ActionPhase:
         actions:
             act build_workshop() {player.can_build_workshop() }
                 player.build_workshop()
+                subaction*(state, state.get_current_player() ) build_phase = build_phase(state , state.get_current_player())
             act build_guild() {player.can_build_guild() }
                 player.build_guild()
+                subaction*(state, state.get_current_player() ) build_phase = build_phase(state , state.get_current_player())
             act build_school() {player.can_build_school() }
                 player.build_school()
-                act get_competency_tile(BInt<0,12> tile_id){player.can_get_competency_tile(tile_id.value)}
-                    do_move_get_competency_tile(state, player, tile_id.value)
+                subaction*(state, state.get_current_player() ) build_phase = build_phase(state , state.get_current_player())
 
             act build_palace() {player.can_build_palace() }
                 player.build_palace()
+                subaction*(state, state.get_current_player() ) build_phase = build_phase(state , state.get_current_player())
                 player.URP = player.URP + URP_PALACE * float(6-state.phase.value)/5.0
             act build_university() {player.can_build_university() }
                 player.build_university()
-                act get_competency_tile(BInt<0,12> tile_id){player.can_get_competency_tile(tile_id.value)}
-                    do_move_get_competency_tile(state, player, tile_id.value)
+                subaction*(state, state.get_current_player() ) build_phase = build_phase(state , state.get_current_player())
 
             act convert_scholars_to_tools(BInt<1, 20> num_scholars) {player.scholars_on_hand.value >= num_scholars.value }
                 player.convert_scholars_to_tools( num_scholars.value )
@@ -225,7 +230,7 @@ fun test_game_build_school()-> Bool:
     game.build_school()
     return player.schools == 1 and player.guilds == 0
 
-fun test_game_schoolar_income()-> Bool:
+fun test_game_scholar_income()-> Bool:
     let game = play()
     ref player = game.state.players[0]
     game.build_guild()
@@ -352,6 +357,7 @@ fun test_game_return_scholar()-> Bool:
     return true
 
 fun test_game_city()-> Bool:
+    # test game_tile and round bonus for tile 4
     let game = play()
     ref player = game.state.players[0]
     player.powers[0]=5
@@ -379,8 +385,18 @@ fun test_game_city()-> Bool:
 
     game.build_university()
     assert(player.cities == 1, "first city")
-    game.get_competency_tile(tile_id+3)
+    let tile_kind = CityTileKind::VP6_6COINS
+    let tile_kind_id = city_tile_kind_id(tile_kind.value)
+    let VP = player.VP
+    let coins = player.coins
+    game.get_city_tile(tile_kind_id)
+    assert( player.coins - coins == 6, "got city tile income" )
+    assert( player.VP - VP == 6, "got VP tile income" )
+    game.get_competency_tile(tile_id+3) # 2VP per city
+
+    let VP = player.VP
     game.pass_turn()
+    assert(player.VP == VP + 1*2 - 3,"got city round bonus vps")
     assert(player.universities == 1 and player.guilds == 0 and player.schools == 2 and player.cities == 1, "first city after turn ")
     return  true
 
@@ -453,20 +469,4 @@ fun test_game_discipline_level_round_pass_vp()->Bool:
     game.pass_turn()
     # -3 is for power getting
     assert(player.VP == VP + 2 - 3,"got discipline level vps")
-    return true
-
-fun test_game_cities_round_pass_vp()->Bool:
-    let game = play()
-    ref player = game.state.players[0]
-    player.cities = 3
-
-    game.build_guild()
-    game.build_school()
-    let tile_id : BInt<0,12>
-    tile_id=4 # 2vp per city
-    game.get_competency_tile(tile_id)
-    let VP = player.VP
-    game.pass_turn()
-    # -3 is for power getting
-    assert(player.VP == VP + 3*2 - 3,"got city vps")
     return true

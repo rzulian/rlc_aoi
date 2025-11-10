@@ -38,6 +38,7 @@ cls Player:
     BInt<0,8> scholars
     BInt<0,8> scholars_on_hand
     BoundedVector<CompetencyTile, NUM_COMPETENCY_TILES> competency_tiles
+    BoundedVector<CityTileKind, 6> city_tiles
     BInt<0,6> cities
     BInt<0,6> spades
     BInt<0,4> terraforming_track_level
@@ -214,6 +215,7 @@ cls Player:
         self.schools = self.schools + 1
         self.guilds = self.guilds - 1
         self.pay_building(BuildingType::school)
+        self.competency_tile_income = self.competency_tile_income + 1
         self.update_cities()
     
     fun build_palace() -> Void :
@@ -226,6 +228,7 @@ cls Player:
         self.universities = self.universities + 1
         self.schools = self.schools - 1
         self.pay_building(BuildingType::university)
+        self.competency_tile_income = self.competency_tile_income + 1
         self.update_cities()
 
     fun convert_scholars_to_tools( Int num_scholars) -> Void :
@@ -307,11 +310,19 @@ cls Player:
                 self.gain_vp( self.cities.value * 2 )
                 continue
 
-    fun can_get_city_tile(CityTiles city_tyles, CityTileKindID id)->Bool:
-        return true
+    fun get_city_tile(CityTiles city_tiles, CityTileKindID id):
+        # TODO get discipline
+        let tile=city_tiles.get_city_tile(id)
+        self.city_tiles.append(tile)
 
-    fun get_city_tile(CityTiles city_tyles, CityTileKindID id):
-        city_tyles.get_city_tile(id)
+        self.gain_vp(tile.bonus()[0])
+        self.gain_tool(tile.bonus()[1])
+        self.gain_coin(tile.bonus()[2])
+        self.gain_power(tile.bonus()[3])
+        self.gain_scholar(tile.bonus()[4])
+        self.book_income = self.book_income + tile.bonus()[5]
+        self.gain_spade(tile.bonus()[6])
+
 
 
 
