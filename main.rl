@@ -26,6 +26,17 @@ fun do_move_get_competency_tile(State state, Player player, Int tile_id) -> Void
     do_move_advance_discipline( state, player, discipline_id, num_levels)
     player.gain_book(discipline_id, 2 - level)
 
+act build_phase(ctx State state, ctx Player player) -> BuildPhase:
+    while player.has_build_phase():
+        actions:
+            act get_competency_tile(BInt<0,12> tile_id){player.competency_tile_income > 0 and player.can_get_competency_tile(tile_id.value)}
+                do_move_get_competency_tile(state, player, tile_id.value)
+
+            act get_city_tile(CityTileKindID city_tile_kind_id){player.city_income > 0 and player.can_get_city_tile(state.city_tiles, city_tile_kind_id)}
+                player.get_city_tile(state.city_tiles, city_tile_kind_id)
+
+
+
 act action_phase(ctx State state, ctx Player player) -> ActionPhase:
     while true:
         actions:
@@ -129,6 +140,7 @@ act play() -> Game:
         state.current_player = 0
         while state.current_player < state.players.size():
             subaction*(state, state.get_current_player() ) player_frame = action_phase(state , state.get_current_player())
+            state.get_current_player().get_competency_tile_pass_bonus()
             state.current_player = state.current_player + 1
 
         state.phase = state.phase + 1
@@ -366,7 +378,7 @@ fun test_game_city()-> Bool:
     game.get_competency_tile(tile_id+2)
 
     game.build_university()
-    assert(player.num_cities() == 1, "first city")
+    assert(player.cities == 1, "first city")
     game.get_competency_tile(tile_id+3)
     game.pass_turn()
     assert(player.universities == 1 and player.guilds == 0 and player.schools == 2 and player.cities == 1, "first city after turn ")
@@ -424,4 +436,37 @@ fun test_game_send_scholar_vp()->Bool:
     game.send_scholar(discipline_id)
 
     assert(player.VP==VP + 2,"has get scholar vps")
+    return true
+
+fun test_game_discipline_level_round_pass_vp()->Bool:
+    let game = play()
+    ref player = game.state.players[0]
+    for i in range(4):
+        player.discipline_level[i] = i+2
+
+    game.build_guild()
+    game.build_school()
+    let tile_id : BInt<0,12>
+    tile_id=3 # 1vp per lowest discipline level
+    game.get_competency_tile(tile_id)
+    let VP = player.VP
+    game.pass_turn()
+    # -3 is for power getting
+    assert(player.VP == VP + 2 - 3,"got discipline level vps")
+    return true
+
+fun test_game_cities_round_pass_vp()->Bool:
+    let game = play()
+    ref player = game.state.players[0]
+    player.cities = 3
+
+    game.build_guild()
+    game.build_school()
+    let tile_id : BInt<0,12>
+    tile_id=4 # 2vp per city
+    game.get_competency_tile(tile_id)
+    let VP = player.VP
+    game.pass_turn()
+    # -3 is for power getting
+    assert(player.VP == VP + 3*2 - 3,"got city vps")
     return true

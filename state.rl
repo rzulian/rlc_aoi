@@ -9,6 +9,7 @@ import board
 import player
 import discipline
 import competency
+import city_tile
 
 using PlayerID = BInt<0, 5>
 
@@ -25,6 +26,7 @@ cls State:
     Bool power_action_2spades
     BoundedVector<DisciplineTrack, 4> disciplines
     CompetencyTile[NUM_COMPETENCY_TILES] competency_tiles
+    CityTiles city_tiles
     BInt<0,NUM_COMPETENCY_TILES>[NUM_COMPETENCY_TILES] innovation_display  
 
 
@@ -38,6 +40,7 @@ cls State:
             self.disciplines.append(discipline)
 
         self.competency_tiles = make_competency_tiles()
+        self.city_tiles = make_city_tiles()
         # innovation_display contains the position of the corresponding competency_tiles
         # position is discipline_id*3 + level
         # TODO shuffle innovation display tiles

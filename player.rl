@@ -7,6 +7,7 @@ import machine_learning
 
 import building
 import competency
+import city_tile
 
 using BuildingArgType = BInt<0, 18>
 const NUM_WORKSHOPS = 9
@@ -50,6 +51,8 @@ cls Player:
     Int vp_income
     Int science_step_income
     Int book_income
+    Int city_income
+    Int competency_tile_income
     Float urp_for_vp
     Int send_scholar_vp
 
@@ -75,10 +78,11 @@ cls Player:
     fun power_buildings() -> Int:
         return self.workshops.value *BuildingType::workshop.power() + self.guilds.value*BuildingType::guild.power() + self.schools.value*BuildingType::school.power()+ self.palaces.value*BuildingType::palace.power() + self.universities.value*BuildingType::university.power()
 
-    fun num_cities() -> Int:
+    fun update_cities() -> Void:
         let cities = 0
-        let num_buildings_cluster1 = self.num_buildings()
+
         let power_buildings = self.power_buildings()
+        let num_buildings_cluster1 = self.num_buildings()
         let power_buildings_cluster1 = power_buildings - BuildingType::workshop.power()
         let has_one_city = power_buildings_cluster1 >= 7 and ( num_buildings_cluster1>= 4 or (num_buildings_cluster1==3 and self.universities.value==1)) 
         let has_two_cities = power_buildings  >= 14 and ( num_buildings_cluster1 +1 >= 8 or (num_buildings_cluster1 + 1 >=7 and self.universities.value==1))
@@ -86,11 +90,17 @@ cls Player:
             cities = 1
         if has_two_cities:
             cities = 2
-        return cities
+        self.city_income = cities - self.cities.value
+        self.cities.value = cities
+
 
     fun has_income_phase() -> Bool:
         # player can decide to advance a science_step or gain a book
         return (self.science_step_income + self.book_income) > 0
+
+    fun has_build_phase() -> Bool:
+        # player can decide to get a competency tile or get a city tile
+        return (self.city_income + self.competency_tile_income) > 0
 
     fun gain_tool( Int num_tools):
         self.tools = self.tools + num_tools
@@ -189,6 +199,7 @@ cls Player:
         self.spades = self.spades - self.spades_needed()
         self.workshops = self.workshops + 1
         self.pay_building(BuildingType::workshop)
+        self.update_cities()
 
     fun build_free_workshop() -> Void :
         self.workshops = self.workshops + 1
@@ -197,21 +208,25 @@ cls Player:
         self.guilds = self.guilds + 1
         self.workshops = self.workshops - 1
         self.pay_building(BuildingType::guild)
+        self.update_cities()
 
     fun build_school() -> Void :
         self.schools = self.schools + 1
         self.guilds = self.guilds - 1
         self.pay_building(BuildingType::school)
+        self.update_cities()
     
     fun build_palace() -> Void :
         self.palaces = self.palaces + 1
         self.guilds = self.guilds - 1
         self.pay_building(BuildingType::palace)
+        self.update_cities()
 
     fun build_university() -> Void :
         self.universities = self.universities + 1
         self.schools = self.schools - 1
         self.pay_building(BuildingType::university)
+        self.update_cities()
 
     fun convert_scholars_to_tools( Int num_scholars) -> Void :
         self.gain_scholar( -1*num_scholars)
@@ -263,7 +278,7 @@ cls Player:
         else if comp_tile.id == 7:
             self.send_scholar_vp = 2
 
-    fun get_round_competency_tile_bonus() -> Void:
+    fun get_competency_tile_round_bonus() -> Void:
         for tile in self.competency_tiles:
             if tile.id==11:
                 self.tool_income = self.tool_income + 1
@@ -277,10 +292,26 @@ cls Player:
                 self.coin_income = self.coin_income + 2
                 self.vp_income = self.vp_income + 3
                 continue
-            if tile.id==5 or tile.id==10 or tile.id==7:
+            if tile.id==5 or tile.id==10 or tile.id==7 or tile.id==3 or tile.id==4:
                 continue
             # everything else
             self.URP = self.URP + URP_COMPETENCY_TILE/5.0
+
+    fun get_competency_tile_pass_bonus() -> Void:
+        for tile in self.competency_tiles:
+            if tile.id==3:
+                let min_level = min(min(min(self.discipline_level[0],self.discipline_level[1]), self.discipline_level[2]),self.discipline_level[3])
+                self.gain_vp( min_level.value )
+                continue
+            if tile.id==4:
+                self.gain_vp( self.cities.value * 2 )
+                continue
+
+    fun can_get_city_tile(CityTiles city_tyles, CityTileKindID id)->Bool:
+        return true
+
+    fun get_city_tile(CityTiles city_tyles, CityTileKindID id):
+        city_tyles.get_city_tile(id)
 
 
 
@@ -312,16 +343,11 @@ cls Player:
         self.science_step_income = 0
         self.book_income = 0
 
-        self.get_round_competency_tile_bonus()
+        self.get_competency_tile_round_bonus()
 
         #scenario 11 power bonus on every phase
         self.power_income = self.power_income + 6
         self.vp_income = self.vp_income - 3
-
-        # add city VPs only for new founded cities
-        let cities = self.num_cities()
-        self.vp_income = self.vp_income + (cities - self.cities.value) * VP_CITY
-        self.cities = cities
 
         self.gain_coin(self.coin_income)
         self.gain_tool(self.tool_income)
@@ -353,6 +379,9 @@ fun make_player() -> Player:
     player.cities = 0
     player.spades = 0
     player.science_step_income = 0
+    player.city_income = 0
+    player.competency_tile_income = 0
+
     player.terraforming_track_level = 1
     for i in range(4):
         player.discipline_level[i] = 0
