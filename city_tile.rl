@@ -3,6 +3,7 @@ import math.numeric
 import range
 import action
 import enum_utils
+import enum_range
 
 const NUM_CITY_TILE_KIND = 7
 
@@ -37,10 +38,8 @@ cls CityTiles:
     BInt<0,4>[NUM_CITY_TILE_KIND] tiles
 
     fun init():
-        let k: CityTileKind
-        for kind in k:
+        for kind in range(CityTileKind::VP8_1SCHOLAR):
             self.tiles[kind.value] = 3
-
 
     fun get( CityTileKind city_tile_kind) -> Int:
         return self.tiles[ city_tile_kind.value ].value
