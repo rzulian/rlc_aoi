@@ -25,7 +25,7 @@ cls State:
     Bool power_action_1spade
     Bool power_action_2spades
     BoundedVector<DisciplineTrack, 4> disciplines
-    CompetencyTile[NUM_COMPETENCY_TILES] competency_tiles
+    CompetencyTiles competency_tiles
     CityTiles city_tiles
     BInt<0,NUM_COMPETENCY_TILES>[NUM_COMPETENCY_TILES] innovation_display  
 
