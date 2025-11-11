@@ -310,20 +310,19 @@ cls Player:
                 self.gain_vp( self.cities.value * 2 )
                 continue
 
-    fun get_city_tile(CityTiles city_tiles, CityTileKindID id):
+
+    fun get_city_tile(CityTiles city_tiles, CityTileKind kind):
         # TODO get discipline
-        let tile=city_tiles.get_city_tile(id)
-        self.city_tiles.append(tile)
+        city_tiles.draw_city_tile(kind)
+        self.city_tiles.append(kind)
 
-        self.gain_vp(tile.bonus()[0])
-        self.gain_tool(tile.bonus()[1])
-        self.gain_coin(tile.bonus()[2])
-        self.gain_power(tile.bonus()[3])
-        self.gain_scholar(tile.bonus()[4])
-        self.book_income = self.book_income + tile.bonus()[5]
-        self.gain_spade(tile.bonus()[6])
-
-
+        self.gain_vp(kind.bonus()[0])
+        self.gain_tool(kind.bonus()[1])
+        self.gain_coin(kind.bonus()[2])
+        self.gain_power(kind.bonus()[3])
+        self.gain_scholar(kind.bonus()[4])
+        self.book_income = self.book_income + kind.bonus()[5]
+        self.gain_spade(kind.bonus()[6])
 
 
     fun can_upgrade_terraforming() -> Bool:

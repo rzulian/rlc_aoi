@@ -33,8 +33,8 @@ act build_phase(ctx State state, ctx Player player) -> BuildPhase:
         actions:
             act get_competency_tile(BInt<0,12> tile_id){player.competency_tile_income > 0 and player.can_get_competency_tile(tile_id.value)}
                 do_move_get_competency_tile(state, player, tile_id.value)
-            act get_city_tile(CityTileKindID city_tile_kind_id){player.city_income > 0 and state.city_tiles.has_city_tile(city_tile_kind_id)}
-                player.get_city_tile(state.city_tiles, city_tile_kind_id)
+            act get_city_tile(CityTileKind city_tile_kind){player.city_income > 0 and state.city_tiles.has_city_tile(city_tile_kind)}
+                player.get_city_tile(state.city_tiles, city_tile_kind)
                 player.city_income = player.city_income - 1
             act pass_build_phase()
                 return
@@ -386,10 +386,9 @@ fun test_game_city()-> Bool:
     game.build_university()
     assert(player.cities == 1, "first city")
     let tile_kind = CityTileKind::VP6_6COINS
-    let tile_kind_id = city_tile_kind_id(tile_kind.value)
     let VP = player.VP
     let coins = player.coins
-    game.get_city_tile(tile_kind_id)
+    game.get_city_tile(tile_kind)
     assert( player.coins - coins == 6, "got city tile income" )
     assert( player.VP - VP == 6, "got VP tile income" )
     game.get_competency_tile(tile_id+3) # 2VP per city
