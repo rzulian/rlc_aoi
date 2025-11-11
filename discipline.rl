@@ -2,22 +2,34 @@ import bounded_arg
 import collections.vector
 import range
 import math.numeric
+import serialization.print
 
-enum DisciplineName:
+const NUM_DISCIPLINES = 4
+
+enum Discipline:
     banking
     law
     engineering
     medicine
 
-    fun equal(DisciplineName other) -> Bool:
+    fun get(Int id) -> Discipline:
+        let to_return :  Discipline
+        to_return.value = id
+        return to_return
+
+    fun equal(Discipline other) -> Bool:
         return self.value == other.value
 
 const NUM_SPACES_PER_DISCIPLINE = 4
 
 cls DisciplineTrack:
-    DisciplineName discipline_name
     Bool[5] spaces
-    Int first_space 
+    Int first_space
+
+    fun init():
+        self.first_space = 0
+        for i in range(5):
+            self.spaces[i] = false
 
     fun power_from_track( Int starting_level, Int steps) -> Int:
         let level_power = [0,0,0,1,0,2,0,2,0,0,0,0,3,0,0,0]
@@ -38,22 +50,27 @@ cls DisciplineTrack:
 
     fun send_scholar() -> Void:
         self.first_space = min(self.first_space + 1, NUM_SPACES_PER_DISCIPLINE)
-        
 
+cls DisciplineDisplay:
+    DisciplineTrack[NUM_DISCIPLINES] discipline_tracks
 
+    fun init():
+        for i in range(NUM_DISCIPLINES):
+            let discipline : DisciplineTrack
+            self.discipline_tracks[i] = discipline
 
-fun make_discipline_track(DisciplineName discipline_name) -> DisciplineTrack:
-    let discipline_track : DisciplineTrack
-    discipline_track.discipline_name = discipline_name
-    discipline_track.first_space = 0
-    for i in range(5):
-        discipline_track.spaces[i] = false
+    fun get(Discipline discipline) -> ref DisciplineTrack:
+        return self.discipline_tracks[discipline.value]
 
-    return discipline_track
-    
+fun test_discipline_display()->Bool:
+    let dd : DisciplineDisplay
+    dd[Discipline::banking].send_scholar()
+    assert(dd[Discipline::banking].first_space == 1, "one scholar")
+    assert(dd[Discipline::law].first_space == 0, "no scholar")
+    return true
 
 fun test_send_scholar() -> Bool:
-    let d = make_discipline_track(DisciplineName::banking)
+    let d : DisciplineTrack
     
     assert ( d.first_space == 0 , "first space is empty")
     let steps = d.steps_for_send_scholar()
@@ -76,6 +93,4 @@ fun test_send_scholar() -> Bool:
     d.send_scholar()
 
     assert (d.can_send_scholar() == false, "cannot send another scholar")
-
-
     return true

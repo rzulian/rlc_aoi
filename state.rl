@@ -24,29 +24,16 @@ cls State:
     Bool power_action_7coins
     Bool power_action_1spade
     Bool power_action_2spades
-    BoundedVector<DisciplineTrack, 4> disciplines
+    DisciplineDisplay discipline_display
     CompetencyTiles competency_tiles
     CityTiles city_tiles
-    BInt<0,NUM_COMPETENCY_TILES>[NUM_COMPETENCY_TILES] innovation_display  
-
 
     fun setup_game(Int num_players):
         self.board = make_board()
         self.phase = 0
         self.is_done = false
 
-        for dn in enumerate(DisciplineName::banking):
-            let discipline = make_discipline_track(dn)
-            self.disciplines.append(discipline)
-
-        self.competency_tiles = make_competency_tiles()
-        self.city_tiles = make_city_tiles()
-        # innovation_display contains the position of the corresponding competency_tiles
-        # position is discipline_id*3 + level
-        # TODO shuffle innovation display tiles
-        for i in range(NUM_COMPETENCY_TILES):
-            self.innovation_display[i] = i
-
+        self.competency_tiles.distribute_competency_tiles()
 
         # setup players
         for i in range(num_players):

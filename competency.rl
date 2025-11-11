@@ -1,57 +1,73 @@
 import bounded_arg
 import collections.vector
 import range
-import player
 import discipline
 import enum_range
+
 
 const NUM_COMPETENCY_TILES_KIND = 12
 
 enum CompetencyTileKind:
     neutral_tower
     neutral_annexes
-    4power
+    power4
     lowest_science_vp
-    city_tile_vp
-    2spades
-    1book_1power
+    city_vp
+    spades2
+    book_power
     send_scholar_vp
-    2coins_3vp
+    coins2_vp3
     build_workshop_border
-    1tool_2coins_5vp
-    1tool_1science_adv
+    tool_coins2_vp5
+    tool_science_adv
 
     fun get(Int id) -> CompetencyTileKind:
         let to_return :  CompetencyTileKind
         to_return.value = id
         return to_return
 
-    fun equal(CityTileKind other) -> Bool:
+    fun equal(CompetencyTileKind other) -> Bool:
         return self.value == other.value
 
-cls InnovationDisplay:
-    CompetencyTileKind competency_tile
+cls CompetencySpace:
     Int num_tiles
-    DisciplineName discipline_name
+    Discipline discipline
     Int level
 
+    fun num_books() -> Int:
+        return 2 - self.level
+
+    fun num_levels() -> Int:
+        return 1 + self.level
+
+    fun draw_competency_tile():
+        self.num_tiles = self.num_tiles  - 1
+
 cls CompetencyTiles:
-    InnovationDisplay[NUM_COMPETENCY_TILES_KIND] display
+    CompetencySpace[NUM_COMPETENCY_TILES_KIND] space
 
     fun init():
-        let k: CompetencyTileKind
-        for kind in range(CompetencyTileKind::neutral_tower):
-            self.num_tiles[kind.value] = 3
+        for i in range(NUM_COMPETENCY_TILES_KIND):
+            self.space[i].num_tiles = 4
 
-    fun get( CompetencyTileKind kind) -> InnovationDisplay:
-        return self.num_tiles[kind.value].value
+    fun get(CompetencyTileKind kind) -> ref CompetencySpace:
+        return self.space[kind.value]
 
-    fun draw_city_tile( CompetencyTileKind kind) :
-        self.num_tiles[kind.value] = self.num_tiles[kind.value] - 1
+    fun has_competency_tile(CompetencyTileKind kind) -> Bool:
+        return self.space[kind.value].num_tiles > 0
 
-    fun has_competency_tile( CompetencyTileKind kind ) -> Bool:
-        return self.num_tiles[kind.value] > 0
+    fun distribute_competency_tiles():
+        # this is the standard distribution of competencies
+        let discipline : Discipline
 
-fun make_competency_tiles() -> CompetencyTiles:
+        for tile_idx in range(NUM_COMPETENCY_TILES_KIND):
+            let discipline_id = tile_idx / 3
+            let level = tile_idx % 3
+            self.space[tile_idx].level = level
+            self.space[tile_idx].discipline = discipline[discipline_id]
+
+fun test_standard_distribution()->Bool:
     let tiles : CompetencyTiles
-    return tiles
+    tiles.distribute_competency_tiles()
+    print(tiles)
+    return true

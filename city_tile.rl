@@ -23,14 +23,6 @@ enum CityTileKind:
     VP5_2SPADES:
         Int[8] bonus = [5, 0, 0, 0, 0, 0, 2, 0]
 
-    fun get(Int id) -> CityTileKind:
-        let to_return :  CityTileKind
-        to_return.value = id
-        return to_return
-
-    fun size() -> Int:
-        return 7
-
     fun equal(CityTileKind other) -> Bool:
         return self.value == other.value
 
@@ -41,22 +33,17 @@ cls CityTiles:
         for kind in range(CityTileKind::VP8_1SCHOLAR):
             self.tiles[kind.value] = 3
 
-    fun get( CityTileKind city_tile_kind) -> Int:
-        return self.tiles[ city_tile_kind.value ].value
+    fun get(CityTileKind kind) -> Int:
+        return self.tiles[kind.value].value
 
-    fun draw_city_tile( CityTileKind kind) :
+    fun draw_city_tile(CityTileKind kind) :
         self.tiles[kind.value] = self.tiles[kind.value] - 1
 
-    fun has_city_tile( CityTileKind kind ) -> Bool:
+    fun has_city_tile(CityTileKind kind) -> Bool:
         return self.tiles[kind.value] > 0
-
-fun make_city_tiles() -> CityTiles:
-    let city_tiles : CityTiles
-    return city_tiles
 
 fun test_get_city_tile() -> Bool:
     let tiles : CityTiles
-    tiles = make_city_tiles()
 
     let kind = CityTileKind::VP8_8POWERS
     let num = tiles[kind]
@@ -69,9 +56,4 @@ fun test_get_city_tile() -> Bool:
 
     let has_tile? = tiles.has_city_tile(kind)
     assert( !has_tile? , "no tile available")
-    return true
-
-fun test_enum()->Bool:
-    let k: CityTileKind
-    print(k[1])
     return true

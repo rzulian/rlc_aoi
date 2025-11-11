@@ -9,36 +9,47 @@ import machine_learning
 
 const NUM_PLAYERS = 1
 
-fun do_move_advance_discipline(State state, Player player, Int discipline_id, Int num_levels) -> Void:
-    let starting_level =  player.discipline_level[discipline_id].value
-    let power = state.disciplines[discipline_id].power_from_track( starting_level, num_levels)
-    let new_level = state.disciplines[discipline_id].next_level( starting_level, num_levels)
+fun do_move_advance_discipline(State state, Player player, Discipline discipline, Int num_levels) -> Void:
+    let starting_level =  player.discipline_level[discipline.value].value
+    let power = state.discipline_display[discipline].power_from_track( starting_level, num_levels)
+    let new_level = state.discipline_display[discipline].next_level( starting_level, num_levels)
     player.gain_power( power )
-    player.discipline_level[discipline_id] = new_level
+    player.discipline_level[discipline.value] = new_level
     player.gain_science_step(new_level-starting_level)
 
-fun do_move_get_competency_tile(State state, Player player, Int tile_id) -> Void:
-    let tile_pos = state.innovation_display[tile_id].value
-    let discipline_id = tile_pos / 3
-    let level = tile_pos % 3 
-    let num_levels = level + 1
-    player.get_competency_tile( state.competency_tiles[tile_id] )
-    do_move_advance_discipline( state, player, discipline_id, num_levels)
-    player.gain_book(discipline_id, 2 - level)
-    player.competency_tile_income = player.competency_tile_income - 1
+fun do_move_get_competency_tile(State state, Player player, CompetencyTileKind kind) -> Void:
+    player.get_competency_tile( kind )
+    state.competency_tiles[kind].draw_competency_tile()
+    let num_levels =  state.competency_tiles[kind].num_levels()
+    let num_books =  state.competency_tiles[kind].num_books()
+
+    do_move_advance_discipline( state, player, state.competency_tiles[kind].discipline, num_levels)
+    player.gain_book(state.competency_tiles[kind].discipline, num_books)
+
+
+act income_phase(ctx State state, ctx Player player) -> IncomePhase:
+    while player.has_income_phase():
+        actions:
+            act advance_science_step(Discipline discipline){player.science_step_income > 0 }
+                do_move_advance_discipline( state, player, discipline, 1)
+                player.science_step_income = player.science_step_income - 1
+            act gain_book(Discipline discipline){player.book_income > 0 }
+                player.gain_book(discipline, 1)
+                player.book_income = player.book_income - 1
+
 
 act build_phase(ctx State state, ctx Player player) -> BuildPhase:
     # during build phase you can found a city and get competency tiles, player decide the order of actions
     while player.has_build_phase():
         actions:
-            act get_competency_tile(BInt<0,12> tile_id){player.competency_tile_income > 0 and player.can_get_competency_tile(tile_id.value)}
-                do_move_get_competency_tile(state, player, tile_id.value)
+            act get_competency_tile(CompetencyTileKind kind){player.competency_tile_income > 0 and player.can_get_competency_tile(kind)}
+                do_move_get_competency_tile(state, player, kind)
+                player.competency_tile_income = player.competency_tile_income - 1
             act get_city_tile(CityTileKind city_tile_kind){player.city_income > 0 and state.city_tiles.has_city_tile(city_tile_kind)}
                 player.get_city_tile(state.city_tiles, city_tile_kind)
                 player.city_income = player.city_income - 1
             act pass_build_phase()
                 return
-
 
 
 act action_phase(ctx State state, ctx Player player) -> ActionPhase:
@@ -96,31 +107,24 @@ act action_phase(ctx State state, ctx Player player) -> ActionPhase:
                 state.power_action_2spades = false                
                 player.convert_power_to_spades( 6, 2 )
 
-            act send_scholar(BInt<0,4> discipline_id ){player.scholars_on_hand.value > 0 and state.disciplines[discipline_id.value].can_send_scholar() }
-                let num_levels = state.disciplines[discipline_id.value].steps_for_send_scholar()
-                do_move_advance_discipline(state, player, discipline_id.value, num_levels)
+            act send_scholar(Discipline discipline){player.scholars_on_hand.value > 0 and state.discipline_display[discipline].can_send_scholar() }
+                let num_levels = state.discipline_display[discipline].steps_for_send_scholar()
+                do_move_advance_discipline(state, player, discipline, num_levels)
                 player.send_scholar(1)
-                state.disciplines[discipline_id.value].send_scholar()
+                state.discipline_display[discipline].send_scholar()
 
-            act return_scholar(BInt<0,4> discipline_id ){player.scholars_on_hand.value > 0 }
-                do_move_advance_discipline(state, player, discipline_id.value, 1)
+            act return_scholar(Discipline discipline){player.scholars_on_hand.value > 0 }
+                do_move_advance_discipline(state, player, discipline, 1)
                 player.return_scholar(1)
 
             act upgrade_terraforming(){player.can_upgrade_terraforming()}
                 player.upgrade_terraforming()
+                # if books income
+                subaction*(state, state.get_current_player() ) player_frame = income_phase(state , state.get_current_player())
 
             act pass_turn()
                 return
 
-act income_phase(ctx State state, ctx Player player) -> IncomePhase:
-    while player.has_income_phase():
-        actions:
-            act advance_science_step(BInt<0,4> discipline_id){player.science_step_income > 0 }
-                do_move_advance_discipline( state, player, discipline_id.value, 1)
-                player.science_step_income = player.science_step_income - 1
-            act gain_book(BInt<0,4> discipline_id){player.book_income > 0 }
-                player.gain_book(discipline_id.value,1)
-                player.book_income = player.book_income - 1
 
 
 
@@ -235,23 +239,20 @@ fun test_game_scholar_income()-> Bool:
     ref player = game.state.players[0]
     game.build_guild()
     game.build_school()
-    let tile_id : BInt<0,12>
-    tile_id=1
-    game.get_competency_tile(tile_id)
+    game.get_competency_tile(CompetencyTileKind::neutral_tower)
     game.pass_turn()
     return player.scholars_on_hand == 1 and player.scholars == 6
 
-fun test_game_schoolar_income_no_scholar()-> Bool:
+fun test_game_scholar_income_no_scholar()-> Bool:
     let game = play()
     ref player = game.state.players[0]
     game.state.players[0].scholars=0
     game.build_guild()
     game.build_school()
-    let tile_id : BInt<0,12>
-    tile_id=1
-    game.get_competency_tile(tile_id)
+    game.get_competency_tile(CompetencyTileKind::neutral_tower)
     game.pass_turn()
     return player.scholars_on_hand == 0 and player.scholars == 0
+
 
 fun test_game_build_palace()-> Bool:
     let game = play()
@@ -272,12 +273,11 @@ fun test_game_build_university()-> Bool:
 
     game.build_guild()
     game.build_school()
-    let tile_id : BInt<0,12>
-    tile_id=1
-    game.get_competency_tile(tile_id)
+    game.get_competency_tile(CompetencyTileKind::neutral_annexes)
+    assert( game.state.competency_tiles[CompetencyTileKind::neutral_annexes].num_tiles == 3, "draw competency tile")
     assert( player.competency_tiles.size() == 1 and player.powers[0].value == 5 and player.discipline_level[0].value == 2, "first competency tile")
     game.build_university()
-    game.get_competency_tile(tile_id+1)
+    game.get_competency_tile(CompetencyTileKind::power4)
     assert(player.universities == 1 and player.guilds == 0 and player.schools == 0 and player.competency_tiles.size() == 2 and player.discipline_level[0].value == 5 and player.powers[0].value == 2 and player.powers[1].value == 10, "second competency tile")
     return  true
 
@@ -335,12 +335,10 @@ fun test_game_send_scholar()-> Bool:
     player.powers[1]=8
     player.powers[2]=0
     player.gain_scholar(2)
-    let discipline_id : BInt<0,4>
-    discipline_id = 1 
-    game.send_scholar( discipline_id)
-    assert ( game.state.disciplines[discipline_id.value].first_space == 1 and player.discipline_level[discipline_id.value] == 3 and player.powers[0] == 3 and player.scholars_on_hand == 1 , "send 1 scholar")
-    game.send_scholar( discipline_id)
-    assert ( game.state.disciplines[discipline_id.value].first_space == 2 and player.discipline_level[discipline_id.value] == 5 and player.powers[0] == 1 and player.scholars_on_hand == 0 , "send 2 scholar")
+    game.send_scholar(Discipline::law)
+    assert ( game.state.discipline_display[Discipline::law].first_space == 1 and player.discipline_level[Discipline::law.value] == 3 and player.powers[0] == 3 and player.scholars_on_hand == 1 , "send 1 scholar")
+    game.send_scholar(Discipline::law)
+    assert ( game.state.discipline_display[Discipline::law].first_space == 2 and player.discipline_level[Discipline::law.value] == 5 and player.powers[0] == 1 and player.scholars_on_hand == 0 , "send 2 scholar")
     return true
 
 fun test_game_return_scholar()-> Bool:
@@ -350,10 +348,8 @@ fun test_game_return_scholar()-> Bool:
     player.powers[1]=8
     player.powers[2]=0
     player.gain_scholar(2)
-    let discipline_id : BInt<0,4>
-    discipline_id = 1 
-    game.return_scholar( discipline_id)
-    assert ( game.state.disciplines[discipline_id.value].first_space == 0 and player.discipline_level[discipline_id.value] == 1 and player.powers[0] == 4 and player.scholars_on_hand == 1  and player.scholars == 6, "return 1 scholar")
+    game.return_scholar(Discipline::law)
+    assert ( game.state.discipline_display[Discipline::law].first_space == 0 and player.discipline_level[Discipline::law.value] == 1 and player.powers[0] == 4 and player.scholars_on_hand == 1  and player.scholars == 6, "return 1 scholar")
     return true
 
 fun test_game_city()-> Bool:
@@ -369,19 +365,17 @@ fun test_game_city()-> Bool:
 
     game.build_guild()
     game.build_school()
-    let tile_id : BInt<0,12>
-    tile_id=1
-    game.get_competency_tile(tile_id)
+    game.get_competency_tile(CompetencyTileKind::neutral_tower)
 
     game.build_workshop()
     game.build_guild()
     game.build_school()
-    game.get_competency_tile(tile_id+1)
+    game.get_competency_tile(CompetencyTileKind::neutral_annexes)
 
     game.build_workshop()
     game.build_guild()
     game.build_school()
-    game.get_competency_tile(tile_id+2)
+    game.get_competency_tile(CompetencyTileKind::power4)
 
     game.build_university()
     assert(player.cities == 1, "first city")
@@ -391,7 +385,7 @@ fun test_game_city()-> Bool:
     game.get_city_tile(tile_kind)
     assert( player.coins - coins == 6, "got city tile income" )
     assert( player.VP - VP == 6, "got VP tile income" )
-    game.get_competency_tile(tile_id+3) # 2VP per city
+    game.get_competency_tile(CompetencyTileKind::city_vp) # 2VP per city
 
     let VP = player.VP
     game.pass_turn()
@@ -405,14 +399,10 @@ fun test_game_income_phase_science_step()->Bool:
 
     game.build_guild()
     game.build_school()
-    let tile_id : BInt<0,12>
-    tile_id=11 # 1 tool and 1 science step income phase
-    game.get_competency_tile(tile_id)
+    game.get_competency_tile(CompetencyTileKind::tool_science_adv)
     game.pass_turn()
     assert(player.science_step_income==1,"has to advance one science step")
-    let discipline_id: BInt<0,4>
-    discipline_id=0
-    game.advance_science_step(discipline_id)
+    game.advance_science_step(Discipline::banking)
     assert(player.discipline_level[0]==1,"advanced one science step")
 
     return true
@@ -423,14 +413,10 @@ fun test_game_income_phase_gain_book()->Bool:
 
     game.build_guild()
     game.build_school()
-    let tile_id : BInt<0,12>
-    tile_id=6 # 1 book income phase
-    game.get_competency_tile(tile_id)
+    game.get_competency_tile(CompetencyTileKind::book_power)
     game.pass_turn()
     assert(player.book_income==1,"has to get a book")
-    let discipline_id: BInt<0,4>
-    discipline_id=0
-    game.gain_book(discipline_id)
+    game.gain_book(Discipline::banking)
     assert(player.books[0]==1,"got a book")
 
     return true
@@ -441,15 +427,10 @@ fun test_game_send_scholar_vp()->Bool:
 
     game.build_guild()
     game.build_school()
-    let tile_id : BInt<0,12>
-    tile_id=7 # 2vp per send scholar
-    game.get_competency_tile(tile_id)
+    game.get_competency_tile(CompetencyTileKind::send_scholar_vp)
     game.pass_turn()
-    let discipline_id: BInt<0,4>
-    discipline_id=0
     let VP = player.VP
-    game.send_scholar(discipline_id)
-
+    game.send_scholar(Discipline::banking)
     assert(player.VP==VP + 2,"has get scholar vps")
     return true
 
@@ -461,9 +442,7 @@ fun test_game_discipline_level_round_pass_vp()->Bool:
 
     game.build_guild()
     game.build_school()
-    let tile_id : BInt<0,12>
-    tile_id=3 # 1vp per lowest discipline level
-    game.get_competency_tile(tile_id)
+    game.get_competency_tile(CompetencyTileKind::lowest_science_vp)
     let VP = player.VP
     game.pass_turn()
     # -3 is for power getting

@@ -37,7 +37,7 @@ cls Player:
     BInt<0,2> universities
     BInt<0,8> scholars
     BInt<0,8> scholars_on_hand
-    BoundedVector<CompetencyTile, NUM_COMPETENCY_TILES> competency_tiles
+    BoundedVector<CompetencyTileKind, NUM_COMPETENCY_TILES_KIND> competency_tiles
     BoundedVector<CityTileKind, 6> city_tiles
     BInt<0,6> cities
     BInt<0,6> spades
@@ -58,8 +58,8 @@ cls Player:
     Int send_scholar_vp
 
     BoundedVector<Building, 18> buildings
-    BInt<0,14>[4] discipline_level
-    BInt<0,14>[4] books
+    BInt<0,14>[NUM_DISCIPLINES] discipline_level
+    BInt<0,14>[NUM_DISCIPLINES] books
    
     fun score(Int current_phase) -> Float:
         let urp_for_production = [ 0.0, 3.0, 3.0, 2.6, 2.1, 1.5, 0.83]
@@ -131,8 +131,8 @@ cls Player:
         self.scholars_on_hand = self.scholars_on_hand - num_scholars
         self.gain_vp(self.send_scholar_vp)
 
-    fun gain_book( Int discipline_id, Int num_books):
-        self.books[discipline_id] = self.books[discipline_id] + num_books
+    fun gain_book( Discipline discipline, Int num_books):
+        self.books[discipline.value] = self.books[discipline.value] + num_books
 
     fun gain_power(Int power):
         let to_bowl2 = min( power, self.powers[0].value )
@@ -263,50 +263,46 @@ cls Player:
         # track level 1 -> 3 tools
         return 4 - self.terraforming_track_level.value
 
-    fun can_get_competency_tile(Int tile_id) -> Bool:
+    fun can_get_competency_tile(CompetencyTileKind kind) -> Bool:
         # check if the player has already the tile
-        for comp_tile in self.competency_tiles:
-            if comp_tile.id==tile_id:
+        for comp_tile_kind in self.competency_tiles:
+            if comp_tile_kind == kind:
                 return false
         return true
 
-    fun get_competency_tile( CompetencyTile comp_tile ) -> Void:
-        self.competency_tiles.append(comp_tile)
-        if comp_tile.id == 5:
+    fun get_competency_tile( CompetencyTileKind kind ) -> Void:
+        self.competency_tiles.append(kind)
+        if kind == CompetencyTileKind::spades2:
             self.gain_spade(2)
-        else if comp_tile.id == 10:
+        else if kind == CompetencyTileKind::tool_coins2_vp5:
             self.gain_coin(2)
             self.gain_tool(1)
             self.gain_vp(5)
-        else if comp_tile.id == 7:
+        else if kind == CompetencyTileKind::send_scholar_vp:
             self.send_scholar_vp = 2
 
     fun get_competency_tile_round_bonus() -> Void:
         for tile in self.competency_tiles:
-            if tile.id==11:
+            if tile == CompetencyTileKind::tool_science_adv:
                 self.tool_income = self.tool_income + 1
                 self.science_step_income = self.science_step_income + 1
                 continue
-            if tile.id==6:
+            if tile == CompetencyTileKind::book_power:
                 self.book_income = self.book_income + 1
                 self.power_income = self.power_income + 1
                 continue
-            if tile.id==8:
+            if tile == CompetencyTileKind::coins2_vp3:
                 self.coin_income = self.coin_income + 2
                 self.vp_income = self.vp_income + 3
                 continue
-            if tile.id==5 or tile.id==10 or tile.id==7 or tile.id==3 or tile.id==4:
-                continue
-            # everything else
-            self.URP = self.URP + URP_COMPETENCY_TILE/5.0
 
     fun get_competency_tile_pass_bonus() -> Void:
         for tile in self.competency_tiles:
-            if tile.id==3:
+            if tile == CompetencyTileKind::lowest_science_vp:
                 let min_level = min(min(min(self.discipline_level[0],self.discipline_level[1]), self.discipline_level[2]),self.discipline_level[3])
                 self.gain_vp( min_level.value )
                 continue
-            if tile.id==4:
+            if tile == CompetencyTileKind::city_vp:
                 self.gain_vp( self.cities.value * 2 )
                 continue
 
@@ -334,8 +330,7 @@ cls Player:
         self.pay_coin( 5 )
         self.terraforming_track_level = self.terraforming_track_level + 1
         if self.terraforming_track_level == 1:
-            #TODO action for books
-            self.gain_book(0, 2)
+            self.book_income = self.book_income + 2
         if self.terraforming_track_level == 2:
             self.gain_vp(6)
 
