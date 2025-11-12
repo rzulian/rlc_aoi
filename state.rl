@@ -27,6 +27,7 @@ cls State:
     DisciplineDisplay discipline_display
     CompetencyTiles competency_tiles
     CityTiles city_tiles
+    PalaceTiles palace_tiles
 
     fun setup_game(Int num_players):
         self.board = make_board()
@@ -34,6 +35,7 @@ cls State:
         self.is_done = false
 
         self.competency_tiles.distribute_scenario_std()
+        self.palace_tiles.setup_scenario_std()
 
         # setup players
         for i in range(num_players):

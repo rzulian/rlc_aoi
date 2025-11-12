@@ -86,5 +86,4 @@ cls CompetencyTiles:
 fun test_standard_distribution()->Bool:
     let tiles : CompetencyTiles
     tiles.distribute_competency_tiles()
-    print(tiles)
     return true

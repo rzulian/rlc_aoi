@@ -39,7 +39,7 @@ act income_phase(ctx State state, ctx Player player) -> IncomePhase:
 
 
 act build_phase(ctx State state, ctx Player player) -> BuildPhase:
-    # during build phase you can found a city and get competency tiles, player decide the order of actions
+    # during build phase you can found a city and/or get competency tiles and/or get a palace tile, player decide the order of actions
     while player.has_build_phase():
         actions:
             act get_competency_tile(CompetencyTileKind kind){player.competency_tile_income > 0 and player.can_get_competency_tile(kind)}
@@ -48,6 +48,9 @@ act build_phase(ctx State state, ctx Player player) -> BuildPhase:
             act get_city_tile(CityTileKind city_tile_kind){player.city_income > 0 and state.city_tiles.has_city_tile(city_tile_kind)}
                 player.get_city_tile(state.city_tiles, city_tile_kind)
                 player.city_income = player.city_income - 1
+            act get_palace_tile(PalaceTileKind palace_tile_kind){player.palace_income > 0 and state.palace_tiles.has_palace_tile(palace_tile_kind)}
+                player.get_palace_tile(state.palace_tiles, palace_tile_kind)
+                player.palace_income = player.palace_income - 1
             act pass_build_phase()
                 return
 
@@ -64,11 +67,9 @@ act action_phase(ctx State state, ctx Player player) -> ActionPhase:
             act build_school() {player.can_build_school() }
                 player.build_school()
                 subaction*(state, state.get_current_player() ) build_phase = build_phase(state , state.get_current_player())
-
             act build_palace() {player.can_build_palace() }
                 player.build_palace()
                 subaction*(state, state.get_current_player() ) build_phase = build_phase(state , state.get_current_player())
-                player.URP = player.URP + URP_PALACE * float(6-state.phase.value)/5.0
             act build_university() {player.can_build_university() }
                 player.build_university()
                 subaction*(state, state.get_current_player() ) build_phase = build_phase(state , state.get_current_player())
@@ -257,10 +258,14 @@ fun test_game_scholar_income_no_scholar()-> Bool:
 fun test_game_build_palace()-> Bool:
     let game = play()
     ref player = game.state.players[0]
+    let kind = PalaceTileKind::power2_vp10
     game.build_guild()
     game.build_palace()
-    return player.palaces == 1 and player.guilds == 0
-
+    assert( player.palaces == 1 and player.guilds == 0, "has palace")
+    let VP = player.VP
+    game.get_palace_tile(kind)
+    assert( player.palace == kind and player.VP == VP+10 and game.state.palace_tiles[kind] == 0, "tile has been draw")
+    return true
 
 fun test_game_build_university()-> Bool:
     let game = play()

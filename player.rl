@@ -8,6 +8,7 @@ import machine_learning
 import building
 import competency
 import city_tile
+import palace_tile
 
 using BuildingArgType = BInt<0, 18>
 const NUM_WORKSHOPS = 9
@@ -54,12 +55,15 @@ cls Player:
     Int book_income
     Int city_income
     Int competency_tile_income
+    Int palace_income
     Float urp_for_vp
     Int send_scholar_vp
+    Bool palace_upgrade_to_guild
 
     BoundedVector<Building, 18> buildings
     BInt<0,14>[NUM_DISCIPLINES] discipline_level
     BInt<0,14>[NUM_DISCIPLINES] books
+    PalaceTileKind palace
    
     fun score(Int current_phase) -> Float:
         let urp_for_production = [ 0.0, 3.0, 3.0, 2.6, 2.1, 1.5, 0.83]
@@ -100,8 +104,8 @@ cls Player:
         return (self.science_step_income + self.book_income) > 0
 
     fun has_build_phase() -> Bool:
-        # player can decide to get a competency tile or get a city tile
-        return (self.city_income + self.competency_tile_income) > 0
+        # player can decide to get a competency tile, get a city tile, or palace tile
+        return (self.city_income + self.competency_tile_income + self.palace_income) > 0
 
     fun gain_tool( Int num_tools):
         self.tools = self.tools + num_tools
@@ -222,6 +226,7 @@ cls Player:
         self.palaces = self.palaces + 1
         self.guilds = self.guilds - 1
         self.pay_building(BuildingType::palace)
+        #self.palace_income = 1
         self.update_cities()
 
     fun build_university() -> Void :
@@ -320,6 +325,13 @@ cls Player:
         self.book_income = self.book_income + kind.bonus()[5]
         self.gain_spade(kind.bonus()[6])
 
+    fun get_palace_tile(PalaceTiles palace_tiles, PalaceTileKind kind):
+        palace_tiles.draw_palace_tile(kind)
+        self.palace = kind
+        if kind == PalaceTileKind::power2_vp10:
+            self.gain_vp(10)
+        else if kind == PalaceTileKind::power2_upgrade_to_guild:
+            self.palace_upgrade_to_guild = true
 
     fun can_upgrade_terraforming() -> Bool:
         return self.scholars_on_hand>0 and self.coins>=5 and self.tools>=1 and self.terraforming_track_level <= 2
@@ -386,6 +398,8 @@ fun make_player() -> Player:
     player.science_step_income = 0
     player.city_income = 0
     player.competency_tile_income = 0
+    player.palace_income = 0
+    player.palace_upgrade_to_guild = false
 
     player.terraforming_track_level = 1
     for i in range(4):
