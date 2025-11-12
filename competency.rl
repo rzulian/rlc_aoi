@@ -66,6 +66,23 @@ cls CompetencyTiles:
             self.space[tile_idx].level = level
             self.space[tile_idx].discipline = discipline[discipline_id]
 
+    fun distribute_scenario_std():
+        # equally distribute on level 1
+        #TODO some tiles are not assigned to a discipline, but they should
+        for tile_idx in range(NUM_COMPETENCY_TILES_KIND):
+            self.space[tile_idx].level = 1
+        self[CompetencyTileKind::book_power].discipline = Discipline::banking
+        self[CompetencyTileKind::lowest_science_vp].discipline = Discipline::banking
+        self[CompetencyTileKind::coins2_vp3].discipline = Discipline::law
+        self[CompetencyTileKind::send_scholar_vp].discipline = Discipline::law
+        self[CompetencyTileKind::spades2].discipline = Discipline::engineering
+        self[CompetencyTileKind::city_vp].discipline = Discipline::engineering
+        self[CompetencyTileKind::tool_science_adv].discipline = Discipline::medicine
+        self[CompetencyTileKind::tool_coins2_vp5].discipline = Discipline::medicine
+
+
+
+
 fun test_standard_distribution()->Bool:
     let tiles : CompetencyTiles
     tiles.distribute_competency_tiles()

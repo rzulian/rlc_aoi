@@ -33,7 +33,7 @@ cls State:
         self.phase = 0
         self.is_done = false
 
-        self.competency_tiles.distribute_competency_tiles()
+        self.competency_tiles.distribute_scenario_std()
 
         # setup players
         for i in range(num_players):

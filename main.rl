@@ -270,6 +270,7 @@ fun test_game_build_university()-> Bool:
     player.powers[2]=0
     player.tools=10
     player.coins=16
+    game.state.competency_tiles.distribute_competency_tiles()
 
     game.build_guild()
     game.build_school()
@@ -362,7 +363,7 @@ fun test_game_city()-> Bool:
     player.tools=100
     player.coins=160
     player.spades=10
-
+    game.state.competency_tiles.distribute_competency_tiles()
     game.build_guild()
     game.build_school()
     game.get_competency_tile(CompetencyTileKind::neutral_tower)
@@ -410,6 +411,7 @@ fun test_game_income_phase_science_step()->Bool:
 fun test_game_income_phase_gain_book()->Bool:
     let game = play()
     ref player = game.state.players[0]
+    game.state.competency_tiles.distribute_competency_tiles()
 
     game.build_guild()
     game.build_school()
@@ -437,6 +439,7 @@ fun test_game_send_scholar_vp()->Bool:
 fun test_game_discipline_level_round_pass_vp()->Bool:
     let game = play()
     ref player = game.state.players[0]
+    game.state.competency_tiles.distribute_competency_tiles()
     for i in range(4):
         player.discipline_level[i] = i+2
 
