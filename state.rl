@@ -17,7 +17,7 @@ cls State:
     Board board
     BoundedVector<Player, 4> players
     PlayerID current_player
-    BInt<0, 8> phase
+    BInt<0, 8> round
     Bool is_done
     Bool power_action_scholar
     Bool power_action_2tools
@@ -31,7 +31,7 @@ cls State:
 
     fun setup_game(Int num_players):
         self.board = make_board()
-        self.phase = 0
+        self.round = 0
         self.is_done = false
 
         self.competency_tiles.distribute_scenario_std()
@@ -49,7 +49,7 @@ cls State:
     fun get_current_player() -> ref Player:
         return self.players[self.current_player.value]
     
-    fun new_phase():
+    fun new_round():
         let urp_for_vp = [0.0, 0.58, 0.69, 0.83, 1.0, 1.2, 1.44]
         # reset board
         # power actions return available
@@ -61,7 +61,7 @@ cls State:
 
         #assign urp_for_vp
         for player in self.players:
-            player.urp_for_vp = urp_for_vp[self.phase.value]
+            player.urp_for_vp = urp_for_vp[self.round.value]
 
         return
 

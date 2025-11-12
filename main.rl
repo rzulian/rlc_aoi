@@ -138,8 +138,8 @@ act play() -> Game:
     frm state : State
     state.setup_game(NUM_PLAYERS)
 
-    while state.phase<6:
-        state.new_phase()
+    while state.round<6:
+        state.new_round()
 
         for player in state.players:
             player.update_income()
@@ -157,14 +157,14 @@ act play() -> Game:
             state.get_current_player().get_palace_tile_pass_bonus()
             state.current_player = state.current_player + 1
 
-        state.phase = state.phase + 1
+        state.round = state.round + 1
 
 
 fun get_current_player(Game g) -> Int:
     return g.state.current_player.value
 
 fun score(Game g, Int player_id) -> Float:
-    return g.state.players[player_id].score(g.state.phase.value) / 100.0
+    return g.state.players[player_id].score(g.state.round.value) / 100.0
     
 fun get_num_players() -> Int:
     return NUM_PLAYERS
@@ -242,6 +242,7 @@ fun test_game_build_school()-> Bool:
 fun test_game_scholar_income()-> Bool:
     let game = play()
     ref player = game.state.players[0]
+    game.state.competency_tiles.distribute_competency_tiles()
     game.build_guild()
     game.build_school()
     game.get_competency_tile(CompetencyTileKind::neutral_tower)

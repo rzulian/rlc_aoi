@@ -80,9 +80,6 @@ cls CompetencyTiles:
         self[CompetencyTileKind::tool_science_adv].discipline = Discipline::medicine
         self[CompetencyTileKind::tool_coins2_vp5].discipline = Discipline::medicine
 
-
-
-
 fun test_standard_distribution()->Bool:
     let tiles : CompetencyTiles
     tiles.distribute_competency_tiles()
