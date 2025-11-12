@@ -61,7 +61,10 @@ act action_phase(ctx State state, ctx Player player) -> ActionPhase:
             act build_workshop() {player.can_build_workshop() }
                 player.build_workshop()
                 subaction*(state, state.get_current_player() ) build_phase = build_phase(state , state.get_current_player())
-            act build_guild() {player.can_build_guild() }
+            act build_guild() {player.can_build_guild()}
+                player.build_guild()
+                subaction*(state, state.get_current_player() ) build_phase = build_phase(state , state.get_current_player())
+            act free_upgrade_to_guild() {player.palace_upgrade_to_guild}
                 player.build_guild()
                 subaction*(state, state.get_current_player() ) build_phase = build_phase(state , state.get_current_player())
             act build_school() {player.can_build_school() }
@@ -151,6 +154,7 @@ act play() -> Game:
         while state.current_player < state.players.size():
             subaction*(state, state.get_current_player() ) player_frame = action_phase(state , state.get_current_player())
             state.get_current_player().get_competency_tile_pass_bonus()
+            state.get_current_player().get_palace_tile_pass_bonus()
             state.current_player = state.current_player + 1
 
         state.phase = state.phase + 1
@@ -247,6 +251,7 @@ fun test_game_scholar_income()-> Bool:
 fun test_game_scholar_income_no_scholar()-> Bool:
     let game = play()
     ref player = game.state.players[0]
+    game.state.competency_tiles.distribute_competency_tiles()
     game.state.players[0].scholars=0
     game.build_guild()
     game.build_school()
@@ -265,6 +270,24 @@ fun test_game_build_palace()-> Bool:
     let VP = player.VP
     game.get_palace_tile(kind)
     assert( player.palace == kind and player.VP == VP+10 and game.state.palace_tiles[kind] == 0, "tile has been draw")
+    let power = player.powers[0]
+    game.pass_turn()
+    assert( player.powers[0] == power -2 , "got 2 power round bonus")
+    return true
+
+fun test_game_free_upgrade_to_guild()-> Bool:
+    let game = play()
+    ref player = game.state.players[0]
+    let kind = PalaceTileKind::power2_upgrade_to_guild
+    game.build_guild()
+    game.build_palace()
+    game.get_palace_tile(kind)
+    assert( player.palace == kind and player.palace_upgrade_to_guild and game.state.palace_tiles[kind] == 0, "tile has been draw")
+    let coins = player.coins
+    let tools = player.tools
+    let guilds = player.guilds
+    game.free_upgrade_to_guild()
+    assert( player.coins == coins and player.tools == tools and player.guilds == guilds + 1, "didnt pay for the guild")
     return true
 
 fun test_game_build_university()-> Bool:

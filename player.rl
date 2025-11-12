@@ -212,7 +212,10 @@ cls Player:
     fun build_guild() -> Void :
         self.guilds = self.guilds + 1
         self.workshops = self.workshops - 1
-        self.pay_building(BuildingType::guild)
+        if self.palace_upgrade_to_guild:
+            self.palace_upgrade_to_guild = false
+        else:
+            self.pay_building(BuildingType::guild)
         self.update_cities()
 
     fun build_school() -> Void :
@@ -226,7 +229,7 @@ cls Player:
         self.palaces = self.palaces + 1
         self.guilds = self.guilds - 1
         self.pay_building(BuildingType::palace)
-        #self.palace_income = 1
+        self.palace_income = 1
         self.update_cities()
 
     fun build_university() -> Void :
@@ -333,6 +336,15 @@ cls Player:
         else if kind == PalaceTileKind::power2_upgrade_to_guild:
             self.palace_upgrade_to_guild = true
 
+    fun get_palace_tile_round_bonus():
+        if  self.palace== PalaceTileKind::power2_upgrade_to_guild:
+            self.power_income = self.power_income + 2
+        else if self.palace == PalaceTileKind::power2_upgrade_to_guild:
+            self.palace_upgrade_to_guild = true
+
+    fun get_palace_tile_pass_bonus():
+        return
+
     fun can_upgrade_terraforming() -> Bool:
         return self.scholars_on_hand>0 and self.coins>=5 and self.tools>=1 and self.terraforming_track_level <= 2
 
@@ -361,6 +373,7 @@ cls Player:
         self.book_income = 0
 
         self.get_competency_tile_round_bonus()
+        self.get_palace_tile_round_bonus()
 
         #scenario 11 power bonus on every phase
         self.power_income = self.power_income + 6
