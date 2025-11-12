@@ -6,3 +6,4 @@ network*
 OUTPUT
 test_cuda.py
 aoi.py
+.venv
