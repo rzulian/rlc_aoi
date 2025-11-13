@@ -10,6 +10,7 @@ import player
 import discipline
 import competency
 import city_tile
+import scenario
 
 using PlayerID = BInt<0, 5>
 
@@ -35,7 +36,7 @@ cls State:
         self.is_done = false
 
         self.city_tiles = make_city_tiles()
-        self.competency_tiles.distribute_scenario_std()
+        self.competency_tiles = make_competency_tiles(Scenario::sc1)
         self.palace_tiles.setup_scenario_std()
 
         # setup players

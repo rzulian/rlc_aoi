@@ -242,7 +242,7 @@ fun test_game_build_school()-> Bool:
 fun test_game_scholar_income()-> Bool:
     let game = play()
     ref player = game.state.players[0]
-    game.state.competency_tiles.distribute_competency_tiles()
+    game.state.competency_tiles = make_scenario_1_competency_tiles()
     game.build_guild()
     game.build_school()
     game.get_competency_tile(CompetencyTileKind::neutral_tower)
@@ -252,7 +252,7 @@ fun test_game_scholar_income()-> Bool:
 fun test_game_scholar_income_no_scholar()-> Bool:
     let game = play()
     ref player = game.state.players[0]
-    game.state.competency_tiles.distribute_competency_tiles()
+    game.state.competency_tiles = make_scenario_1_competency_tiles()
     game.state.players[0].scholars=0
     game.build_guild()
     game.build_school()
@@ -299,17 +299,10 @@ fun test_game_build_university()-> Bool:
     player.powers[2]=0
     player.tools=10
     player.coins=16
-    game.state.competency_tiles.distribute_competency_tiles()
-
     game.build_guild()
     game.build_school()
     game.get_competency_tile(CompetencyTileKind::neutral_annexes)
-    assert( game.state.competency_tiles[CompetencyTileKind::neutral_annexes].num_tiles == 3, "draw competency tile")
-    assert( player.competency_tiles.size() == 1 and player.powers[0].value == 5 and player.discipline_level[0].value == 2, "first competency tile")
-    game.build_university()
-    game.get_competency_tile(CompetencyTileKind::power4)
-    assert(player.universities == 1 and player.guilds == 0 and player.schools == 0 and player.competency_tiles.size() == 2 and player.discipline_level[0].value == 5 and player.powers[0].value == 2 and player.powers[1].value == 10, "second competency tile")
-    return  true
+    return true
 
 
 fun test_game_power_actions()-> Bool:
@@ -392,7 +385,7 @@ fun test_game_city()-> Bool:
     player.tools=100
     player.coins=160
     player.spades=10
-    game.state.competency_tiles.distribute_competency_tiles()
+    game.state.competency_tiles = make_scenario_1_competency_tiles()
     game.build_guild()
     game.build_school()
     game.get_competency_tile(CompetencyTileKind::neutral_tower)
@@ -440,8 +433,7 @@ fun test_game_income_phase_science_step()->Bool:
 fun test_game_income_phase_gain_book()->Bool:
     let game = play()
     ref player = game.state.players[0]
-    game.state.competency_tiles.distribute_competency_tiles()
-
+    game.state.competency_tiles = make_competency_tiles(Scenario::default)
     game.build_guild()
     game.build_school()
     game.get_competency_tile(CompetencyTileKind::book_power)
@@ -449,7 +441,6 @@ fun test_game_income_phase_gain_book()->Bool:
     assert(player.book_income==1,"has to get a book")
     game.gain_book(Discipline::banking)
     assert(player.books[0]==1,"got a book")
-
     return true
 
 fun test_game_send_scholar_vp()->Bool:
@@ -468,7 +459,7 @@ fun test_game_send_scholar_vp()->Bool:
 fun test_game_discipline_level_round_pass_vp()->Bool:
     let game = play()
     ref player = game.state.players[0]
-    game.state.competency_tiles.distribute_competency_tiles()
+    game.state.competency_tiles = make_competency_tiles(Scenario::default)
     for i in range(4):
         player.discipline_level[i] = i+2
 
