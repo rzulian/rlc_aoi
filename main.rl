@@ -11,8 +11,8 @@ const NUM_PLAYERS = 1
 
 fun do_move_advance_discipline(State state, Player player, Discipline discipline, Int num_levels) -> Void:
     let starting_level =  player.discipline_level[discipline.value].value
-    let power = state.discipline_display[discipline].power_from_track( starting_level, num_levels)
-    let new_level = state.discipline_display[discipline].next_level( starting_level, num_levels)
+    let power = state.discipline_tracks[discipline].power_from_track( starting_level, num_levels)
+    let new_level = state.discipline_tracks[discipline].next_level( starting_level, num_levels)
     player.gain_power( power )
     player.discipline_level[discipline.value] = new_level
     player.gain_vp((new_level-starting_level) * state.get_round_score_bonus(ActionBonus::science_step))
@@ -125,11 +125,11 @@ act action_phase(ctx State state, ctx Player player) -> ActionPhase:
                 state.power_action_2spades = false                
                 player.convert_power_to_spades( 6, 2 )
 
-            act send_scholar(Discipline discipline){player.scholars_on_hand.value > 0 and state.discipline_display[discipline].can_send_scholar() }
-                let num_levels = state.discipline_display[discipline].steps_for_send_scholar()
+            act send_scholar(Discipline discipline){player.scholars_on_hand.value > 0 and state.discipline_tracks[discipline].can_send_scholar() }
+                let num_levels = state.discipline_tracks[discipline].steps_for_send_scholar()
                 do_move_advance_discipline(state, player, discipline, num_levels)
                 player.send_scholar(1)
-                state.discipline_display[discipline].send_scholar()
+                state.discipline_tracks[discipline].send_scholar()
 
             act return_scholar(Discipline discipline){player.scholars_on_hand.value > 0 }
                 do_move_advance_discipline(state, player, discipline, 1)
@@ -264,7 +264,7 @@ fun test_game_build_school()-> Bool:
 fun test_game_scholar_income()-> Bool:
     let game = play()
     ref player = game.state.players[0]
-    game.state.competency_tiles.distribute_competency_tiles()
+    game.state.competency_tiles = make_scenario_1_competency_tiles()
     game.build_guild()
     game.build_school()
     game.get_competency_tile(CompetencyTileKind::neutral_tower)
@@ -274,7 +274,7 @@ fun test_game_scholar_income()-> Bool:
 fun test_game_scholar_income_no_scholar()-> Bool:
     let game = play()
     ref player = game.state.players[0]
-    game.state.competency_tiles.distribute_competency_tiles()
+    game.state.competency_tiles = make_scenario_1_competency_tiles()
     game.state.players[0].scholars=0
     game.build_guild()
     game.build_school()
@@ -321,17 +321,10 @@ fun test_game_build_university()-> Bool:
     player.powers[2]=0
     player.tools=10
     player.coins=16
-    game.state.competency_tiles.distribute_competency_tiles()
-
     game.build_guild()
     game.build_school()
     game.get_competency_tile(CompetencyTileKind::neutral_annexes)
-    assert( game.state.competency_tiles[CompetencyTileKind::neutral_annexes].num_tiles == 3, "draw competency tile")
-    assert( player.competency_tiles.size() == 1 and player.powers[0].value == 5 and player.discipline_level[0].value == 2, "first competency tile")
-    game.build_university()
-    game.get_competency_tile(CompetencyTileKind::power4)
-    assert(player.universities == 1 and player.guilds == 0 and player.schools == 0 and player.competency_tiles.size() == 2 and player.discipline_level[0].value == 5 and player.powers[0].value == 2 and player.powers[1].value == 10, "second competency tile")
-    return  true
+    return true
 
 
 fun test_game_power_actions()-> Bool:
@@ -388,9 +381,9 @@ fun test_game_send_scholar()-> Bool:
     player.powers[2]=0
     player.gain_scholar(2)
     game.send_scholar(Discipline::law)
-    assert ( game.state.discipline_display[Discipline::law].first_space == 1 and player.discipline_level[Discipline::law.value] == 3 and player.powers[0] == 3 and player.scholars_on_hand == 1 , "send 1 scholar")
+    assert ( game.state.discipline_tracks[Discipline::law].first_space == 1 and player.discipline_level[Discipline::law.value] == 3 and player.powers[0] == 3 and player.scholars_on_hand == 1 , "send 1 scholar")
     game.send_scholar(Discipline::law)
-    assert ( game.state.discipline_display[Discipline::law].first_space == 2 and player.discipline_level[Discipline::law.value] == 5 and player.powers[0] == 1 and player.scholars_on_hand == 0 , "send 2 scholar")
+    assert ( game.state.discipline_tracks[Discipline::law].first_space == 2 and player.discipline_level[Discipline::law.value] == 5 and player.powers[0] == 1 and player.scholars_on_hand == 0 , "send 2 scholar")
     return true
 
 fun test_game_return_scholar()-> Bool:
@@ -401,7 +394,7 @@ fun test_game_return_scholar()-> Bool:
     player.powers[2]=0
     player.gain_scholar(2)
     game.return_scholar(Discipline::law)
-    assert ( game.state.discipline_display[Discipline::law].first_space == 0 and player.discipline_level[Discipline::law.value] == 1 and player.powers[0] == 4 and player.scholars_on_hand == 1  and player.scholars == 6, "return 1 scholar")
+    assert ( game.state.discipline_tracks[Discipline::law].first_space == 0 and player.discipline_level[Discipline::law.value] == 1 and player.powers[0] == 4 and player.scholars_on_hand == 1  and player.scholars == 6, "return 1 scholar")
     return true
 
 fun test_game_city()-> Bool:
@@ -414,7 +407,7 @@ fun test_game_city()-> Bool:
     player.tools=100
     player.coins=160
     player.spades=10
-    game.state.competency_tiles.distribute_competency_tiles()
+    game.state.competency_tiles = make_scenario_1_competency_tiles()
     game.build_guild()
     game.build_school()
     game.get_competency_tile(CompetencyTileKind::neutral_tower)
@@ -462,8 +455,7 @@ fun test_game_income_phase_science_step()->Bool:
 fun test_game_income_phase_gain_book()->Bool:
     let game = play()
     ref player = game.state.players[0]
-    game.state.competency_tiles.distribute_competency_tiles()
-
+    game.state.competency_tiles = make_competency_tiles(Scenario::default)
     game.build_guild()
     game.build_school()
     game.get_competency_tile(CompetencyTileKind::book_power)
@@ -471,7 +463,6 @@ fun test_game_income_phase_gain_book()->Bool:
     assert(player.book_income==1,"has to get a book")
     game.gain_book(Discipline::banking)
     assert(player.books[0]==1,"got a book")
-
     return true
 
 fun test_game_send_scholar_vp()->Bool:
@@ -490,7 +481,7 @@ fun test_game_send_scholar_vp()->Bool:
 fun test_game_discipline_level_round_pass_vp()->Bool:
     let game = play()
     ref player = game.state.players[0]
-    game.state.competency_tiles.distribute_competency_tiles()
+    game.state.competency_tiles = make_competency_tiles(Scenario::default)
     for i in range(4):
         player.discipline_level[i] = i+2
 

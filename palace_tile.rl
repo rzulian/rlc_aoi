@@ -29,10 +29,6 @@ enum PalaceTileKind:
 cls PalaceTiles:
     BInt<0,2>[NUM_PALACE_TILE_KIND] tiles
 
-    fun init():
-        for kind in range(PalaceTileKind::power5_tool2):
-            self.tiles[kind.value] = 0
-
     fun get(PalaceTileKind kind) -> ref Int:
         return self.tiles[kind.value].value
 
@@ -42,21 +38,17 @@ cls PalaceTiles:
     fun has_palace_tile(PalaceTileKind kind) -> Bool:
         return self.tiles[kind.value] > 0
 
-    fun setup_scenario_std():
-        self.tiles[PalaceTileKind::power2_upgrade_to_guild.value] = 1
-        self.tiles[PalaceTileKind::power2_vp10.value] = 1
-
-fun test_assign()->Bool:
+fun make_palace_tiles()->PalaceTiles:
     let tiles : PalaceTiles
+    for kind in range(PalaceTileKind::power5_tool2):
+            tiles[kind] = 0
     tiles[PalaceTileKind::power2_upgrade_to_guild] = 1
-    assert(tiles[PalaceTileKind::power2_upgrade_to_guild] == 1, "available")
-    tiles.draw_palace_tile(PalaceTileKind::power2_upgrade_to_guild)
-    assert(tiles[PalaceTileKind::power2_upgrade_to_guild] == 0, "not available")
-    return true
+    tiles[PalaceTileKind::power2_vp10] = 1
+    return tiles
+
 
 fun test_scenario_std()->Bool:
-    let tiles : PalaceTiles
-    tiles.setup_scenario_std()
+    let tiles = make_palace_tiles()
     assert(tiles[PalaceTileKind::power2_upgrade_to_guild] == 1, "available")
     tiles.draw_palace_tile(PalaceTileKind::power2_upgrade_to_guild)
     assert(tiles[PalaceTileKind::power2_upgrade_to_guild] == 0, "not available")
