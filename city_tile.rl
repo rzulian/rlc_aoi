@@ -29,11 +29,7 @@ enum CityTileKind:
 cls CityTiles:
     BInt<0,4>[NUM_CITY_TILE_KIND] tiles
 
-    fun init():
-        for kind in range(CityTileKind::VP8_1SCHOLAR):
-            self.tiles[kind.value] = 3
-
-    fun get(CityTileKind kind) -> Int:
+    fun get(CityTileKind kind) -> ref Int:
         return self.tiles[kind.value].value
 
     fun draw_city_tile(CityTileKind kind) :
@@ -42,8 +38,15 @@ cls CityTiles:
     fun has_city_tile(CityTileKind kind) -> Bool:
         return self.tiles[kind.value] > 0
 
-fun test_get_city_tile() -> Bool:
+fun make_city_tiles() -> CityTiles:
     let tiles : CityTiles
+    for kind in range(CityTileKind::VP8_1SCHOLAR):
+            tiles[kind] = 3
+    return tiles
+
+
+fun test_get_city_tile() -> Bool:
+    let tiles = make_city_tiles()
 
     let kind = CityTileKind::VP8_8POWERS
     let num = tiles[kind]

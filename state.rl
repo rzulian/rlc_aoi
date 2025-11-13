@@ -34,6 +34,7 @@ cls State:
         self.round = 0
         self.is_done = false
 
+        self.city_tiles = make_city_tiles()
         self.competency_tiles.distribute_scenario_std()
         self.palace_tiles.setup_scenario_std()
 
