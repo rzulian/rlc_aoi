@@ -10,6 +10,7 @@ import player
 import discipline
 import competency
 import city_tile
+import round_score_tile
 
 using PlayerID = BInt<0, 5>
 
@@ -28,6 +29,7 @@ cls State:
     CompetencyTiles competency_tiles
     CityTiles city_tiles
     PalaceTiles palace_tiles
+    RoundScoreDisplay round_score_display
 
     fun setup_game(Int num_players):
         self.board = make_board()
@@ -36,6 +38,7 @@ cls State:
 
         self.competency_tiles.distribute_scenario_std()
         self.palace_tiles.setup_scenario_std()
+        self.round_score_display.setup_round_score_spaces()
 
         # setup players
         for i in range(num_players):
@@ -59,11 +62,29 @@ cls State:
         self.power_action_1spade = true
         self.power_action_2spades= true
 
+        # assign round bonus from round_bonus_tile workshop, guild, school, big, spade, science_step, city, sailing_terraforming, innovation_tile
+        # self.bonus_workshop = self.round_score_display[self.round.value].action_bonus()[0]
+
         #assign urp_for_vp
         for player in self.players:
             player.urp_for_vp = urp_for_vp[self.round.value]
 
         return
+
+    fun get_round_score_bonus(ActionBonus action) -> Int:
+        return self.round_score_display[self.round.value].action_bonus()[action.value]
+
+    fun get_round_score_tile_end_round_bonus():
+        let round_score_tile = self.round_score_display[self.round.value]
+        for player in self.players:
+            let level = player.discipline_level[round_score_tile.discipline().value]
+            let multiplier = level.value / round_score_tile.steps()
+            player.gain_tool(multiplier*round_score_tile.end_round_bonus()[0])
+            player.gain_coin(multiplier*round_score_tile.end_round_bonus()[1])
+            player.gain_power(multiplier*round_score_tile.end_round_bonus()[2])
+            player.gain_scholar(multiplier*round_score_tile.end_round_bonus()[3])
+            player.book_income = player.book_income + multiplier*round_score_tile.end_round_bonus()[4]
+            player.gain_spade(multiplier*round_score_tile.end_round_bonus()[5])
 
 
     fun pretty_print_state():
