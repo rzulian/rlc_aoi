@@ -47,14 +47,14 @@ cls RoundScoreDisplay:
     fun get(Int id) -> ref RoundScoreTileKind:
         return self.round_score_spaces[id]
 
-    fun setup_round_score_spaces():
-        self[0] = RoundScoreTileKind::rs_tile1
-        self[1] = RoundScoreTileKind::rs_tile2
-        self[2] = RoundScoreTileKind::rs_tile3
-
+fun make_round_score_display() -> RoundScoreDisplay:
+    let display : RoundScoreDisplay
+    display[0] = RoundScoreTileKind::rs_tile1
+    display[1] = RoundScoreTileKind::rs_tile2
+    display[2] = RoundScoreTileKind::rs_tile3
+    return display
 
 fun test_setup_round_score()->Bool:
-    let spaces : RoundScoreDisplay
-    spaces.setup_round_score_spaces()
+    let spaces = make_round_score_display()
     assert(spaces[1] == RoundScoreTileKind::rs_tile2, "tile on round 2")
     return true

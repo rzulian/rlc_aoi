@@ -41,7 +41,7 @@ cls State:
         self.city_tiles = make_city_tiles()
         self.competency_tiles = make_competency_tiles(Scenario::sc1)
         self.palace_tiles = make_palace_tiles()
-        self.round_score_display.setup_round_score_spaces()
+        self.round_score_display = make_round_score_display()
 
         # setup players
         for i in range(num_players):
