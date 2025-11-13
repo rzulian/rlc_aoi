@@ -26,11 +26,6 @@ cls DisciplineTrack:
     Bool[5] spaces
     Int first_space
 
-    fun init():
-        self.first_space = 0
-        for i in range(5):
-            self.spaces[i] = false
-
     fun power_from_track( Int starting_level, Int steps) -> Int:
         let level_power = [0,0,0,1,0,2,0,2,0,0,0,0,3,0,0,0]
         let power = 0
@@ -51,26 +46,35 @@ cls DisciplineTrack:
     fun send_scholar() -> Void:
         self.first_space = min(self.first_space + 1, NUM_SPACES_PER_DISCIPLINE)
 
-cls DisciplineDisplay:
+cls DisciplineTracks:
     DisciplineTrack[NUM_DISCIPLINES] discipline_tracks
-
-    fun init():
-        for i in range(NUM_DISCIPLINES):
-            let discipline : DisciplineTrack
-            self.discipline_tracks[i] = discipline
 
     fun get(Discipline discipline) -> ref DisciplineTrack:
         return self.discipline_tracks[discipline.value]
 
-fun test_discipline_display()->Bool:
-    let dd : DisciplineDisplay
-    dd[Discipline::banking].send_scholar()
-    assert(dd[Discipline::banking].first_space == 1, "one scholar")
-    assert(dd[Discipline::law].first_space == 0, "no scholar")
+fun make_discipline_tracks()->DisciplineTracks:
+    let tracks : DisciplineTracks
+    for i in range(NUM_DISCIPLINES):
+            let discipline : DisciplineTrack
+            discipline.first_space = 0
+            for space_idx in range(5):
+                discipline.spaces[space_idx] = false
+
+            tracks.discipline_tracks[i] = discipline
+    return tracks
+
+
+
+fun test_discipline_tracks()->Bool:
+    let dt = make_discipline_tracks()
+    dt[Discipline::banking].send_scholar()
+    assert(dt[Discipline::banking].first_space == 1, "one scholar")
+    assert(dt[Discipline::law].first_space == 0, "no scholar")
     return true
 
-fun test_send_scholar() -> Bool:
-    let d : DisciplineTrack
+fun test_send_scholar()->Bool:
+    let dt = make_discipline_tracks()
+    let d = dt[Discipline::banking]
     
     assert ( d.first_space == 0 , "first space is empty")
     let steps = d.steps_for_send_scholar()

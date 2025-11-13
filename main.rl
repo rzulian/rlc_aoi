@@ -11,8 +11,8 @@ const NUM_PLAYERS = 1
 
 fun do_move_advance_discipline(State state, Player player, Discipline discipline, Int num_levels) -> Void:
     let starting_level =  player.discipline_level[discipline.value].value
-    let power = state.discipline_display[discipline].power_from_track( starting_level, num_levels)
-    let new_level = state.discipline_display[discipline].next_level( starting_level, num_levels)
+    let power = state.discipline_tracks[discipline].power_from_track( starting_level, num_levels)
+    let new_level = state.discipline_tracks[discipline].next_level( starting_level, num_levels)
     player.gain_power( power )
     player.discipline_level[discipline.value] = new_level
     player.gain_science_step(new_level-starting_level)
@@ -111,11 +111,11 @@ act action_phase(ctx State state, ctx Player player) -> ActionPhase:
                 state.power_action_2spades = false                
                 player.convert_power_to_spades( 6, 2 )
 
-            act send_scholar(Discipline discipline){player.scholars_on_hand.value > 0 and state.discipline_display[discipline].can_send_scholar() }
-                let num_levels = state.discipline_display[discipline].steps_for_send_scholar()
+            act send_scholar(Discipline discipline){player.scholars_on_hand.value > 0 and state.discipline_tracks[discipline].can_send_scholar() }
+                let num_levels = state.discipline_tracks[discipline].steps_for_send_scholar()
                 do_move_advance_discipline(state, player, discipline, num_levels)
                 player.send_scholar(1)
-                state.discipline_display[discipline].send_scholar()
+                state.discipline_tracks[discipline].send_scholar()
 
             act return_scholar(Discipline discipline){player.scholars_on_hand.value > 0 }
                 do_move_advance_discipline(state, player, discipline, 1)
@@ -359,9 +359,9 @@ fun test_game_send_scholar()-> Bool:
     player.powers[2]=0
     player.gain_scholar(2)
     game.send_scholar(Discipline::law)
-    assert ( game.state.discipline_display[Discipline::law].first_space == 1 and player.discipline_level[Discipline::law.value] == 3 and player.powers[0] == 3 and player.scholars_on_hand == 1 , "send 1 scholar")
+    assert ( game.state.discipline_tracks[Discipline::law].first_space == 1 and player.discipline_level[Discipline::law.value] == 3 and player.powers[0] == 3 and player.scholars_on_hand == 1 , "send 1 scholar")
     game.send_scholar(Discipline::law)
-    assert ( game.state.discipline_display[Discipline::law].first_space == 2 and player.discipline_level[Discipline::law.value] == 5 and player.powers[0] == 1 and player.scholars_on_hand == 0 , "send 2 scholar")
+    assert ( game.state.discipline_tracks[Discipline::law].first_space == 2 and player.discipline_level[Discipline::law.value] == 5 and player.powers[0] == 1 and player.scholars_on_hand == 0 , "send 2 scholar")
     return true
 
 fun test_game_return_scholar()-> Bool:
@@ -372,7 +372,7 @@ fun test_game_return_scholar()-> Bool:
     player.powers[2]=0
     player.gain_scholar(2)
     game.return_scholar(Discipline::law)
-    assert ( game.state.discipline_display[Discipline::law].first_space == 0 and player.discipline_level[Discipline::law.value] == 1 and player.powers[0] == 4 and player.scholars_on_hand == 1  and player.scholars == 6, "return 1 scholar")
+    assert ( game.state.discipline_tracks[Discipline::law].first_space == 0 and player.discipline_level[Discipline::law.value] == 1 and player.powers[0] == 4 and player.scholars_on_hand == 1  and player.scholars == 6, "return 1 scholar")
     return true
 
 fun test_game_city()-> Bool:

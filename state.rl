@@ -25,7 +25,7 @@ cls State:
     Bool power_action_7coins
     Bool power_action_1spade
     Bool power_action_2spades
-    DisciplineDisplay discipline_display
+    DisciplineTracks discipline_tracks
     CompetencyTiles competency_tiles
     CityTiles city_tiles
     PalaceTiles palace_tiles
@@ -35,6 +35,7 @@ cls State:
         self.round = 0
         self.is_done = false
 
+        self.discipline_tracks = make_discipline_tracks()
         self.city_tiles = make_city_tiles()
         self.competency_tiles = make_competency_tiles(Scenario::sc1)
         self.palace_tiles.setup_scenario_std()
