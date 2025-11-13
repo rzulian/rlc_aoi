@@ -38,7 +38,7 @@ cls State:
         self.discipline_tracks = make_discipline_tracks()
         self.city_tiles = make_city_tiles()
         self.competency_tiles = make_competency_tiles(Scenario::sc1)
-        self.palace_tiles.setup_scenario_std()
+        self.palace_tiles = make_palace_tiles()
 
         # setup players
         for i in range(num_players):
