@@ -493,3 +493,24 @@ fun test_game_discipline_level_round_pass_vp()->Bool:
     # -3 is for power getting
     assert(player.VP == VP + 2 - 3,"got discipline level vps")
     return true
+
+
+fun test_game_round_score_action_bonus_vp()->Bool:
+    let game = play()
+    ref player = game.state.players[0]
+    game.state.round_score_display[0] = RoundScoreTileKind::rs_tile2 #vp for guild
+    game.state.competency_tiles = make_competency_tiles(Scenario::default)
+    let VP = player.VP
+    game.build_guild()
+    assert(player.VP == VP + 3 ,"got guild  vps")
+    return true
+
+fun test_game_round_score_end_round_bonus()->Bool:
+    let game = play()
+    ref player = game.state.players[0]
+    game.state.round_score_display[0] = RoundScoreTileKind::rs_tile1 #3powers for 2steps low
+    player.discipline_level[Discipline::law.value] = 3
+    let power0 = player.powers[0]
+    game.pass_turn()
+    assert(player.powers[0] == power0 - 3 ,"got power bonus")
+    return true

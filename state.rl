@@ -65,9 +65,6 @@ cls State:
         self.power_action_1spade = true
         self.power_action_2spades= true
 
-        # assign round bonus from round_bonus_tile workshop, guild, school, big, spade, science_step, city, sailing_terraforming, innovation_tile
-        # self.bonus_workshop = self.round_score_display[self.round.value].action_bonus()[0]
-
         #assign urp_for_vp
         for player in self.players:
             player.urp_for_vp = urp_for_vp[self.round.value]
