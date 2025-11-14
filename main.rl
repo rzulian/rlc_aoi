@@ -110,6 +110,9 @@ act action_phase(ctx State state, ctx Player player) -> ActionPhase:
             act power_action_2spades(){ player.has_power(6)  }
                 state.power_action_2spades = false                
                 player.convert_power_to_spades( 6, 2 )
+            act book_action_3spades( Int[4] books ){ player.has_books( books ) }
+                state.book_action_3spades = false
+                player.book_action_3spades( books )
 
             act send_scholar(Discipline discipline){player.scholars_on_hand.value > 0 and state.discipline_tracks[discipline].can_send_scholar() }
                 let num_levels = state.discipline_tracks[discipline].steps_for_send_scholar()

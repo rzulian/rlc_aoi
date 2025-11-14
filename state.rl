@@ -25,6 +25,7 @@ cls State:
     Bool power_action_7coins
     Bool power_action_1spade
     Bool power_action_2spades
+    Bool book_action_3spades
     DisciplineTracks discipline_tracks
     CompetencyTiles competency_tiles
     CityTiles city_tiles
@@ -61,6 +62,8 @@ cls State:
         self.power_action_scholar= true
         self.power_action_1spade = true
         self.power_action_2spades= true
+        # book actions return available
+        self.book_action_3spades= true
 
         #assign urp_for_vp
         for player in self.players:
