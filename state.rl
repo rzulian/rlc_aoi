@@ -13,6 +13,8 @@ import city_tile
 import scenario
 import round_score_tile
 
+const FINAL_ROUND = 5
+
 using PlayerID = BInt<0, 5>
 
 cls State:
@@ -75,9 +77,16 @@ cls State:
         return
 
     fun get_round_score_bonus(ActionBonus action) -> Int:
-        return self.round_score_display[self.round.value].action_bonus()[action.value]
+        let frs_bonus = 0
+        if self.round.value == FINAL_ROUND:
+            frs_bonus = self.round_score_display.final_round_score_tile.action_bonus()[action.value]
+
+        return frs_bonus + self.round_score_display[self.round.value].action_bonus()[action.value]
 
     fun get_round_score_tile_end_round_bonus():
+        #no round bonus in final round
+        if self.round.value == FINAL_ROUND:
+            return
         let round_score_tile = self.round_score_display[self.round.value]
         for player in self.players:
             let level = player.discipline_level[round_score_tile.discipline().value]
