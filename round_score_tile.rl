@@ -17,6 +17,7 @@ enum ActionBonus:
     city
     sailing_terraforming
     innovation_tile
+    workshop_on_border
 
     fun equal(ActionBonus other) -> Bool:
         return self.value == other.value
@@ -26,35 +27,73 @@ enum RoundScoreTileKind:
         Discipline discipline = Discipline::law
         Int steps = 2
         Int[6] end_round_bonus = [0, 0, 3, 0, 0, 0] # tool, coin, power, scholar, book, spade
-        Int[9] action_bonus = [0, 0, 0, 0, 0, 0, 0, 0, 5] # workshop, guild, school, big, spade, science_step, city, sailing_terraforming, innovation_tile
+        Int[10] action_bonus = [0, 0, 0, 0, 0, 0, 0, 0, 5, 0] # workshop, guild, school, big, spade, science_step, city, sailing_terraforming, innovation_tile, workshop_border
     rs_tile2:
         Discipline discipline = Discipline::law
         Int steps = 3
         Int[8] end_round_bonus = [0, 0, 0, 0, 1, 0]
-        Int[9] action_bonus = [0, 3, 0, 0, 0, 0, 0, 0, 0]
+        Int[10] action_bonus = [0, 3, 0, 0, 0, 0, 0, 0, 0, 0]
     rs_tile3:
         Discipline discipline = Discipline::law
         Int steps = 3
         Int[8] end_round_bonus = [0, 0, 0, 1, 0, 0]
-        Int[9] action_bonus = [2, 0, 0, 0, 0, 0, 0, 0, 0]
+        Int[10] action_bonus = [2, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
+    rs_tile12:
+        Discipline discipline = Discipline::banking
+        Int steps = 3
+        Int[8] end_round_bonus = [0, 0, 4, 0, 0, 0]
+        Int[10] action_bonus = [2, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
     fun equal(RoundScoreTileKind other) -> Bool:
         return self.value == other.value
 
+enum FinalRoundScoreTileKind:
+    frs_school:
+        Int[10] action_bonus = [0, 0, 4, 0, 0, 0, 0, 0, 0, 0]
+    frs_guild:
+        Int[10] action_bonus = [0, 3, 0, 0, 0, 0, 0, 0, 0, 0]
+    frs_workshop_border:
+        Int[10] action_bonus = [0, 0, 0, 0, 0, 0, 0, 0, 0, 3]
+    frs_workshop:
+        Int[10] action_bonus = [2, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
+    fun equal(FinalRoundScoreTileKind other) -> Bool:
+        return self.value == other.value
+
+
+
 cls RoundScoreDisplay:
     RoundScoreTileKind[6] round_score_spaces
+    FinalRoundScoreTileKind final_round_score_tile
 
     fun get(Int id) -> ref RoundScoreTileKind:
         return self.round_score_spaces[id]
+
+    fun can_assign_final_round_score_tile( FinalRoundScoreTileKind kind)->Bool:
+        let is_final_round_tile_workshop =  (kind == FinalRoundScoreTileKind::frs_workshop_border or kind == FinalRoundScoreTileKind::frs_workshop_border)
+        let is_round_6_action_bonus_workshop = self.round_score_spaces[5] == RoundScoreTileKind::rs_tile3 or self.round_score_spaces[5] == RoundScoreTileKind::rs_tile12
+        return !(is_final_round_tile_workshop and is_round_6_action_bonus_workshop)
+
+    fun assign_final_round_score_tile( FinalRoundScoreTileKind kind):
+        self.final_round_score_tile = kind
 
 fun make_round_score_display() -> RoundScoreDisplay:
     let display : RoundScoreDisplay
     display[0] = RoundScoreTileKind::rs_tile1
     display[1] = RoundScoreTileKind::rs_tile2
     display[2] = RoundScoreTileKind::rs_tile3
+    display.assign_final_round_score_tile(FinalRoundScoreTileKind::frs_school)
     return display
 
 fun test_setup_round_score()->Bool:
-    let spaces = make_round_score_display()
-    assert(spaces[1] == RoundScoreTileKind::rs_tile2, "tile on round 2")
+    let display = make_round_score_display()
+    assert(display[1] == RoundScoreTileKind::rs_tile2, "tile on round 2")
+    return true
+
+fun test_can_assign_final_round_score()->Bool:
+    let display = make_round_score_display()
+    display[5] = RoundScoreTileKind::rs_tile12
+    assert(!display.can_assign_final_round_score_tile(FinalRoundScoreTileKind::frs_workshop_border), "workshop bonus on round 6 with action workshop bonus")
+    assert(display.can_assign_final_round_score_tile(FinalRoundScoreTileKind::frs_school), "school bonus on round 6 with action workshop bonus")
     return true

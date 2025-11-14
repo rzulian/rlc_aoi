@@ -69,6 +69,7 @@ act action_phase(ctx State state, ctx Player player) -> ActionPhase:
             act build_workshop() {player.can_build_workshop() }
                 player.build_workshop()
                 player.gain_vp(state.get_round_score_bonus(ActionBonus::workshop))
+                #TODO workshop on border
                 subaction*(state, state.get_current_player() ) build_phase = build_phase(state , state.get_current_player())
             act build_guild() {player.can_build_guild()}
                 player.build_guild()
@@ -153,7 +154,7 @@ act play() -> Game:
     frm state : State
     state.setup_game(NUM_PLAYERS)
 
-    while state.round<6:
+    while state.round<=FINAL_ROUND:
         state.new_round()
 
         for player in state.players:
@@ -513,4 +514,18 @@ fun test_game_round_score_end_round_bonus()->Bool:
     let power0 = player.powers[0]
     game.pass_turn()
     assert(player.powers[0] == power0 - 3 ,"got power bonus")
+    return true
+
+fun test_game_final_round_score_bonus()->Bool:
+    let game = play()
+    ref player = game.state.players[0]
+    game.state.round_score_display.assign_final_round_score_tile( FinalRoundScoreTileKind::frs_guild) #3vp for guild
+    game.pass_turn()
+    game.pass_turn()
+    game.pass_turn()
+    game.pass_turn()
+    game.pass_turn()
+    let VP = player.VP
+    game.build_guild()
+    assert(player.VP == VP + 3 ,"got guild bonus")
     return true
