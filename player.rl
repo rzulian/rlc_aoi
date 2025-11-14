@@ -103,6 +103,10 @@ cls Player:
         # player can decide to advance a science_step or gain a book
         return (self.science_step_income + self.book_income) > 0
 
+    fun has_end_round_phase() -> Bool:
+        # player can decide to gain a book
+        return (self.book_income) > 0
+
     fun has_build_phase() -> Bool:
         # player can decide to get a competency tile, get a city tile, or palace tile
         return (self.city_income + self.competency_tile_income + self.palace_income) > 0
