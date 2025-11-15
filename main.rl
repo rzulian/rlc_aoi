@@ -76,7 +76,8 @@ act action_phase(ctx State state, ctx Player player) -> ActionPhase:
                 player.gain_vp(state.get_round_score_bonus(ActionBonus::guild))
                 subaction*(state, state.get_current_player() ) build_phase = build_phase(state , state.get_current_player())
             act free_upgrade_to_guild() {player.palace_upgrade_to_guild}
-                player.build_guild()
+                player.build_free_guild()
+                player.palace_upgrade_to_guild = false
                 player.gain_vp(state.get_round_score_bonus(ActionBonus::guild))
                 subaction*(state, state.get_current_player() ) build_phase = build_phase(state , state.get_current_player())
             act build_school() {player.can_build_school() }
@@ -313,6 +314,7 @@ fun test_game_free_upgrade_to_guild()-> Bool:
     let game = play()
     ref player = game.state.players[0]
     let kind = PalaceTileKind::power2_upgrade_to_guild
+    player.build_free_workshop()
     game.build_guild()
     game.build_palace()
     game.get_palace_tile(kind)
@@ -322,6 +324,9 @@ fun test_game_free_upgrade_to_guild()-> Bool:
     let guilds = player.guilds
     game.free_upgrade_to_guild()
     assert( player.coins == coins and player.tools == tools and player.guilds == guilds + 1, "didnt pay for the guild")
+    assert (!player.palace_upgrade_to_guild, "cannot use it again during round")
+    game.pass_turn()
+    assert (player.palace_upgrade_to_guild, "ia available in new round")
     return true
 
 fun test_game_build_university()-> Bool:
