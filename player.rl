@@ -216,10 +216,12 @@ cls Player:
     fun build_guild() -> Void :
         self.guilds = self.guilds + 1
         self.workshops = self.workshops - 1
-        if self.palace_upgrade_to_guild:
-            self.palace_upgrade_to_guild = false
-        else:
-            self.pay_building(BuildingType::guild)
+        self.pay_building(BuildingType::guild)
+        self.update_cities()
+
+    fun build_free_guild() -> Void :
+        self.guilds = self.guilds + 1
+        self.workshops = self.workshops - 1
         self.update_cities()
 
     fun build_school() -> Void :
@@ -343,7 +345,6 @@ cls Player:
     fun get_palace_tile_round_bonus():
         if  self.palace== PalaceTileKind::power2_upgrade_to_guild:
             self.power_income = self.power_income + 2
-        else if self.palace == PalaceTileKind::power2_upgrade_to_guild:
             self.palace_upgrade_to_guild = true
 
     fun get_palace_tile_pass_bonus():
