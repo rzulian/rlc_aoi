@@ -22,36 +22,54 @@ enum Action:
     fun equal(Action other) -> Bool:
         return self.value == other.value
 
+enum Resource:
+    tool
+    coin
+    power
+    scholar
+    book
+    spade
+
+    fun equal(Resource other) -> Bool:
+        return self.value == other.value
+
 enum RoundScoreTileKind:
     rs_tile1:
         Discipline discipline = Discipline::law
         Int steps = 2
-        Int[6] end_round_bonus = [0, 0, 3, 0, 0, 0] # tool, coin, power, scholar, book, spade
     rs_tile2:
         Discipline discipline = Discipline::law
         Int steps = 3
-        Int[8] end_round_bonus = [0, 0, 0, 0, 1, 0]
     rs_tile3:
         Discipline discipline = Discipline::law
         Int steps = 3
-        Int[8] end_round_bonus = [0, 0, 0, 1, 0, 0]
-
     rs_tile12:
         Discipline discipline = Discipline::banking
         Int steps = 3
-        Int[8] end_round_bonus = [0, 0, 4, 0, 0, 0]
 
     fun equal(RoundScoreTileKind other) -> Bool:
         return self.value == other.value
 
     fun action_bonus(Action action) -> Int:
-        # vp bonus for a specific action this round score tile
+        # vp bonus for a specific action for this round score tile
         if self == RoundScoreTileKind::rs_tile1 and action == Action::innovation_tile:
             return 5
         if self == RoundScoreTileKind::rs_tile2 and action == Action::guild:
             return 3
         if (self == RoundScoreTileKind::rs_tile3 or self == RoundScoreTileKind::rs_tile12) and action == Action::workshop:
             return 2
+        return 0
+
+    fun end_round_bonus(Resource resource) -> Int:
+        # resource bonus for a specific resource for this round score tile
+        if self == RoundScoreTileKind::rs_tile1 and resource == Resource::power:
+            return 3
+        if self == RoundScoreTileKind::rs_tile2 and  resource == Resource::book:
+            return 1
+        if self == RoundScoreTileKind::rs_tile3 and resource == Resource::scholar:
+            return 1
+        if self == RoundScoreTileKind::rs_tile12 and resource == Resource::power:
+            return 4
         return 0
 
 enum FinalRoundScoreTileKind:
@@ -62,7 +80,6 @@ enum FinalRoundScoreTileKind:
 
     fun equal(FinalRoundScoreTileKind other) -> Bool:
         return self.value == other.value
-
 
     fun action_bonus(Action action) -> Int:
         # vp bonus for a specific action this round score tile
