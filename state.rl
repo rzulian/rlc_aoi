@@ -73,12 +73,12 @@ cls State:
 
         return
 
-    fun get_round_score_bonus(ActionBonus action) -> Int:
+    fun get_round_score_bonus(Action action) -> Int:
         let frs_bonus = 0
         if self.round.value == FINAL_ROUND:
-            frs_bonus = self.round_score_display.final_round_score_tile.action_bonus()[action.value]
+            frs_bonus = self.round_score_display.final_round_score_tile.action_bonus(action)
 
-        return frs_bonus + self.round_score_display[self.round.value].action_bonus()[action.value]
+        return frs_bonus + self.round_score_display[self.round.value].action_bonus(action)
 
     fun get_round_score_tile_end_round_bonus():
         #no round bonus in final round
