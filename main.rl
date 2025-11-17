@@ -15,7 +15,7 @@ fun do_move_advance_discipline(State state, Player player, Discipline discipline
     let new_level = state.discipline_tracks[discipline].next_level( starting_level, num_levels)
     player.gain_power( power )
     player.discipline_level[discipline.value] = new_level
-    player.gain_vp((new_level-starting_level) * state.get_round_score_bonus(ActionBonus::science_step))
+    player.gain_vp((new_level-starting_level) * state.get_round_score_bonus(Action::science_step))
 
 fun do_move_get_competency_tile(State state, Player player, CompetencyTileKind kind) -> Void:
     player.get_competency_tile( kind )
@@ -54,7 +54,7 @@ act build_phase(ctx State state, ctx Player player) -> BuildPhase:
                 player.competency_tile_income = player.competency_tile_income - 1
             act get_city_tile(CityTileKind city_tile_kind){player.city_income > 0 and state.city_tiles.has_city_tile(city_tile_kind)}
                 player.get_city_tile(state.city_tiles, city_tile_kind)
-                player.gain_vp(state.get_round_score_bonus(ActionBonus::city))
+                player.gain_vp(state.get_round_score_bonus(Action::city))
                 player.city_income = player.city_income - 1
             act get_palace_tile(PalaceTileKind palace_tile_kind){player.palace_income > 0 and state.palace_tiles.has_palace_tile(palace_tile_kind)}
                 player.get_palace_tile(state.palace_tiles, palace_tile_kind)
@@ -68,29 +68,29 @@ act action_phase(ctx State state, ctx Player player) -> ActionPhase:
         actions:
             act build_workshop() {player.can_build_workshop() }
                 player.build_workshop()
-                player.gain_vp(state.get_round_score_bonus(ActionBonus::workshop))
+                player.gain_vp(state.get_round_score_bonus(Action::workshop))
                 #TODO workshop on border
                 subaction*(state, state.get_current_player() ) build_phase = build_phase(state , state.get_current_player())
             act build_guild() {player.can_build_guild()}
                 player.build_guild()
-                player.gain_vp(state.get_round_score_bonus(ActionBonus::guild))
+                player.gain_vp(state.get_round_score_bonus(Action::guild))
                 subaction*(state, state.get_current_player() ) build_phase = build_phase(state , state.get_current_player())
             act free_upgrade_to_guild() {player.palace_upgrade_to_guild}
                 player.build_free_guild()
                 player.palace_upgrade_to_guild = false
-                player.gain_vp(state.get_round_score_bonus(ActionBonus::guild))
+                player.gain_vp(state.get_round_score_bonus(Action::guild))
                 subaction*(state, state.get_current_player() ) build_phase = build_phase(state , state.get_current_player())
             act build_school() {player.can_build_school() }
                 player.build_school()
-                player.gain_vp(state.get_round_score_bonus(ActionBonus::school))
+                player.gain_vp(state.get_round_score_bonus(Action::school))
                 subaction*(state, state.get_current_player() ) build_phase = build_phase(state , state.get_current_player())
             act build_palace() {player.can_build_palace() }
                 player.build_palace()
-                player.gain_vp(state.get_round_score_bonus(ActionBonus::big))
+                player.gain_vp(state.get_round_score_bonus(Action::big))
                 subaction*(state, state.get_current_player() ) build_phase = build_phase(state , state.get_current_player())
             act build_university() {player.can_build_university() }
                 player.build_university()
-                player.gain_vp(state.get_round_score_bonus(ActionBonus::big))
+                player.gain_vp(state.get_round_score_bonus(Action::big))
                 subaction*(state, state.get_current_player() ) build_phase = build_phase(state , state.get_current_player())
 
             act convert_scholars_to_tools(BInt<1, 20> num_scholars) {player.scholars_on_hand.value >= num_scholars.value }
@@ -143,7 +143,7 @@ act action_phase(ctx State state, ctx Player player) -> ActionPhase:
 
             act upgrade_terraforming(){player.can_upgrade_terraforming()}
                 player.upgrade_terraforming()
-                player.gain_vp(state.get_round_score_bonus(ActionBonus::sailing_terraforming))
+                player.gain_vp(state.get_round_score_bonus(Action::sailing_terraforming))
                 # if books income
                 subaction*(state, state.get_current_player() ) player_frame = income_phase(state , state.get_current_player())
 
