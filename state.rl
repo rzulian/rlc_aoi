@@ -88,12 +88,12 @@ cls State:
         for player in self.players:
             let level = player.discipline_level[round_score_tile.discipline().value]
             let multiplier = level.value / round_score_tile.steps()
-            player.gain_tool(multiplier*round_score_tile.end_round_bonus()[0])
-            player.gain_coin(multiplier*round_score_tile.end_round_bonus()[1])
-            player.gain_power(multiplier*round_score_tile.end_round_bonus()[2])
-            player.gain_scholar(multiplier*round_score_tile.end_round_bonus()[3])
-            player.book_income = player.book_income + multiplier*round_score_tile.end_round_bonus()[4]
-            player.gain_spade(multiplier*round_score_tile.end_round_bonus()[5])
+            player.gain_tool(multiplier*round_score_tile.end_round_bonus(Resource::tool))
+            player.gain_coin(multiplier*round_score_tile.end_round_bonus(Resource::coin))
+            player.gain_power(multiplier*round_score_tile.end_round_bonus(Resource::power))
+            player.gain_scholar(multiplier*round_score_tile.end_round_bonus(Resource::scholar))
+            player.book_income = player.book_income + multiplier*round_score_tile.end_round_bonus(Resource::book)
+            player.gain_spade(multiplier*round_score_tile.end_round_bonus(Resource::spade))
 
 
     fun pretty_print_state():
