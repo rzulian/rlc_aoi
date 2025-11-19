@@ -34,7 +34,8 @@ cls State:
     PalaceTiles palace_tiles
     RoundScoreDisplay round_score_display
 
-    fun setup_game(Int num_players):
+
+    fun setup_game(Int num_players, Scenario scenario):
         self.board = make_board()
         self.round = 0
         self.is_done = false

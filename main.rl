@@ -26,7 +26,6 @@ fun do_move_get_competency_tile(State state, Player player, CompetencyTileKind k
     do_move_advance_discipline( state, player, state.competency_tiles[kind].discipline, num_levels)
     player.gain_book(state.competency_tiles[kind].discipline, num_books)
 
-
 act income_phase(ctx State state, ctx Player player) -> IncomePhase:
     while player.has_income_phase():
         actions:
@@ -150,10 +149,10 @@ act action_phase(ctx State state, ctx Player player) -> ActionPhase:
 
 
 @classes
-act play() -> Game:
+act play(Int num_players, Scenario scenario) -> Game:
 
     frm state : State
-    state.setup_game(NUM_PLAYERS)
+    state.setup_game(num_players, scenario)
 
     while state.round<=FINAL_ROUND:
         state.new_round()
@@ -197,14 +196,14 @@ fun pretty_print(Game g):
     g.state.pretty_print_state()
 
 fun main() -> Int:
-    let game = play()
+    let game = play(1, Scenario::default)
     print(game.state)
     ref player = game.state.players[0]
     game.pass_turn()
     return 0
 
 fun fuzz(Vector<Byte> input):
-    let state = play()
+    let state = play(1, Scenario::default)
     let x : AnyGameAction
     let enumeration = enumerate(x)
     let index = 0
@@ -234,22 +233,23 @@ fun fuzz(Vector<Byte> input):
         apply(executable.get(num_action % executable.size()), state)
 
 fun test_game_setup()-> Bool:
-    let game = play()
+    let game = play(1, Scenario::default)
     ref player = game.state.players[0]
     #print(game.state)
     return player.workshops == 2
 
 fun test_game_build_workshop()-> Bool:
-    let game = play()
+    let game = play(1, Scenario::default)
     ref player = game.state.players[0]
     player.powers[2]=12
+    game.get_round_bonus_tile(RoundBonusTileKind::rb_big)
     game.power_action_1spade()
     game.build_workshop()
     return player.workshops == 3 and player.spades==0
 
 fun test_game_build_guild()-> Bool:
     # check also power income
-    let game = play()
+    let game = play(1, Scenario::default)
     ref player = game.state.players[0]
     player.powers[0] = 1
     game.build_guild()
@@ -257,14 +257,14 @@ fun test_game_build_guild()-> Bool:
     return player.guilds == 1 and player.powers[0] == 0
  
 fun test_game_build_school()-> Bool:
-    let game = play()
+    let game = play(1, Scenario::default)
     ref player = game.state.players[0]
     game.build_guild()
     game.build_school()
     return player.schools == 1 and player.guilds == 0
 
 fun test_game_scholar_income()-> Bool:
-    let game = play()
+    let game = play(1, Scenario::default)
     ref player = game.state.players[0]
     game.state.competency_tiles = make_scenario_1_competency_tiles()
     game.build_guild()
@@ -274,7 +274,7 @@ fun test_game_scholar_income()-> Bool:
     return player.scholars_on_hand == 1 and player.scholars == 6
 
 fun test_game_scholar_income_no_scholar()-> Bool:
-    let game = play()
+    let game = play(1, Scenario::default)
     ref player = game.state.players[0]
     game.state.competency_tiles = make_scenario_1_competency_tiles()
     game.state.players[0].scholars=0
@@ -286,7 +286,7 @@ fun test_game_scholar_income_no_scholar()-> Bool:
 
 
 fun test_game_build_palace()-> Bool:
-    let game = play()
+    let game = play(1, Scenario::default)
     ref player = game.state.players[0]
     let kind = PalaceTileKind::power2_vp10
     game.build_guild()
@@ -301,7 +301,7 @@ fun test_game_build_palace()-> Bool:
     return true
 
 fun test_game_free_upgrade_to_guild()-> Bool:
-    let game = play()
+    let game = play(1, Scenario::default)
     ref player = game.state.players[0]
     let kind = PalaceTileKind::power2_upgrade_to_guild
     player.build_free_workshop()
@@ -320,7 +320,7 @@ fun test_game_free_upgrade_to_guild()-> Bool:
     return true
 
 fun test_game_build_university()-> Bool:
-    let game = play()
+    let game = play(1, Scenario::default)
     ref player = game.state.players[0]
     player.powers[0]=5
     player.powers[1]=7
@@ -334,7 +334,7 @@ fun test_game_build_university()-> Bool:
 
 
 fun test_game_power_actions()-> Bool:
-    let game = play()
+    let game = play(1, Scenario::default)
     ref player = game.state.players[0]
 
     player.tools=0
@@ -352,7 +352,7 @@ fun test_game_power_actions()-> Bool:
     return true
 
 fun test_game_power_action_spade()-> Bool:
-    let game = play()
+    let game = play(1, Scenario::default)
     ref player = game.state.players[0]
 
     player.tools=0
@@ -371,7 +371,7 @@ fun test_game_power_action_spade()-> Bool:
 
 
 fun test_URP()-> Bool:
-    let game = play()
+    let game = play(1, Scenario::default)
     ref player = game.state.players[0]
     game.pass_turn()
     game.pass_turn()
@@ -380,7 +380,7 @@ fun test_URP()-> Bool:
     return true
 
 fun test_game_send_scholar()-> Bool:
-    let game = play()
+    let game = play(1, Scenario::default)
     ref player = game.state.players[0]
     player.powers[0]=4
     player.powers[1]=8
@@ -393,7 +393,7 @@ fun test_game_send_scholar()-> Bool:
     return true
 
 fun test_game_return_scholar()-> Bool:
-    let game = play()
+    let game = play(1, Scenario::default)
     ref player = game.state.players[0]
     player.powers[0]=4
     player.powers[1]=8
@@ -405,7 +405,7 @@ fun test_game_return_scholar()-> Bool:
 
 fun test_game_city()-> Bool:
     # test game_tile and round bonus for tile 4
-    let game = play()
+    let game = play(1, Scenario::default)
     ref player = game.state.players[0]
     player.powers[0]=5
     player.powers[1]=7
@@ -445,7 +445,7 @@ fun test_game_city()-> Bool:
     return  true
 
 fun test_game_income_phase_science_step()->Bool:
-    let game = play()
+    let game = play(1, Scenario::default)
     ref player = game.state.players[0]
 
     game.build_guild()
@@ -459,7 +459,7 @@ fun test_game_income_phase_science_step()->Bool:
     return true
 
 fun test_game_income_phase_gain_book()->Bool:
-    let game = play()
+    let game = play(1, Scenario::default)
     ref player = game.state.players[0]
     game.state.competency_tiles = make_competency_tiles(Scenario::default)
     game.build_guild()
@@ -472,7 +472,7 @@ fun test_game_income_phase_gain_book()->Bool:
     return true
 
 fun test_game_send_scholar_vp()->Bool:
-    let game = play()
+    let game = play(1, Scenario::default)
     ref player = game.state.players[0]
 
     game.build_guild()
@@ -485,7 +485,7 @@ fun test_game_send_scholar_vp()->Bool:
     return true
 
 fun test_game_discipline_level_round_pass_vp()->Bool:
-    let game = play()
+    let game = play(1, Scenario::default)
     ref player = game.state.players[0]
     game.state.competency_tiles = make_competency_tiles(Scenario::default)
     for i in range(4):
@@ -502,7 +502,7 @@ fun test_game_discipline_level_round_pass_vp()->Bool:
 
 
 fun test_game_round_score_action_bonus_vp()->Bool:
-    let game = play()
+    let game = play(1, Scenario::default)
     ref player = game.state.players[0]
     game.state.round_score_display[0] = RoundScoreTileKind::rs_tile2 #vp for guild
     game.state.competency_tiles = make_competency_tiles(Scenario::default)
@@ -512,7 +512,7 @@ fun test_game_round_score_action_bonus_vp()->Bool:
     return true
 
 fun test_game_round_score_end_round_bonus()->Bool:
-    let game = play()
+    let game = play(1, Scenario::default)
     ref player = game.state.players[0]
     game.state.round_score_display[0] = RoundScoreTileKind::rs_tile1 #3powers for 2steps low
     player.discipline_level[Discipline::law.value] = 3
@@ -522,7 +522,7 @@ fun test_game_round_score_end_round_bonus()->Bool:
     return true
 
 fun test_game_final_round_score_bonus()->Bool:
-    let game = play()
+    let game = play(1, Scenario::default)
     ref player = game.state.players[0]
     game.state.round_score_display.assign_final_round_score_tile( FinalRoundScoreTileKind::frs_guild) #3vp for guild
     game.pass_turn()
