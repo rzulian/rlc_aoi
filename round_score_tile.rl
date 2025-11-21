@@ -3,24 +3,9 @@ import collections.vector
 import range
 import discipline
 import enum_range
+import player_action
 
-
-const NUM_ROUND_SCORE_TILES_KIND = 12
-
-enum Action:
-    workshop
-    guild
-    school
-    big
-    spade
-    science_step
-    city
-    sailing_terraforming
-    innovation_tile
-    workshop_on_border
-
-    fun equal(Action other) -> Bool:
-        return self.value == other.value
+const NUM_ROUND_SCORE_TILES_KIND = 1
 
 enum Resource:
     tool
