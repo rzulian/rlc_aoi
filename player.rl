@@ -162,8 +162,25 @@ cls Player:
         self.powers[1] = self.powers[1] - 2*power
         self.powers[2] = self.powers[2] + power
 
+    fun use_books( Int[4] books_used ):
+        for i in range(4):
+            self.books[i] = self.books[i] - books_used[i]
+    
     fun has_power(Int power) -> Bool:
         return self.powers[2] + self.powers[1].value / 2  >= power
+
+    fun has_books(Int books) -> Bool:
+        let self_books = 0
+        for i in range(NUM_DISCIPLINES):
+            self_books = self.books[i] + self_books 
+        if( self_books < books ):
+            return false
+        return true
+
+    fun has_discipline_books(Discipline discipline, Int books) -> Bool:
+        if( self.books[discipline.value] >= books ):
+            return true
+        return false
 
     fun gain_science_step(Int num_steps):
         # no need for this, science steps are fully implemented self.URP = self.URP + float(num_steps)*URP_SCIENCE_STEP
@@ -272,6 +289,10 @@ cls Player:
     fun convert_power_to_spades( Int num_power, Int num_spades) -> Void :
         self.use_power( num_power )
         self.gain_spade( num_spades )
+
+    fun convert_books_to_spades( Int[4] books_used ) -> Void :
+        self.use_books( books_used )
+        self.gain_spade( 3 )
 
     fun terraforming_cost() -> Int:
         # track level 1 -> 3 tools
