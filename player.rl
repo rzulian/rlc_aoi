@@ -169,11 +169,18 @@ cls Player:
     fun has_power(Int power) -> Bool:
         return self.powers[2] + self.powers[1].value / 2  >= power
 
-    fun has_books(Int[4] books) -> Bool:
-        for i in range(4):
-            if( self.books[i] < books[i] ):
-                return false
+    fun has_books(Int books) -> Bool:
+        let self_books = 0
+        for i in range(NUM_DISCIPLINES):
+            self_books = self.books[i] + self_books 
+        if( self_books < books ):
+            return false
         return true
+
+    fun has_discipline_books(Discipline discipline, Int books) -> Bool:
+        if( self.books[discipline.value] >= books ):
+            return true
+        return false
 
     fun gain_science_step(Int num_steps):
         # no need for this, science steps are fully implemented self.URP = self.URP + float(num_steps)*URP_SCIENCE_STEP
@@ -281,7 +288,7 @@ cls Player:
         self.use_power( num_power )
         self.gain_spade( num_spades )
 
-    fun book_action_3spades( Int[4] books_used ) -> Void :
+    fun convert_books_to_spades( Int[4] books_used ) -> Void :
         self.use_books( books_used )
         self.gain_spade( 3 )
 

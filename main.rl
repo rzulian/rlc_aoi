@@ -124,9 +124,10 @@ act action_phase(ctx State state, ctx Player player) -> ActionPhase:
             act power_action_2spades(){ player.has_power(6)  }
                 state.power_action_2spades = false                
                 player.convert_power_to_spades( 6, 2 )
-            act book_action_3spades( Int[4] books ){ player.has_books( books ) }
+            act book_action_3spades( ){ player.has_books( 3 ) }
                 state.book_action_3spades = false
-                player.book_action_3spades( books )
+                subaction*(player) select_books = select_books( player , 3 )
+                player.convert_books_to_spades( select_books.books_used )
 
             act send_scholar(Discipline discipline){player.scholars_on_hand.value > 0 and state.discipline_tracks[discipline].can_send_scholar() }
                 let num_levels = state.discipline_tracks[discipline].steps_for_send_scholar()
@@ -147,8 +148,14 @@ act action_phase(ctx State state, ctx Player player) -> ActionPhase:
             act pass_turn()
                 return
 
-
-
+act select_books( ctx Player player, frm Int books )-> SelectBooks:
+    frm books_used = [0,0,0,0]
+    while books > 0:
+        actions:
+            act use_book(Discipline discipline){ player.has_discipline_books( discipline, books_used[discipline.value] + 1 )}
+                books_used[discipline.value] = books_used[discipline.value] + 1
+                books = books - 1
+    return books_used
 
 @classes
 act play() -> Game:
