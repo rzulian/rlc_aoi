@@ -6,7 +6,7 @@ import enum_range
 import scenario
 import player_action
 
-const NUM_ROUND_BONUS_TILES_KIND = 11
+const NUM_ROUND_BONUS_TILES_KIND = 13
 
 enum RoundBonusTileKind:
     none
@@ -20,6 +20,8 @@ enum RoundBonusTileKind:
     science_steps_per_guild
     power_coins
     coins
+    dummy1
+    dummy2
 
     fun equal(RoundBonusTileKind other) -> Bool:
         return self.value == other.value
@@ -71,26 +73,33 @@ fun make_round_bonus_tile(RoundBonusTileKind kind)->RoundBonusTile:
     return tile
 
 fun make_round_bonus_tiles(Scenario scenario)->RoundBonusTiles:
+    let tiles : RoundBonusTiles
+    for kind in range(RoundBonusTileKind::navigation):
+        tiles[kind] = make_round_bonus_tile(kind)
     if scenario == Scenario::sc1:
-        return make_scenario_1_round_bonus_tiles()
-    return make_standard_round_bonus_tiles()
+        return make_scenario_1_round_bonus_tiles(tiles)
+    else if scenario == Scenario::test:
+        return make_test_round_bonus_tiles(tiles)
+    return make_standard_round_bonus_tiles(tiles)
 
-fun make_standard_round_bonus_tiles()->RoundBonusTiles:
+fun make_standard_round_bonus_tiles(RoundBonusTiles tiles)->RoundBonusTiles:
         # this is the standard distribution of round bonus tiles
         #TODO standard distribution
-        let tiles : RoundBonusTiles
-        for kind in range(RoundBonusTileKind::navigation):
-            tiles[kind] = make_round_bonus_tile(kind)
+        for kind in range(RoundBonusTileKind::none):
             tiles.make_available(kind)
-        #tile none is not in play - to be skipped in actions preconditions
         tiles[RoundBonusTileKind::none].in_play = false
+        tiles[RoundBonusTileKind::dummy1].in_play = false
+        tiles[RoundBonusTileKind::dummy1].in_play = false
         return tiles
 
-fun make_scenario_1_round_bonus_tiles()->RoundBonusTiles:
+fun make_test_round_bonus_tiles(RoundBonusTiles tiles)->RoundBonusTiles:
+        # this is the test distribution of round bonus tiles
+        tiles.make_available(RoundBonusTileKind::dummy1)
+        tiles.make_available(RoundBonusTileKind::dummy2)
+        return tiles
+
+fun make_scenario_1_round_bonus_tiles(RoundBonusTiles tiles)->RoundBonusTiles:
         # this is the scenario 1
-        let tiles : RoundBonusTiles
-        for kind in range(RoundBonusTileKind::navigation):
-            tiles[kind] = make_round_bonus_tile(kind)
         tiles.make_available(RoundBonusTileKind::send_scholar)
         tiles.make_available(RoundBonusTileKind::big)
         tiles.make_available(RoundBonusTileKind::spade_book)
