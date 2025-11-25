@@ -290,6 +290,26 @@ cls Player:
         self.use_power( num_power )
         self.gain_spade( num_spades )
 
+    fun convert_books_to_power( Int[4] books_used ) -> Void :
+        self.use_books( books_used )
+        self.gain_power( 5 )
+
+    fun convert_books_to_coins( Int[4] books_used ) -> Void :
+        self.use_books( books_used )
+        self.gain_coin( 6 )
+
+    fun convert_books_to_science_steps( Int[4] books_used ) -> Void :
+        self.use_books( books_used )
+        self.gain_science_step( 2 )
+
+    fun convert_books_to_guild( Int[4] books_used ) -> Void :
+        self.use_books( books_used )
+        self.build_guild()
+
+    fun convert_books_to_vp_per_guild( Int[4] books_used ) -> Void :
+        self.use_books( books_used )
+        self.gain_vp( self.guilds.value * 2 )
+
     fun convert_books_to_spades( Int[4] books_used ) -> Void :
         self.use_books( books_used )
         self.gain_spade( 3 )

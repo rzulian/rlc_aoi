@@ -126,6 +126,26 @@ act action_phase(ctx State state, ctx Player player) -> ActionPhase:
             act power_action_2spades(){ player.has_power(6)  }
                 state.power_action_2spades = false                
                 player.convert_power_to_spades( 6, 2 )
+            act book_action_5power( ){ player.has_books( 1 ) }
+                state.book_action_5power = false
+                subaction*(player) select_books = select_books( player , 1 )
+                player.convert_books_to_power( select_books.books_used )
+            act book_action_science_steps( ){ player.has_books( 1 ) }
+                state.book_action_science_steps = false
+                subaction*(player) select_books = select_books( player , 1 )
+                player.convert_books_to_science_steps( select_books.books_used )
+            act book_action_6coins( ){ player.has_books( 2 ) }
+                state.book_action_6coins = false
+                subaction*(player) select_books = select_books( player , 2 )
+                player.convert_books_to_coins( select_books.books_used )
+            act book_action_build_guild( ){ player.has_books( 2 ), player.can_build_guild() }
+                state.book_action_build_guild = false
+                subaction*(player) select_books = select_books( player , 2 )
+                player.convert_books_to_guild( select_books.books_used )
+            act book_action_vp_per_guild( ){ player.has_books( 2 ) }
+                state.book_action_vp_per_guild = false
+                subaction*(player) select_books = select_books( player , 2 )
+                player.convert_books_to_vp_per_guild( select_books.books_used )
             act book_action_3spades( ){ player.has_books( 3 ) }
                 state.book_action_3spades = false
                 subaction*(player) select_books = select_books( player , 3 )
