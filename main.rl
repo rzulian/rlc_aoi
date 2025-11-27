@@ -70,125 +70,107 @@ act build_phase(ctx State state, ctx Player player) -> BuildPhase:
                 return
 
 act conversion_phase(ctx State state, ctx Player player) -> ConversionPhase:
-    actions:
-        act convert_scholars_to_tools(BInt<1, 20> num_scholars) {player.scholars_on_hand.value >= num_scholars.value }
-            player.convert_scholars_to_tools( num_scholars.value )
-        act convert_tools_to_coins(BInt<1, 20> num_tools) {player.tools.value >= num_tools.value}
-            player.convert_tools_to_coins( num_tools.value )
+    while true:
+        actions:
+            act convert_scholars_to_tools(BInt<1, 20> num_scholars) {player.scholars_on_hand.value >= num_scholars.value }
+                player.convert_scholars_to_tools( num_scholars.value )
+            act convert_tools_to_coins(BInt<1, 20> num_tools) {player.tools.value >= num_tools.value}
+                player.convert_tools_to_coins( num_tools.value )
 
-        act convert_tools_to_spades(BInt<1, 4> num_spades) {player.tools.value >= num_spades.value * player.terraforming_cost() }
-            player.convert_tools_to_spades( num_spades.value )
+            act convert_tools_to_spades(BInt<1, 4> num_spades) {player.tools.value >= num_spades.value * player.terraforming_cost() }
+                player.convert_tools_to_spades( num_spades.value )
 
-        act convert_power_to_coins(BInt<1, 20> num_power) {player.has_power(num_power.value) }
-            player.convert_power_to_coins( num_power.value , num_power.value )
-        act convert_3power_to_tool() {player.has_power(3) }
-            player.convert_power_to_tools( 3 , 1)
-        act convert_5power_to_scholar() {player.scholars.value > 0, player.has_power(5) }
-            player.convert_power_to_scholars( 5 , 1)
+            act convert_power_to_coins(BInt<1, 20> num_power) {player.has_power(num_power.value) }
+                player.convert_power_to_coins( num_power.value , num_power.value )
+            act convert_3power_to_tool() {player.has_power(3) }
+                player.convert_power_to_tools( 3 , 1)
+            act convert_5power_to_scholar() {player.scholars.value > 0, player.has_power(5) }
+                player.convert_power_to_scholars( 5 , 1)
 
-        act sacrifice_power(BInt<1, 20> num_power) {player.powers[1].value >= num_power.value*2}
-            player.sacrifice_power( num_power.value )
-
-        act pass_convertion()
-            return
-
+            act sacrifice_power(BInt<1, 20> num_power) {player.powers[1].value >= num_power.value*2}
+                player.sacrifice_power( num_power.value )
+            act pass_conversion()
+                return
 
 act action_phase(ctx State state, ctx Player player) -> ActionPhase:
-    actions:
-        act build_workshop() {player.can_build_workshop() }
-            player.build_workshop()
-            player.gain_vp(state.get_round_score_bonus(Action::workshop))
-            #TODO workshop on border
-            subaction*(state, state.get_current_player() ) build_phase = build_phase(state , state.get_current_player())
-            return
-        act build_guild() {player.can_build_guild()}
-            player.build_guild()
-            player.gain_vp(state.get_round_score_bonus(Action::guild))
-            subaction*(state, state.get_current_player() ) build_phase = build_phase(state , state.get_current_player())
-            return
-        act free_upgrade_to_guild() {player.palace_upgrade_to_guild}
-            player.build_free_guild()
-            player.palace_upgrade_to_guild = false
-            player.gain_vp(state.get_round_score_bonus(Action::guild))
-            subaction*(state, state.get_current_player() ) build_phase = build_phase(state , state.get_current_player())
-            return
-        act build_school() {player.can_build_school() }
-            player.build_school()
-            player.gain_vp(state.get_round_score_bonus(Action::school))
-            subaction*(state, state.get_current_player() ) build_phase = build_phase(state , state.get_current_player())
-            return
-        act build_palace() {player.can_build_palace() }
-            player.build_palace()
-            player.gain_vp(state.get_round_score_bonus(Action::big))
-            subaction*(state, state.get_current_player() ) build_phase = build_phase(state , state.get_current_player())
-            return
-        act build_university() {player.can_build_university() }
-            player.build_university()
-            player.gain_vp(state.get_round_score_bonus(Action::big))
-            subaction*(state, state.get_current_player() ) build_phase = build_phase(state , state.get_current_player())
-            return
+    while true:
+        actions:
+            act build_workshop() {player.can_build_workshop() }
+                player.build_workshop()
+                player.gain_vp(state.get_round_score_bonus(Action::workshop))
+                #TODO workshop on border
+                subaction*(state, state.get_current_player() ) build_phase = build_phase(state , state.get_current_player())
+                return
+            act build_guild() {player.can_build_guild()}
+                player.build_guild()
+                player.gain_vp(state.get_round_score_bonus(Action::guild))
+                subaction*(state, state.get_current_player() ) build_phase = build_phase(state , state.get_current_player())
+                return
+            act free_upgrade_to_guild() {player.palace_upgrade_to_guild}
+                player.build_free_guild()
+                player.palace_upgrade_to_guild = false
+                player.gain_vp(state.get_round_score_bonus(Action::guild))
+                subaction*(state, state.get_current_player() ) build_phase = build_phase(state , state.get_current_player())
+                return
+            act build_school() {player.can_build_school() }
+                player.build_school()
+                player.gain_vp(state.get_round_score_bonus(Action::school))
+                subaction*(state, state.get_current_player() ) build_phase = build_phase(state , state.get_current_player())
+                return
+            act build_palace() {player.can_build_palace() }
+                player.build_palace()
+                player.gain_vp(state.get_round_score_bonus(Action::big))
+                subaction*(state, state.get_current_player() ) build_phase = build_phase(state , state.get_current_player())
+                return
+            act build_university() {player.can_build_university() }
+                player.build_university()
+                player.gain_vp(state.get_round_score_bonus(Action::big))
+                subaction*(state, state.get_current_player() ) build_phase = build_phase(state , state.get_current_player())
+                return
 
-        act convert_scholars_to_tools(BInt<1, 20> num_scholars) {player.scholars_on_hand.value >= num_scholars.value }
-            player.convert_scholars_to_tools( num_scholars.value )
-        act convert_tools_to_coins(BInt<1, 20> num_tools) {player.tools.value >= num_tools.value}
-            player.convert_tools_to_coins( num_tools.value )
+            act power_action_7coins(){state.power_action_7coins, player.has_power(4)  }
+                state.power_action_7coins = false
+                player.convert_power_to_coins( 4, 7 )
+                return
+            act power_action_2tools(){ state.power_action_2tools, player.has_power(4)  }
+                state.power_action_2tools = false
+                player.convert_power_to_tools( 4, 2 )
+                return
+            act power_action_scholar(){ state.power_action_scholar, player.scholars.value > 0,  player.has_power(3)  }
+                state.power_action_scholar = false
+                player.convert_power_to_scholars( 3, 1 )
+                return
+            act power_action_1spade(){ player.has_power(4)  }
+                state.power_action_1spade = false
+                player.convert_power_to_spades( 4, 1 )
+                return
+            act power_action_2spades(){ player.has_power(6)  }
+                state.power_action_2spades = false
+                player.convert_power_to_spades( 6, 2 )
+                return
 
-        act convert_tools_to_spades(BInt<1, 4> num_spades) {player.tools.value >= num_spades.value * player.terraforming_cost() }
-            player.convert_tools_to_spades( num_spades.value )
+            act send_scholar(Discipline discipline){player.scholars_on_hand.value > 0 and state.discipline_tracks[discipline].can_send_scholar() }
+                let num_levels = state.discipline_tracks[discipline].steps_for_send_scholar()
+                do_move_advance_discipline(state, player, discipline, num_levels)
+                player.send_scholar(1)
+                state.discipline_tracks[discipline].send_scholar()
+                return
 
-        act convert_power_to_coins(BInt<1, 20> num_power) {player.has_power(num_power.value) }
-            player.convert_power_to_coins( num_power.value , num_power.value )
-        act convert_3power_to_tool() {player.has_power(3) }
-            player.convert_power_to_tools( 3 , 1)
-        act convert_5power_to_scholar() {player.scholars.value > 0, player.has_power(5) }
-            player.convert_power_to_scholars( 5 , 1)
+            act return_scholar(Discipline discipline){player.scholars_on_hand.value > 0 }
+                do_move_advance_discipline(state, player, discipline, 1)
+                player.return_scholar(1)
+                return
 
-        act sacrifice_power(BInt<1, 20> num_power) {player.powers[1].value >= num_power.value*2}
-            player.sacrifice_power( num_power.value )
+            act upgrade_terraforming(){player.can_upgrade_terraforming()}
+                player.upgrade_terraforming()
+                player.gain_vp(state.get_round_score_bonus(Action::sailing_terraforming))
+                # if books income
+                subaction*(state, state.get_current_player() ) player_frame = income_phase(state , state.get_current_player())
+                return
 
-        act power_action_7coins(){state.power_action_7coins, player.has_power(4)  }
-            state.power_action_7coins = false
-            player.convert_power_to_coins( 4, 7 )
-            return
-        act power_action_2tools(){ state.power_action_2tools, player.has_power(4)  }
-            state.power_action_2tools = false
-            player.convert_power_to_tools( 4, 2 )
-            return
-        act power_action_scholar(){ state.power_action_scholar, player.scholars.value > 0,  player.has_power(3)  }
-            state.power_action_scholar = false
-            player.convert_power_to_scholars( 3, 1 )
-            return
-        act power_action_1spade(){ player.has_power(4)  }
-            state.power_action_1spade = false
-            player.convert_power_to_spades( 4, 1 )
-            return
-        act power_action_2spades(){ player.has_power(6)  }
-            state.power_action_2spades = false
-            player.convert_power_to_spades( 6, 2 )
-            return
-
-        act send_scholar(Discipline discipline){player.scholars_on_hand.value > 0 and state.discipline_tracks[discipline].can_send_scholar() }
-            let num_levels = state.discipline_tracks[discipline].steps_for_send_scholar()
-            do_move_advance_discipline(state, player, discipline, num_levels)
-            player.send_scholar(1)
-            state.discipline_tracks[discipline].send_scholar()
-            return
-
-        act return_scholar(Discipline discipline){player.scholars_on_hand.value > 0 }
-            do_move_advance_discipline(state, player, discipline, 1)
-            player.return_scholar(1)
-            return
-
-        act upgrade_terraforming(){player.can_upgrade_terraforming()}
-            player.upgrade_terraforming()
-            player.gain_vp(state.get_round_score_bonus(Action::sailing_terraforming))
-            # if books income
-            subaction*(state, state.get_current_player() ) player_frame = income_phase(state , state.get_current_player())
-            return
-
-        act pass_round()
-            player.has_passed = true
-            return
+            act pass_round()
+                player.has_passed = true
+                return
 
 
 
@@ -223,7 +205,8 @@ act play(Int num_players, Scenario scenario) -> Game:
         #TODO update income after level update
         state.reset_turn_order()
         while state.has_players_in_turn_order():
-
+            if !(state.scenario == Scenario::test): #exclude conversion before main action
+                subaction*(state, state.get_current_player() ) player_conversion = conversion_phase(state , state.get_current_player())
             subaction*(state, state.get_current_player() ) player_action = action_phase(state , state.get_current_player())
             if !(state.scenario == Scenario::test): #exclude conversion after main action
                 subaction*(state, state.get_current_player() ) player_conversion = conversion_phase(state , state.get_current_player())
@@ -263,10 +246,10 @@ fun pretty_print(Game g):
     g.state.pretty_print_state()
 
 fun main() -> Int:
-    let game = play(1, Scenario::default)
+    let game = play(1, Scenario::test)
     print(game.state)
     ref player = game.state.players[0]
-    game.pass_turn()
+    game.pass_round()
     return 0
 
 fun fuzz(Vector<Byte> input):
@@ -300,19 +283,45 @@ fun fuzz(Vector<Byte> input):
         apply(executable.get(num_action % executable.size()), state)
 
 fun test_game_setup()-> Bool:
-    let game = play(1, Scenario::default)
+    let game = play(1, Scenario::test)
     ref player = game.state.players[0]
-    #print(game.state)
     return player.workshops == 2
 
 fun test_game_build_workshop()-> Bool:
+    let game = play(1, Scenario::test)
+    ref player = game.state.players[0]
+    player.powers[2]=12
+    game.get_round_bonus_tile(RoundBonusTileKind::dummy1)
+    assert( can game.power_action_1spade(), "can spade")
+    game.power_action_1spade()
+    #new turn
+    game.build_workshop()
+    return player.workshops == 3 and player.spades==0
+
+fun test_game_can_pass_round_with_action()-> Bool:
     let game = play(1, Scenario::default)
     ref player = game.state.players[0]
     player.powers[2]=12
-    game.get_round_bonus_tile(RoundBonusTileKind::big)
+    game.state.round_bonus_tiles.make_available(RoundBonusTileKind::dummy1)
+    game.get_round_bonus_tile(RoundBonusTileKind::dummy1)
+    game.convert_3power_to_tool()
+    assert( can game.pass_conversion(), "can pass conversion after conversion")
+    return true
+
+fun test_game_can_convert_after_action()-> Bool:
+    let game = play(1, Scenario::default)
+    ref player = game.state.players[0]
+    player.powers[2]=12
+    game.state.round_bonus_tiles.make_available(RoundBonusTileKind::dummy1)
+    game.get_round_bonus_tile(RoundBonusTileKind::dummy1)
+    game.pass_conversion()
     game.power_action_1spade()
-    game.build_workshop()
-    return player.workshops == 3 and player.spades==0
+    assert( can game.pass_conversion(), "can end turn without convertion")
+    assert( !can game.build_workshop(), "cannot do another main action")
+    game.convert_3power_to_tool()
+    assert( can game.pass_conversion(), "can end turn after conversion")
+    assert( !can game.pass_round(), "cannot do main action after conversion")
+    return true
 
 fun test_game_build_guild()-> Bool:
     # check also power income
@@ -320,41 +329,39 @@ fun test_game_build_guild()-> Bool:
     ref player = game.state.players[0]
     player.powers[0] = 1
     game.get_round_bonus_tile(RoundBonusTileKind::dummy1)
-    game.pass_convertion()
     game.build_guild()
-    game.pass_turn()
     return player.guilds == 1 and player.powers[0] == 0
  
 fun test_game_build_school()-> Bool:
     let game = play(1, Scenario::test)
     ref player = game.state.players[0]
     game.get_round_bonus_tile(RoundBonusTileKind::dummy1)
-    game.pass_convertion()
     game.build_guild()
     game.build_school()
     return player.schools == 1 and player.guilds == 0
 
 fun test_game_scholar_income()-> Bool:
-    let game = play(1, Scenario::sc1)
+    let game = play(1, Scenario::test)
     ref player = game.state.players[0]
     game.get_round_bonus_tile(RoundBonusTileKind::dummy1)
     game.build_guild()
     game.build_school()
     game.get_competency_tile(CompetencyTileKind::neutral_tower)
-    game.pass_turn()
-    game.get_round_bonus_tile(RoundBonusTileKind::coins)
+    game.pass_round()
+    game.get_round_bonus_tile(RoundBonusTileKind::dummy2)
     return player.scholars_on_hand == 1 and player.scholars == 6
 
 fun test_game_scholar_income_no_scholar()-> Bool:
-    let game = play(1, Scenario::sc1)
+    # has no scholars available, gets nothing
+    let game = play(1, Scenario::test)
     ref player = game.state.players[0]
     game.get_round_bonus_tile(RoundBonusTileKind::dummy1)
     game.state.players[0].scholars=0
     game.build_guild()
     game.build_school()
     game.get_competency_tile(CompetencyTileKind::neutral_tower)
-    game.pass_turn()
-    game.get_round_bonus_tile(RoundBonusTileKind::coins)
+    game.pass_round()
+    game.get_round_bonus_tile(RoundBonusTileKind::dummy2)
     return player.scholars_on_hand == 0 and player.scholars == 0
 
 
@@ -370,7 +377,7 @@ fun test_game_build_palace()-> Bool:
     game.get_palace_tile(kind)
     assert( player.palace == kind and player.VP == VP+10 and game.state.palace_tiles[kind] == 0, "tile has been draw")
     let power = player.powers[0]
-    game.pass_turn()
+    game.pass_round()
     assert( player.powers[0] == power -2 , "got 2 power round bonus")
     return true
 
@@ -390,7 +397,7 @@ fun test_game_free_upgrade_to_guild()-> Bool:
     game.free_upgrade_to_guild()
     assert( player.coins == coins and player.tools == tools and player.guilds == guilds + 1, "didnt pay for the guild")
     assert (!player.palace_upgrade_to_guild, "cannot use it again during round")
-    game.pass_turn()
+    game.pass_round()
 
     game.get_round_bonus_tile(RoundBonusTileKind::dummy2)
     assert (player.palace_upgrade_to_guild, "is available in new round")
@@ -453,7 +460,7 @@ fun test_URP()-> Bool:
     let game = play(1, Scenario::test)
     ref player = game.state.players[0]
     game.get_round_bonus_tile(RoundBonusTileKind::dummy1)
-    game.pass_turn()
+    game.pass_round()
 
     
     #TODO return player.score(2) == 63.0
@@ -463,10 +470,10 @@ fun test_get_round_bonus_tile()-> Bool:
     let game = play(1, Scenario::test)
     ref player = game.state.players[0]
     game.get_round_bonus_tile(RoundBonusTileKind::dummy1)
-    game.pass_turn()
+    game.pass_round()
     assert( !can game.get_round_bonus_tile(RoundBonusTileKind::dummy1), "cannot get same tile")
     game.get_round_bonus_tile(RoundBonusTileKind::dummy2)
-    game.pass_turn()
+    game.pass_round()
     return true
 
 fun test_game_send_scholar()-> Bool:
@@ -532,7 +539,7 @@ fun test_game_city()-> Bool:
     game.get_competency_tile(CompetencyTileKind::city_vp) # 2VP per city
 
     let VP = player.VP
-    game.pass_turn()
+    game.pass_round()
     game.get_round_bonus_tile(RoundBonusTileKind::dummy2)
     assert(player.VP == VP + 1*2 - 3,"got city round bonus vps")
     assert(player.universities == 1 and player.guilds == 0 and player.schools == 2 and player.cities == 1, "first city after turn ")
@@ -545,7 +552,7 @@ fun test_game_income_phase_science_step()->Bool:
     game.build_guild()
     game.build_school()
     game.get_competency_tile(CompetencyTileKind::tool_science_adv)
-    game.pass_turn()
+    game.pass_round()
     game.get_round_bonus_tile(RoundBonusTileKind::dummy2)
     assert(player.science_step_income==1,"has to advance one science step")
     game.advance_science_step(Discipline::banking)
@@ -561,7 +568,7 @@ fun test_game_income_phase_gain_book()->Bool:
     game.build_guild()
     game.build_school()
     game.get_competency_tile(CompetencyTileKind::book_power)
-    game.pass_turn()
+    game.pass_round()
     game.get_round_bonus_tile(RoundBonusTileKind::dummy2)
     assert(player.book_income==1,"has to get a book")
     game.gain_book(Discipline::banking)
@@ -575,7 +582,7 @@ fun test_game_send_scholar_vp()->Bool:
     game.build_guild()
     game.build_school()
     game.get_competency_tile(CompetencyTileKind::send_scholar_vp)
-    game.pass_turn()
+    game.pass_round()
     game.get_round_bonus_tile(RoundBonusTileKind::dummy2)
     let VP = player.VP
     game.send_scholar(Discipline::banking)
@@ -595,7 +602,7 @@ fun test_game_discipline_level_round_pass_vp()->Bool:
     game.build_school()
     game.get_competency_tile(CompetencyTileKind::lowest_science_vp)
     let VP = player.VP
-    game.pass_turn()
+    game.pass_round()
     game.get_round_bonus_tile(RoundBonusTileKind::dummy2)
     # -3 is for power getting
     assert(player.VP == VP + 2 - 3,"got discipline level vps")
@@ -622,7 +629,7 @@ fun test_game_round_score_end_round_bonus()->Bool:
     game.state.round_score_display[0] = RoundScoreTileKind::rs_tile1 #3powers for 2steps low
     player.discipline_level[Discipline::law.value] = 3
     let power0 = player.powers[0]
-    game.pass_turn()
+    game.pass_round()
     assert(player.powers[0] == power0 - 3 ,"got power bonus")
     return true
 
@@ -632,15 +639,15 @@ fun test_game_final_round_score_bonus()->Bool:
     game.get_round_bonus_tile(RoundBonusTileKind::dummy1)
 
     game.state.round_score_display.assign_final_round_score_tile( FinalRoundScoreTileKind::frs_guild) #3vp for guild
-    game.pass_turn()
+    game.pass_round()
     game.get_round_bonus_tile(RoundBonusTileKind::dummy2)
-    game.pass_turn()
+    game.pass_round()
     game.get_round_bonus_tile(RoundBonusTileKind::dummy1)
-    game.pass_turn()
+    game.pass_round()
     game.get_round_bonus_tile(RoundBonusTileKind::dummy2)
-    game.pass_turn()
+    game.pass_round()
     game.get_round_bonus_tile(RoundBonusTileKind::dummy1)
-    game.pass_turn()
+    game.pass_round()
     game.get_round_bonus_tile(RoundBonusTileKind::dummy2)
     let VP = player.VP
     game.build_guild()

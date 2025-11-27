@@ -52,7 +52,7 @@ cls State:
 
         self.discipline_tracks = make_discipline_tracks()
         self.city_tiles = make_city_tiles()
-        self.competency_tiles = make_competency_tiles(Scenario::sc1)
+        self.competency_tiles = make_competency_tiles(scenario)
         self.palace_tiles = make_palace_tiles()
         self.round_score_display = make_round_score_display()
         self.round_bonus_tiles = make_round_bonus_tiles(scenario)
@@ -162,7 +162,7 @@ fun test_turn_order()->Bool:
     state.reset_turn_order()
     state.mark_current_player_passed()
     assert( state.passed_turn_order.get(0) == 1, "player 1 pos 0 passed")
-    assert( state.original_turn_order.get(0) == 1, "stil player 1")
+    assert( state.original_turn_order.get(0) == 1, "still player 1")
     assert( state.turn_order.get(0) == 3, "new player is 3")
     return true
 
