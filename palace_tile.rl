@@ -2,9 +2,10 @@ import action
 import enum_utils
 import enum_range
 
-const NUM_PALACE_TILE_KIND = 17
+const NUM_PALACE_TILE_KIND = 18
 
 enum PalaceTileKind:
+    none
     power5_tool2
     spades2
     pt3

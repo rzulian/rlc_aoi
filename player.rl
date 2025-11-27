@@ -9,6 +9,7 @@ import building
 import competency
 import city_tile
 import palace_tile
+import round_bonus_tile
 
 using BuildingArgType = BInt<0, 18>
 const NUM_WORKSHOPS = 9
@@ -56,6 +57,7 @@ cls Player:
     Int city_income
     Int competency_tile_income
     Int palace_income
+    Bool has_passed
     Float urp_for_vp
     Int send_scholar_vp
     Bool palace_upgrade_to_guild
@@ -64,6 +66,7 @@ cls Player:
     BInt<0,14>[NUM_DISCIPLINES] discipline_level
     BInt<0,14>[NUM_DISCIPLINES] books
     PalaceTileKind palace
+    RoundBonusTileKind round_bonus_tile
    
     fun score(Int current_phase) -> Float:
         let urp_for_production = [ 0.0, 3.0, 3.0, 2.6, 2.1, 1.5, 0.83]
@@ -97,7 +100,6 @@ cls Player:
             cities = 2
         self.city_income = cities - self.cities.value
         self.cities.value = cities
-
 
     fun has_income_phase() -> Bool:
         # player can decide to advance a science_step or gain a book
@@ -295,7 +297,7 @@ cls Player:
         else if kind == CompetencyTileKind::send_scholar_vp:
             self.send_scholar_vp = 2
 
-    fun get_competency_tile_round_bonus() -> Void:
+    fun get_competency_tile_income_bonus() -> Void:
         for tile in self.competency_tiles:
             if tile == CompetencyTileKind::tool_science_adv:
                 self.tool_income = self.tool_income + 1
@@ -342,12 +344,27 @@ cls Player:
         else if kind == PalaceTileKind::power2_upgrade_to_guild:
             self.palace_upgrade_to_guild = true
 
-    fun get_palace_tile_round_bonus():
-        if  self.palace== PalaceTileKind::power2_upgrade_to_guild:
+    fun get_palace_tile_income_bonus():
+        if  self.palace == PalaceTileKind::power2_upgrade_to_guild:
             self.power_income = self.power_income + 2
             self.palace_upgrade_to_guild = true
 
     fun get_palace_tile_pass_bonus():
+        return
+
+    fun get_round_bonus_tile(RoundBonusTiles round_bonus_tiles, RoundBonusTileKind kind):
+        round_bonus_tiles.return_round_bonus_tile(self.round_bonus_tile)
+        round_bonus_tiles.draw_round_bonus_tile(kind)
+        self.round_bonus_tile = kind
+        self.gain_coin(round_bonus_tiles.get_coin_bonus(kind))
+
+    fun get_round_bonus_tile_income_bonus():
+        return
+
+    fun get_round_bonus_tile_action_bonus(Action action) -> Int:
+        return self.round_bonus_tile.action_bonus(action)
+
+    fun get_round_bonus_tile_pass_bonus():
         return
 
     fun can_upgrade_terraforming() -> Bool:
@@ -377,8 +394,9 @@ cls Player:
         self.science_step_income = 0
         self.book_income = 0
 
-        self.get_competency_tile_round_bonus()
-        self.get_palace_tile_round_bonus()
+        self.get_competency_tile_income_bonus()
+        self.get_palace_tile_income_bonus()
+        self.get_round_bonus_tile_income_bonus()
 
         #scenario 11 power bonus on every phase
         self.power_income = self.power_income + 6
@@ -418,6 +436,7 @@ fun make_player() -> Player:
     player.competency_tile_income = 0
     player.palace_income = 0
     player.palace_upgrade_to_guild = false
+    player.has_passed = false
 
     player.terraforming_track_level = 1
     for i in range(4):
