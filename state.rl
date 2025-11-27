@@ -23,9 +23,9 @@ cls State:
     BInt<1,5> num_players
     BoundedVector<Player, 4> players
     PlayerID current_player
-    BoundedVector<PlayerID, 4> initial_turn_order
+    BoundedVector<PlayerID, 4> original_turn_order
     BoundedVector<PlayerID, 4> turn_order
-    BoundedVector<PlayerID, 4> pass_turn_order
+    BoundedVector<PlayerID, 4> passed_turn_order
     Int turn_order_pos
     BInt<0, 8> round
     Bool is_done
@@ -40,9 +40,11 @@ cls State:
     PalaceTiles palace_tiles
     RoundScoreDisplay round_score_display
     RoundBonusTiles round_bonus_tiles
+    Scenario scenario
 
 
     fun setup_game(Int num_players, Scenario scenario):
+        self.scenario = scenario
         self.board = make_board()
         self.round = 0
         self.is_done = false
@@ -64,28 +66,30 @@ cls State:
             self.players.append(player)
             let index : PlayerID
             index = i
-            self.initial_turn_order.append(index) #TODO shuffle
+            self.original_turn_order.append(index) #TODO shuffle
 
 
     fun reset_turn_order():
-        self.turn_order = self.initial_turn_order
-        self.pass_turn_order.clear()
+        self.turn_order = self.original_turn_order
+        self.passed_turn_order.clear()
         self.turn_order_pos = 0
 
-    fun move_to_first_player_turn():
+    fun move_to_first_player():
         self.turn_order_pos = 0
 
-    fun turn_has_players()->Bool:
+    fun has_players_in_turn_order()->Bool:
         return self.turn_order.size()>0
 
-    fun player_passed_turn():
+    fun mark_current_player_passed():
         #current player has played, we remove it from the list
         #move it to the pass_order_turn
         #keep the pos to the current position
-        self.pass_turn_order.append(self.turn_order.get(self.turn_order_pos))
+        self.passed_turn_order.append(self.turn_order.get(self.turn_order_pos))
         self.turn_order.erase(self.turn_order_pos)
+        if self.turn_order_pos==self.turn_order.size(): #if last player passed
+            self.move_to_first_player()
 
-    fun next_player_turn():
+    fun move_to_next_player():
         self.turn_order_pos = (self.turn_order_pos + 1) % self.turn_order.size()
 
     fun get_current_player() -> ref Player:
@@ -143,9 +147,22 @@ fun test_turn_order()->Bool:
     state.setup_game(4, Scenario::sc1)
 
     state.reset_turn_order()
-    while state.turn_has_players():
-        let player_idx = state.turn_order.get(state.turn_order_pos)
-        state.player_passed_turn()
+    state.move_to_next_player() #to player 1
+    state.mark_current_player_passed()
+    assert( state.passed_turn_order.get(0) == 1, "player 1 passed")
+    state.move_to_next_player() #to player 3
+    state.mark_current_player_passed()
+    assert( state.passed_turn_order.get(1) == 3, "player 3 passed")
+    state.mark_current_player_passed() # player 0
+    state.mark_current_player_passed() # player 2
+    assert( state.passed_turn_order.get(2) == 0, "player 0 passed")
+    assert( state.passed_turn_order.get(3) == 2, "player 2 passed")
 
+    state.original_turn_order = state.passed_turn_order
+    state.reset_turn_order()
+    state.mark_current_player_passed()
+    assert( state.passed_turn_order.get(0) == 1, "player 1 pos 0 passed")
+    assert( state.original_turn_order.get(0) == 1, "stil player 1")
+    assert( state.turn_order.get(0) == 3, "new player is 3")
     return true
 

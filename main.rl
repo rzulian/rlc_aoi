@@ -180,25 +180,27 @@ act play(Int num_players, Scenario scenario) -> Game:
     #player get initial round bonus tile
 
     state.reset_turn_order()
-    while state.turn_has_players():
+    while state.has_players_in_turn_order():
         act get_round_bonus_tile(RoundBonusTileKind kind){state.round_bonus_tiles[kind].available and state.round_bonus_tiles[kind].in_play}
             state.get_current_player().get_round_bonus_tile(state.round_bonus_tiles, kind)
-        state.player_passed_turn()
+        state.mark_current_player_passed()
 
     while state.round<=FINAL_ROUND:
         state.new_round()
 
         for player in state.players:
+            player.has_passed = false
             player.update_income()
 
         state.reset_turn_order()
-        while state.turn_has_players():
+        while state.has_players_in_turn_order():
             subaction*(state, state.get_current_player() ) player_income = income_phase(state , state.get_current_player())
-            state.player_passed_turn()
+            state.mark_current_player_passed()
 
         #TODO update income after level update
         state.reset_turn_order()
-        while state.turn_has_players():
+        while state.has_players_in_turn_order():
+
             subaction*(state, state.get_current_player() ) player_action = action_phase(state , state.get_current_player())
             if state.get_current_player().has_passed:
                 #pass and get a new round bonus tile
@@ -207,18 +209,18 @@ act play(Int num_players, Scenario scenario) -> Game:
                 state.get_current_player().get_round_bonus_tile_pass_bonus()
                 act get_round_bonus_tile(RoundBonusTileKind kind){state.round_bonus_tiles[kind].available and state.round_bonus_tiles[kind].in_play}
                     state.get_current_player().get_round_bonus_tile(state.round_bonus_tiles, kind)
-                state.player_passed_turn()
+                state.mark_current_player_passed()
             else:
-                state.next_player_turn()
+                state.move_to_next_player()
 
         #get round score tile bonus in pass order
-        state.initial_turn_order = state.pass_turn_order
+        state.original_turn_order = state.passed_turn_order
         state.reset_turn_order()
 
-        while state.turn_has_players() and state.round<FINAL_ROUND: #not in the final round
+        while state.has_players_in_turn_order() and state.round<FINAL_ROUND: #not in the final round
             do_move_get_round_score_tile_bonus(state, state.get_current_player(), state.round_score_display[state.round.value])
             subaction*(state, state.get_current_player() ) player_end_round = end_round_phase(state , state.get_current_player())
-            state.player_passed_turn()
+            state.mark_current_player_passed()
 
         state.round = state.round + 1
 
