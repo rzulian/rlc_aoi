@@ -69,6 +69,29 @@ act build_phase(ctx State state, ctx Player player) -> BuildPhase:
             act pass_build_phase()
                 return
 
+act conversion_phase(ctx State state, ctx Player player) -> ConversionPhase:
+    actions:
+        act convert_scholars_to_tools(BInt<1, 20> num_scholars) {player.scholars_on_hand.value >= num_scholars.value }
+            player.convert_scholars_to_tools( num_scholars.value )
+        act convert_tools_to_coins(BInt<1, 20> num_tools) {player.tools.value >= num_tools.value}
+            player.convert_tools_to_coins( num_tools.value )
+
+        act convert_tools_to_spades(BInt<1, 4> num_spades) {player.tools.value >= num_spades.value * player.terraforming_cost() }
+            player.convert_tools_to_spades( num_spades.value )
+
+        act convert_power_to_coins(BInt<1, 20> num_power) {player.has_power(num_power.value) }
+            player.convert_power_to_coins( num_power.value , num_power.value )
+        act convert_3power_to_tool() {player.has_power(3) }
+            player.convert_power_to_tools( 3 , 1)
+        act convert_5power_to_scholar() {player.scholars.value > 0, player.has_power(5) }
+            player.convert_power_to_scholars( 5 , 1)
+
+        act sacrifice_power(BInt<1, 20> num_power) {player.powers[1].value >= num_power.value*2}
+            player.sacrifice_power( num_power.value )
+
+        act pass_convertion()
+            return
+
 
 act action_phase(ctx State state, ctx Player player) -> ActionPhase:
     actions:
@@ -163,7 +186,7 @@ act action_phase(ctx State state, ctx Player player) -> ActionPhase:
             subaction*(state, state.get_current_player() ) player_frame = income_phase(state , state.get_current_player())
             return
 
-        act pass_turn()
+        act pass_round()
             player.has_passed = true
             return
 
@@ -202,6 +225,8 @@ act play(Int num_players, Scenario scenario) -> Game:
         while state.has_players_in_turn_order():
 
             subaction*(state, state.get_current_player() ) player_action = action_phase(state , state.get_current_player())
+            if !(state.scenario == Scenario::test): #exclude conversion after main action
+                subaction*(state, state.get_current_player() ) player_conversion = conversion_phase(state , state.get_current_player())
             if state.get_current_player().has_passed:
                 #pass and get a new round bonus tile
                 state.get_current_player().get_competency_tile_pass_bonus()
