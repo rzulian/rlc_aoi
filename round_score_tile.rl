@@ -4,6 +4,7 @@ import range
 import discipline
 import enum_range
 import player_action
+import scenario
 
 const NUM_ROUND_SCORE_TILES_KIND = 1
 
@@ -19,6 +20,9 @@ enum Resource:
         return self.value == other.value
 
 enum RoundScoreTileKind:
+    rs_none:
+        Discipline discipline = Discipline::law
+        Int steps = 0
     rs_tile1:
         Discipline discipline = Discipline::law
         Int steps = 2
@@ -58,6 +62,7 @@ enum RoundScoreTileKind:
         return 0
 
 enum FinalRoundScoreTileKind:
+    frs_none
     frs_school
     frs_guild
     frs_workshop_border
@@ -94,7 +99,25 @@ cls RoundScoreDisplay:
     fun assign_final_round_score_tile( FinalRoundScoreTileKind kind):
         self.final_round_score_tile = kind
 
-fun make_round_score_display() -> RoundScoreDisplay:
+fun make_round_score_display(Scenario scenario) -> RoundScoreDisplay:
+    if scenario == Scenario::test:
+        return make_test_round_score_display()
+    else if scenario == Scenario::sc1:
+        return make_scenario1_round_score_display()
+    return make_default_round_score_display()
+
+fun make_scenario1_round_score_display() -> RoundScoreDisplay:
+    #TODO implement initial assignment
+    let display : RoundScoreDisplay
+    return display
+
+
+fun make_default_round_score_display() -> RoundScoreDisplay:
+    #TODO implement initial assignment
+    let display : RoundScoreDisplay
+    return display
+
+fun make_test_round_score_display() -> RoundScoreDisplay:
     let display : RoundScoreDisplay
     display[0] = RoundScoreTileKind::rs_tile1
     display[1] = RoundScoreTileKind::rs_tile2
@@ -103,12 +126,12 @@ fun make_round_score_display() -> RoundScoreDisplay:
     return display
 
 fun test_setup_round_score()->Bool:
-    let display = make_round_score_display()
+    let display = make_round_score_display(Scenario::test)
     assert(display[1] == RoundScoreTileKind::rs_tile2, "tile on round 2")
     return true
 
 fun test_can_assign_final_round_score()->Bool:
-    let display = make_round_score_display()
+    let display = make_round_score_display(Scenario::test)
     display[5] = RoundScoreTileKind::rs_tile12
     assert(!display.can_assign_final_round_score_tile(FinalRoundScoreTileKind::frs_workshop_border), "workshop bonus on round 6 with action workshop bonus")
     assert(display.can_assign_final_round_score_tile(FinalRoundScoreTileKind::frs_school), "school bonus on round 6 with action workshop bonus")

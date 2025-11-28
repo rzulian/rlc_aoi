@@ -74,15 +74,15 @@ fun make_round_bonus_tile(RoundBonusTileKind kind)->RoundBonusTile:
 
 fun make_round_bonus_tiles(Scenario scenario)->RoundBonusTiles:
     let tiles : RoundBonusTiles
-    for kind in range(RoundBonusTileKind::navigation):
+    for kind in range(RoundBonusTileKind::none):
         tiles[kind] = make_round_bonus_tile(kind)
     if scenario == Scenario::sc1:
-        return make_scenario_1_round_bonus_tiles(tiles)
+        return make_scenario1_round_bonus_tiles(tiles)
     else if scenario == Scenario::test:
         return make_test_round_bonus_tiles(tiles)
-    return make_standard_round_bonus_tiles(tiles)
+    return make_default_round_bonus_tiles(tiles)
 
-fun make_standard_round_bonus_tiles(RoundBonusTiles tiles)->RoundBonusTiles:
+fun make_default_round_bonus_tiles(RoundBonusTiles tiles)->RoundBonusTiles:
         # this is the standard distribution of round bonus tiles
         #TODO standard distribution
         for kind in range(RoundBonusTileKind::none):
@@ -98,7 +98,7 @@ fun make_test_round_bonus_tiles(RoundBonusTiles tiles)->RoundBonusTiles:
         tiles.make_available(RoundBonusTileKind::dummy2)
         return tiles
 
-fun make_scenario_1_round_bonus_tiles(RoundBonusTiles tiles)->RoundBonusTiles:
+fun make_scenario1_round_bonus_tiles(RoundBonusTiles tiles)->RoundBonusTiles:
         # this is the scenario 1
         tiles.make_available(RoundBonusTileKind::send_scholar)
         tiles.make_available(RoundBonusTileKind::big)

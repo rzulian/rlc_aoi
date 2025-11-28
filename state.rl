@@ -54,7 +54,7 @@ cls State:
         self.city_tiles = make_city_tiles()
         self.competency_tiles = make_competency_tiles(scenario)
         self.palace_tiles = make_palace_tiles()
-        self.round_score_display = make_round_score_display()
+        self.round_score_display = make_round_score_display(scenario)
         self.round_bonus_tiles = make_round_bonus_tiles(scenario)
 
 
