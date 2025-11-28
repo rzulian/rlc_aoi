@@ -636,19 +636,9 @@ fun test_game_round_score_end_round_bonus()->Bool:
 fun test_game_final_round_score_bonus()->Bool:
     let game = play(1, Scenario::test)
     ref player = game.state.players[0]
-    game.get_round_bonus_tile(RoundBonusTileKind::dummy1)
-
+    game.state.round = 5 #move to last round
     game.state.round_score_display.assign_final_round_score_tile( FinalRoundScoreTileKind::frs_guild) #3vp for guild
-    game.pass_round()
-    game.get_round_bonus_tile(RoundBonusTileKind::dummy2)
-    game.pass_round()
     game.get_round_bonus_tile(RoundBonusTileKind::dummy1)
-    game.pass_round()
-    game.get_round_bonus_tile(RoundBonusTileKind::dummy2)
-    game.pass_round()
-    game.get_round_bonus_tile(RoundBonusTileKind::dummy1)
-    game.pass_round()
-    game.get_round_bonus_tile(RoundBonusTileKind::dummy2)
     let VP = player.VP
     game.build_guild()
     assert(player.VP == VP + 3 ,"got guild bonus")
