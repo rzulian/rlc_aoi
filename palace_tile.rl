@@ -1,6 +1,7 @@
 import action
 import enum_utils
 import enum_range
+import scenario
 
 const NUM_PALACE_TILE_KIND = 18
 
@@ -39,17 +40,21 @@ cls PalaceTiles:
     fun has_palace_tile(PalaceTileKind kind) -> Bool:
         return self.tiles[kind.value] > 0
 
-fun make_palace_tiles()->PalaceTiles:
+fun make_palace_tiles(Scenario scenario)->PalaceTiles:
     let tiles : PalaceTiles
-    for kind in range(PalaceTileKind::power5_tool2):
+    for kind in range(PalaceTileKind::none):
             tiles[kind] = 0
+    #TODO standard and test
+    return make_scenario_1_palace_tiles(tiles)
+
+fun make_scenario_1_palace_tiles(PalaceTiles tiles) -> PalaceTiles:
     tiles[PalaceTileKind::power2_upgrade_to_guild] = 1
     tiles[PalaceTileKind::power2_vp10] = 1
     return tiles
 
 
 fun test_scenario_std()->Bool:
-    let tiles = make_palace_tiles()
+    let tiles = make_palace_tiles(Scenario::test)
     assert(tiles[PalaceTileKind::power2_upgrade_to_guild] == 1, "available")
     tiles.draw_palace_tile(PalaceTileKind::power2_upgrade_to_guild)
     assert(tiles[PalaceTileKind::power2_upgrade_to_guild] == 0, "not available")
