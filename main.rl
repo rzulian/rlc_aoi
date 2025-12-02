@@ -92,6 +92,15 @@ act conversion_phase(ctx State state, ctx Player player) -> ConversionPhase:
             act pass_conversion()
                 return
 
+act book_pay_phase(ctx State state, ctx Player player) -> BookPayPhase:
+    while player.has_book_pay_phase():
+            act pay_book( Discipline discipline, BInt<0,7> num_books) {
+                player.books[discipline.value] >= num_books.value,
+                num_books.value  <= player.books_to_pay }
+                player.pay_book(discipline, num_books.value )
+                player.books_to_pay = player.books_to_pay - num_books.value
+
+
 act action_phase(ctx State state, ctx Player player) -> ActionPhase:
     while true:
         actions:
@@ -166,6 +175,17 @@ act action_phase(ctx State state, ctx Player player) -> ActionPhase:
                 player.gain_vp(state.get_round_score_bonus(Action::sailing_terraforming))
                 # if books income
                 subaction*(state, state.get_current_player() ) player_frame = income_phase(state , state.get_current_player())
+                return
+
+            act develop_innovation(frm InnovationTileKind kind){
+                state.innovation_tiles[kind].in_play,
+                state.innovation_tiles[kind].available,
+                player.can_get_innovation_tile( state.innovation_tiles[kind] )
+                }
+                player.pay_requirements_innovation_tile(state.innovation_tiles[kind])
+                subaction*(state, state.get_current_player() ) book_pay_phase_frame = book_pay_phase(state , state.get_current_player())
+                state.innovation_tiles.draw_innovation_tile(kind)
+                player.get_innovation_tile(kind)
                 return
 
             act pass_round()
@@ -253,7 +273,7 @@ fun main() -> Int:
     return 0
 
 fun fuzz(Vector<Byte> input):
-    let state = play(1, Scenario::default)
+    let state = play(1, Scenario::test)
     let x : AnyGameAction
     let enumeration = enumerate(x)
     let index = 0
@@ -642,4 +662,31 @@ fun test_game_final_round_score_bonus()->Bool:
     let VP = player.VP
     game.build_guild()
     assert(player.VP == VP + 3 ,"got guild bonus")
+    return true
+
+fun test_get_innovation_tile()->Bool:
+    let game = play(1, Scenario::test)
+    ref player = game.state.players[0]
+
+    player.books[Discipline::banking.value] = 2
+    player.books[Discipline::law.value] = 2
+    player.books[Discipline::engineering.value] = 2
+    player.books[Discipline::medicine.value] = 2
+    game.get_round_bonus_tile(RoundBonusTileKind::dummy1)
+    game.develop_innovation(InnovationTileKind::dummy1)
+
+    let num_books : BInt<0,7>
+
+    assert(player.books[Discipline::banking.value] == 0 ,"payed discipline required books")
+    num_books = 3
+    assert( !can game.pay_book(Discipline::law, num_books), "cannot pay more books than available")
+    num_books = 2
+    game.pay_book(Discipline::law, num_books)
+    assert(player.books[Discipline::law.value] == 0 ,"payed discipline law books")
+    num_books = 1
+    game.pay_book(Discipline::engineering, num_books)
+    assert(player.books[Discipline::engineering.value] == 1 ,"payed discipline engineering books")
+    assert(player.innovation_tiles.get(0) == InnovationTileKind::dummy1, "got the innovation tile")
+    assert(!game.state.innovation_tiles[InnovationTileKind::dummy1].available, "innovation tile is not available")
+
     return true

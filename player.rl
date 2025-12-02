@@ -10,6 +10,7 @@ import competency
 import city_tile
 import palace_tile
 import round_bonus_tile
+import innovation_tile
 
 using BuildingArgType = BInt<0, 18>
 const NUM_WORKSHOPS = 9
@@ -41,6 +42,7 @@ cls Player:
     BInt<0,8> scholars_on_hand
     BoundedVector<CompetencyTileKind, NUM_COMPETENCY_TILES_KIND> competency_tiles
     BoundedVector<CityTileKind, 6> city_tiles
+    BoundedVector<InnovationTileKind, 3> innovation_tiles
     BInt<0,6> cities
     BInt<0,6> spades
     BInt<0,4> terraforming_track_level
@@ -54,6 +56,7 @@ cls Player:
     Int vp_income
     Int science_step_income
     Int book_income
+    Int books_to_pay
     Int city_income
     Int competency_tile_income
     Int palace_income
@@ -113,6 +116,9 @@ cls Player:
         # player can decide to get a competency tile, get a city tile, or palace tile
         return (self.city_income + self.competency_tile_income + self.palace_income) > 0
 
+    fun has_book_pay_phase() -> Bool:
+        return self.books_to_pay>0
+
     fun gain_tool( Int num_tools):
         self.tools = self.tools + num_tools
     
@@ -143,6 +149,12 @@ cls Player:
 
     fun gain_book( Discipline discipline, Int num_books):
         self.books[discipline.value] = self.books[discipline.value] + num_books
+
+    fun pay_book( Discipline discipline, Int num_books):
+        self.books[discipline.value] = self.books[discipline.value] - num_books
+
+    fun has_books( Int num_books ) -> Bool:
+        return self.books[Discipline::banking.value] + self.books[Discipline::law.value] + self.books[Discipline::engineering.value] + self.books[Discipline::medicine.value] > num_books
 
     fun gain_power(Int power):
         let to_bowl2 = min( power, self.powers[0].value )
@@ -379,6 +391,25 @@ cls Player:
             self.book_income = self.book_income + 2
         if self.terraforming_track_level == 2:
             self.gain_vp(6)
+
+    fun can_get_innovation_tile( InnovationTile tile ) -> Bool:
+        #check requirements
+        if !self.has_books( tile.total_books() ):
+            return false
+        for discipline_id in range(Discipline::law):
+            if self.books[discipline_id.value] < tile.required_books[discipline_id.value]:
+                return false
+        return true
+
+    fun pay_requirements_innovation_tile( InnovationTile tile ):
+        # player pays the required books
+        self.books_to_pay = tile.total_books()
+        for discipline_id in range(Discipline::law):
+            self.books[discipline_id.value] = self.books[discipline_id.value] - tile.required_books[discipline_id.value]
+            self.books_to_pay = self.books_to_pay - tile.required_books[discipline_id.value]
+
+    fun get_innovation_tile( InnovationTileKind kind ):
+        self.innovation_tiles.append(kind)
 
     fun update_income() -> Void:
         # beginning of a new phase. get new production from building, competency tile,

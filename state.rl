@@ -13,6 +13,7 @@ import city_tile
 import scenario
 import round_score_tile
 import round_bonus_tile
+import innovation_tile
 
 const FINAL_ROUND = 5
 
@@ -40,6 +41,7 @@ cls State:
     PalaceTiles palace_tiles
     RoundScoreDisplay round_score_display
     RoundBonusTiles round_bonus_tiles
+    InnovationTiles innovation_tiles
     Scenario scenario
 
 
@@ -56,6 +58,7 @@ cls State:
         self.palace_tiles = make_palace_tiles(scenario)
         self.round_score_display = make_round_score_display(scenario)
         self.round_bonus_tiles = make_round_bonus_tiles(scenario)
+        self.innovation_tiles = make_innovation_tiles(scenario)
 
 
         # setup players
