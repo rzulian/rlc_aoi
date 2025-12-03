@@ -339,21 +339,6 @@ cls Player:
         apply_palace_tile_immediate_bonus(self, kind)
 
 
-    fun get_round_bonus_tile(RoundBonusTiles round_bonus_tiles, RoundBonusTileKind kind):
-        round_bonus_tiles.return_round_bonus_tile(self.round_bonus_tile)
-        round_bonus_tiles.draw_round_bonus_tile(kind)
-        self.round_bonus_tile = kind
-        self.gain_coin(round_bonus_tiles.get_coin_bonus(kind))
-
-    fun get_round_bonus_tile_income_bonus():
-        return
-
-    fun get_round_bonus_tile_action_bonus(Action action) -> Int:
-        return self.round_bonus_tile.action_bonus(action)
-
-    fun get_round_bonus_tile_pass_bonus():
-        return
-
     fun can_upgrade_terraforming() -> Bool:
         return self.scholars_on_hand>0 and self.coins>=5 and self.tools>=1 and self.terraforming_track_level <= 2
 
@@ -415,7 +400,7 @@ cls Player:
 
         apply_competency_tile_income_bonus(self)
         apply_palace_tile_income_bonus(self)
-        self.get_round_bonus_tile_income_bonus()
+        apply_round_bonus_tile_income_bonus(self)
 
         #scenario 11 power bonus on every phase
         self.power_income = self.power_income + 6

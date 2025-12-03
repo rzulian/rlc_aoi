@@ -35,6 +35,15 @@ fun do_move_get_round_score_tile_bonus(State state, Player player, RoundScoreTil
     player.book_income = player.book_income + multiplier*round_score_tile.end_round_bonus(Resource::book)
     player.gain_spade(multiplier*round_score_tile.end_round_bonus(Resource::spade))
 
+fun do_move_get_round_bonus_tile(State state, Player player, RoundBonusTileKind kind) -> Void:
+    state.round_bonus_tiles.return_round_bonus_tile(player.round_bonus_tile)
+    state.round_bonus_tiles.draw_round_bonus_tile(kind)
+    player.round_bonus_tile = kind
+
+    # Collect coin bonus if any
+    let coin_bonus = state.round_bonus_tiles.get_coin_bonus(kind)
+    player.gain_coin(coin_bonus)
+
 act income_phase(ctx State state, ctx Player player) -> IncomePhase:
     while player.has_income_phase():
         actions:
@@ -208,7 +217,7 @@ act play(Int num_players, Scenario scenario) -> Game:
     state.reset_turn_order()
     while state.has_players_in_turn_order():
         act get_round_bonus_tile(RoundBonusTileKind kind){state.round_bonus_tiles[kind].available and state.round_bonus_tiles[kind].in_play}
-            state.get_current_player().get_round_bonus_tile(state.round_bonus_tiles, kind)
+            do_move_get_round_bonus_tile( state, state.get_current_player(), kind)
         state.mark_current_player_passed()
 
     while state.round<=FINAL_ROUND:
@@ -235,9 +244,10 @@ act play(Int num_players, Scenario scenario) -> Game:
                 #pass and get a new round bonus tile
                 apply_competency_tile_pass_bonus(state.get_current_player())
                 apply_palace_tile_pass_bonus(state.get_current_player())
-                state.get_current_player().get_round_bonus_tile_pass_bonus()
+                apply_round_bonus_tile_pass_bonus(state.get_current_player())
+
                 act get_round_bonus_tile(RoundBonusTileKind kind){state.round_bonus_tiles[kind].available and state.round_bonus_tiles[kind].in_play}
-                    state.get_current_player().get_round_bonus_tile(state.round_bonus_tiles, kind)
+                    do_move_get_round_bonus_tile( state, state.get_current_player(), kind)
                 state.mark_current_player_passed()
             else:
                 state.move_to_next_player()

@@ -4,6 +4,7 @@ import range
 import discipline
 import enum_range
 import scenario
+import player
 import player_action
 
 const NUM_ROUND_BONUS_TILES_KIND = 13
@@ -64,6 +65,16 @@ cls RoundBonusTiles:
 
     fun increment_coin_bonus(RoundBonusTileKind kind):
         self.tiles[kind.value].coin_bonus = self.tiles[kind.value].coin_bonus + 1
+
+fun apply_round_bonus_tile_income_bonus(Player player):
+    return
+
+fun apply_round_bonus_tile_action_bonus(Player player, Action action) -> Int:
+    return player.round_bonus_tile.action_bonus(action)
+
+fun apply_round_bonus_tile_pass_bonus(Player player):
+    return
+
 
 fun make_round_bonus_tile(RoundBonusTileKind kind)->RoundBonusTile:
     let tile : RoundBonusTile
