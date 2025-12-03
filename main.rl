@@ -64,7 +64,8 @@ act build_phase(ctx State state, ctx Player player) -> BuildPhase:
                 player.gain_vp(state.get_round_score_bonus(Action::city))
                 player.city_income = player.city_income - 1
             act get_palace_tile(PalaceTileKind palace_tile_kind){player.palace_income > 0 and state.palace_tiles.has_palace_tile(palace_tile_kind)}
-                player.get_palace_tile(state.palace_tiles, palace_tile_kind)
+                player.get_palace_tile(palace_tile_kind)
+                state.palace_tiles.draw_palace_tile(palace_tile_kind)
                 player.palace_income = player.palace_income - 1
             act pass_build_phase()
                 return
@@ -233,7 +234,7 @@ act play(Int num_players, Scenario scenario) -> Game:
             if state.get_current_player().has_passed:
                 #pass and get a new round bonus tile
                 apply_competency_tile_pass_bonus(state.get_current_player())
-                state.get_current_player().get_palace_tile_pass_bonus()
+                apply_palace_tile_pass_bonus(state.get_current_player())
                 state.get_current_player().get_round_bonus_tile_pass_bonus()
                 act get_round_bonus_tile(RoundBonusTileKind kind){state.round_bonus_tiles[kind].available and state.round_bonus_tiles[kind].in_play}
                     state.get_current_player().get_round_bonus_tile(state.round_bonus_tiles, kind)

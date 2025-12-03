@@ -2,6 +2,7 @@ import action
 import enum_utils
 import enum_range
 import scenario
+import player
 
 const NUM_PALACE_TILE_KIND = 18
 
@@ -39,6 +40,20 @@ cls PalaceTiles:
 
     fun has_palace_tile(PalaceTileKind kind) -> Bool:
         return self.tiles[kind.value] > 0
+
+fun apply_palace_tile_immediate_bonus(Player player, PalaceTileKind kind):
+    if kind == PalaceTileKind::power2_vp10:
+        player.gain_vp(10)
+    else if kind == PalaceTileKind::power2_upgrade_to_guild:
+        player.palace_upgrade_to_guild = true
+
+fun apply_palace_tile_income_bonus(Player player):
+        if  player.palace == PalaceTileKind::power2_upgrade_to_guild:
+            player.add_power_income(2)
+            player.palace_upgrade_to_guild = true
+
+fun apply_palace_tile_pass_bonus(Player player):
+        return
 
 fun make_palace_tiles(Scenario scenario)->PalaceTiles:
     let tiles : PalaceTiles

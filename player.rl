@@ -334,21 +334,10 @@ cls Player:
         self.book_income = self.book_income + kind.bonus()[5]
         self.gain_spade(kind.bonus()[6])
 
-    fun get_palace_tile(PalaceTiles palace_tiles, PalaceTileKind kind):
-        palace_tiles.draw_palace_tile(kind)
+    fun get_palace_tile(PalaceTileKind kind):
         self.palace = kind
-        if kind == PalaceTileKind::power2_vp10:
-            self.gain_vp(10)
-        else if kind == PalaceTileKind::power2_upgrade_to_guild:
-            self.palace_upgrade_to_guild = true
+        apply_palace_tile_immediate_bonus(self, kind)
 
-    fun get_palace_tile_income_bonus():
-        if  self.palace == PalaceTileKind::power2_upgrade_to_guild:
-            self.power_income = self.power_income + 2
-            self.palace_upgrade_to_guild = true
-
-    fun get_palace_tile_pass_bonus():
-        return
 
     fun get_round_bonus_tile(RoundBonusTiles round_bonus_tiles, RoundBonusTileKind kind):
         round_bonus_tiles.return_round_bonus_tile(self.round_bonus_tile)
@@ -424,8 +413,8 @@ cls Player:
         self.science_step_income = 0
         self.book_income = 0
 
-        self.get_competency_tile_income_bonus()
-        self.get_palace_tile_income_bonus()
+        apply_competency_tile_income_bonus(self)
+        apply_palace_tile_income_bonus(self)
         self.get_round_bonus_tile_income_bonus()
 
         #scenario 11 power bonus on every phase
