@@ -393,23 +393,36 @@ cls Player:
             self.gain_vp(6)
 
     fun can_get_innovation_tile( InnovationTile tile ) -> Bool:
-        #check requirements
-        if !self.has_books( tile.total_books() ):
+        # num books required (5 + 1 + 1)
+        if !self.has_books( self.books_for_innovation_tile(tile) ):
             return false
+        # check book requirements
         for discipline_id in range(Discipline::law):
             if self.books[discipline_id.value] < tile.required_books[discipline_id.value]:
                 return false
+        #check for 5 coins discount if has palace
+        if self.coins < self.coins_for_innovation_tile(tile):
+            return false
         return true
 
     fun pay_requirements_innovation_tile( InnovationTile tile ):
         # player pays the required books
-        self.books_to_pay = tile.total_books()
+        self.books_to_pay = self.books_for_innovation_tile(tile)
         for discipline_id in range(Discipline::law):
             self.books[discipline_id.value] = self.books[discipline_id.value] - tile.required_books[discipline_id.value]
             self.books_to_pay = self.books_to_pay - tile.required_books[discipline_id.value]
+        self.coins = self.coins - self.coins_for_innovation_tile(tile)
 
     fun get_innovation_tile( InnovationTileKind kind ):
-        self.innovation_tiles.append(kind)
+        self.innovation_tiles.append(kind) #TODO add immediate bonus
+
+    fun books_for_innovation_tile(InnovationTile tile) -> Int:
+        #additional cost for innovation tile after first
+        return tile.total_books() + self.innovation_tiles.size()
+
+    fun coins_for_innovation_tile(InnovationTile tile) -> Int:
+        #if player doesn't have palace
+        return 5*(1-self.palaces.value)
 
     fun update_income() -> Void:
         # beginning of a new phase. get new production from building, competency tile,

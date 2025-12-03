@@ -184,8 +184,8 @@ act action_phase(ctx State state, ctx Player player) -> ActionPhase:
                 }
                 player.pay_requirements_innovation_tile(state.innovation_tiles[kind])
                 subaction*(state, state.get_current_player() ) book_pay_phase_frame = book_pay_phase(state , state.get_current_player())
+                player.get_innovation_tile( kind )
                 state.innovation_tiles.draw_innovation_tile(kind)
-                player.get_innovation_tile(kind)
                 return
 
             act pass_round()
@@ -665,6 +665,7 @@ fun test_game_final_round_score_bonus()->Bool:
     return true
 
 fun test_get_innovation_tile()->Bool:
+    # books and additional cost
     let game = play(1, Scenario::test)
     ref player = game.state.players[0]
 
@@ -673,6 +674,7 @@ fun test_get_innovation_tile()->Bool:
     player.books[Discipline::engineering.value] = 2
     player.books[Discipline::medicine.value] = 2
     game.get_round_bonus_tile(RoundBonusTileKind::dummy1)
+    let coins = player.coins
     game.develop_innovation(InnovationTileKind::dummy1)
 
     let num_books : BInt<0,7>
@@ -687,6 +689,38 @@ fun test_get_innovation_tile()->Bool:
     game.pay_book(Discipline::engineering, num_books)
     assert(player.books[Discipline::engineering.value] == 1 ,"payed discipline engineering books")
     assert(player.innovation_tiles.get(0) == InnovationTileKind::dummy1, "got the innovation tile")
+    assert(player.coins == coins-5, "payed additional cost")
+    assert(!game.state.innovation_tiles[InnovationTileKind::dummy1].available, "innovation tile is not available")
+
+    return true
+
+
+fun test_get_additional_innovation_tile()->Bool:
+    # books and additional cost (books 5 standard + 1 )
+    let game = play(1, Scenario::test)
+    ref player = game.state.players[0]
+
+    player.books[Discipline::banking.value] = 3
+    player.books[Discipline::law.value] = 3
+    player.books[Discipline::engineering.value] = 3
+    player.books[Discipline::medicine.value] = 3
+    player.palaces = 1
+    player.innovation_tiles.append(InnovationTileKind::none)
+    let coins = player.coins
+    game.get_round_bonus_tile(RoundBonusTileKind::dummy1)
+    game.develop_innovation(InnovationTileKind::dummy1)
+
+    let num_books : BInt<0,7>
+
+    assert(player.books[Discipline::banking.value] == 1 ,"payed 2 banking required books")
+    assert(player.coins == coins, "didn't pay additional cost")
+    num_books = 3
+    game.pay_book(Discipline::law, num_books)
+    assert(player.books[Discipline::law.value] == 0 ,"payed discipline law books")
+    num_books = 1
+    game.pay_book(Discipline::engineering, num_books)
+    assert(player.books[Discipline::engineering.value] == 2 ,"payed discipline engineering books")
+    assert(player.innovation_tiles.get(1) == InnovationTileKind::dummy1, "got the innovation tile")
     assert(!game.state.innovation_tiles[InnovationTileKind::dummy1].available, "innovation tile is not available")
 
     return true
