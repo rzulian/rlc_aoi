@@ -191,6 +191,25 @@ cls Player:
         self.VP = self.VP + VP
         self.URP = self.URP + self.urp_for_vp*float(VP)
 
+    fun add_tool_income(Int amount):
+        self.tool_income = self.tool_income + amount
+
+    fun add_coin_income(Int amount):
+        self.coin_income = self.coin_income + amount
+
+    fun add_power_income(Int amount):
+        self.power_income = self.power_income + amount
+
+    fun add_book_income(Int amount):
+        self.book_income = self.book_income + amount
+
+    fun add_science_step_income(Int amount):
+        self.science_step_income = self.science_step_income + amount
+
+    fun add_vp_income(Int amount):
+        self.vp_income = self.vp_income + amount
+
+
     fun can_pay_building(BuildingType building_type) -> Bool :
         return self.coins >= building_type.coin_cost() and self.tools >= building_type.tool_cost()
 
@@ -300,40 +319,7 @@ cls Player:
 
     fun get_competency_tile( CompetencyTileKind kind ) -> Void:
         self.competency_tiles.append(kind)
-        if kind == CompetencyTileKind::spades2:
-            self.gain_spade(2)
-        else if kind == CompetencyTileKind::tool_coins2_vp5:
-            self.gain_coin(2)
-            self.gain_tool(1)
-            self.gain_vp(5)
-        else if kind == CompetencyTileKind::send_scholar_vp:
-            self.send_scholar_vp = 2
-
-    fun get_competency_tile_income_bonus() -> Void:
-        for tile in self.competency_tiles:
-            if tile == CompetencyTileKind::tool_science_adv:
-                self.tool_income = self.tool_income + 1
-                self.science_step_income = self.science_step_income + 1
-                continue
-            if tile == CompetencyTileKind::book_power:
-                self.book_income = self.book_income + 1
-                self.power_income = self.power_income + 1
-                continue
-            if tile == CompetencyTileKind::coins2_vp3:
-                self.coin_income = self.coin_income + 2
-                self.vp_income = self.vp_income + 3
-                continue
-
-    fun get_competency_tile_pass_bonus() -> Void:
-        for tile in self.competency_tiles:
-            if tile == CompetencyTileKind::lowest_science_vp:
-                let min_level = min(min(min(self.discipline_level[0],self.discipline_level[1]), self.discipline_level[2]),self.discipline_level[3])
-                self.gain_vp( min_level.value )
-                continue
-            if tile == CompetencyTileKind::city_vp:
-                self.gain_vp( self.cities.value * 2 )
-                continue
-
+        apply_competency_tile_immediate_bonus(self, kind)
 
     fun get_city_tile(CityTiles city_tiles, CityTileKind kind):
         # TODO get discipline

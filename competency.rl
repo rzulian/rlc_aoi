@@ -4,7 +4,7 @@ import range
 import discipline
 import scenario
 import enum_range
-
+import player
 
 const NUM_COMPETENCY_TILES_KIND = 12
 
@@ -53,6 +53,40 @@ cls CompetencyTiles:
     fun has_competency_tile(CompetencyTileKind kind) -> Bool:
         return self.space[kind.value].num_tiles > 0
 
+fun apply_competency_tile_immediate_bonus( Player player, CompetencyTileKind kind ) -> Void:
+    if kind == CompetencyTileKind::spades2:
+        player.gain_spade(2)
+    else if kind == CompetencyTileKind::tool_coins2_vp5:
+        player.gain_coin(2)
+        player.gain_tool(1)
+        player.gain_vp(5)
+    else if kind == CompetencyTileKind::send_scholar_vp:
+        player.send_scholar_vp = 2
+
+fun apply_competency_tile_income_bonus(Player player) -> Void:
+    for tile in player.competency_tiles:
+        if tile == CompetencyTileKind::tool_science_adv:
+            player.add_tool_income(1)
+            player.add_science_step_income(1)
+            continue
+        if tile == CompetencyTileKind::book_power:
+            player.add_book_income(1)
+            player.add_power_income(1)
+            continue
+        if tile == CompetencyTileKind::coins2_vp3:
+            player.add_coin_income(2)
+            player.add_vp_income(3)
+            continue
+
+fun apply_competency_tile_pass_bonus(Player player) -> Void:
+    for tile in player.competency_tiles:
+        if tile == CompetencyTileKind::lowest_science_vp:
+            let min_level = min(min(min(player.discipline_level[0],player.discipline_level[1]), player.discipline_level[2]),player.discipline_level[3])
+            player.gain_vp( min_level.value )
+            continue
+        if tile == CompetencyTileKind::city_vp:
+            player.gain_vp( player.cities.value * 2 )
+            continue
 
 fun make_competency_tiles(Scenario scenario)->CompetencyTiles:
     if scenario == Scenario::sc1:

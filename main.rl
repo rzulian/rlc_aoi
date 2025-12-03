@@ -232,7 +232,7 @@ act play(Int num_players, Scenario scenario) -> Game:
                 subaction*(state, state.get_current_player() ) player_conversion = conversion_phase(state , state.get_current_player())
             if state.get_current_player().has_passed:
                 #pass and get a new round bonus tile
-                state.get_current_player().get_competency_tile_pass_bonus()
+                apply_competency_tile_pass_bonus(state.get_current_player())
                 state.get_current_player().get_palace_tile_pass_bonus()
                 state.get_current_player().get_round_bonus_tile_pass_bonus()
                 act get_round_bonus_tile(RoundBonusTileKind kind){state.round_bonus_tiles[kind].available and state.round_bonus_tiles[kind].in_play}
