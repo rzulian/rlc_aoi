@@ -317,28 +317,6 @@ cls Player:
                 return false
         return true
 
-    fun get_competency_tile( CompetencyTileKind kind ) -> Void:
-        self.competency_tiles.append(kind)
-        apply_competency_tile_immediate_bonus(self, kind)
-
-    fun get_city_tile(CityTiles city_tiles, CityTileKind kind):
-        # TODO get discipline
-        city_tiles.draw_city_tile(kind)
-        self.city_tiles.append(kind)
-
-        self.gain_vp(kind.bonus()[0])
-        self.gain_tool(kind.bonus()[1])
-        self.gain_coin(kind.bonus()[2])
-        self.gain_power(kind.bonus()[3])
-        self.gain_scholar(kind.bonus()[4])
-        self.book_income = self.book_income + kind.bonus()[5]
-        self.gain_spade(kind.bonus()[6])
-
-    fun get_palace_tile(PalaceTileKind kind):
-        self.palace = kind
-        apply_palace_tile_immediate_bonus(self, kind)
-
-
     fun can_upgrade_terraforming() -> Bool:
         return self.scholars_on_hand>0 and self.coins>=5 and self.tools>=1 and self.terraforming_track_level <= 2
 

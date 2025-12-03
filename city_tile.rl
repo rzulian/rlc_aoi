@@ -4,6 +4,7 @@ import range
 import action
 import enum_utils
 import enum_range
+import player
 
 const NUM_CITY_TILE_KIND = 7
 
@@ -37,6 +38,17 @@ cls CityTiles:
 
     fun has_city_tile(CityTileKind kind) -> Bool:
         return self.tiles[kind.value] > 0
+
+fun apply_city_tile_immediate_bonus(Player player, CityTileKind kind):
+        # TODO get discipline
+
+        player.gain_vp(kind.bonus()[0])
+        player.gain_tool(kind.bonus()[1])
+        player.gain_coin(kind.bonus()[2])
+        player.gain_power(kind.bonus()[3])
+        player.gain_scholar(kind.bonus()[4])
+        player.add_book_income(kind.bonus()[5])
+        player.gain_spade(kind.bonus()[6])
 
 fun make_city_tiles() -> CityTiles:
     let tiles : CityTiles

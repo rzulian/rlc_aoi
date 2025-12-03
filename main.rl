@@ -18,8 +18,10 @@ fun do_move_advance_discipline(State state, Player player, Discipline discipline
     player.gain_vp((new_level-starting_level) * state.get_round_score_bonus(Action::science_step))
 
 fun do_move_get_competency_tile(State state, Player player, CompetencyTileKind kind) -> Void:
-    player.get_competency_tile( kind )
     state.competency_tiles[kind].draw_competency_tile()
+    player.competency_tiles.append(kind)
+    apply_competency_tile_immediate_bonus(player, kind)
+
     let num_levels =  state.competency_tiles[kind].num_levels()
     let num_books =  state.competency_tiles[kind].num_books()
     do_move_advance_discipline( state, player, state.competency_tiles[kind].discipline, num_levels)
@@ -69,12 +71,15 @@ act build_phase(ctx State state, ctx Player player) -> BuildPhase:
                 do_move_get_competency_tile(state, player, kind)
                 player.competency_tile_income = player.competency_tile_income - 1
             act get_city_tile(CityTileKind city_tile_kind){player.city_income > 0 and state.city_tiles.has_city_tile(city_tile_kind)}
-                player.get_city_tile(state.city_tiles, city_tile_kind)
+                state.city_tiles.draw_city_tile(city_tile_kind)
+                player.city_tiles.append(city_tile_kind)
+                apply_city_tile_immediate_bonus(player, city_tile_kind)
                 player.gain_vp(state.get_round_score_bonus(Action::city))
                 player.city_income = player.city_income - 1
             act get_palace_tile(PalaceTileKind palace_tile_kind){player.palace_income > 0 and state.palace_tiles.has_palace_tile(palace_tile_kind)}
-                player.get_palace_tile(palace_tile_kind)
                 state.palace_tiles.draw_palace_tile(palace_tile_kind)
+                player.palace = palace_tile_kind
+                apply_palace_tile_immediate_bonus(player, palace_tile_kind)
                 player.palace_income = player.palace_income - 1
             act pass_build_phase()
                 return
