@@ -283,7 +283,6 @@ fun pretty_print(Game g):
 
 fun main() -> Int:
     let game = play(1, Scenario::test)
-    print(game.state)
     ref player = game.state.players[0]
     game.pass_round()
     return 0
@@ -303,19 +302,19 @@ fun fuzz(Vector<Byte> input):
 
         let executable : Vector<AnyGameAction>
         let i = 0
-        #print("VALIDS")
+        print("VALIDS")
         while i < enumeration.size():
           if can apply(enumeration.get(i), state):
             #print(enumeration.get(i))
             executable.append(enumeration.get(i))
           i = i + 1
-        #print("ENDVALIDS")
-        #if executable.size() == 0:
-        #print("zero valid actions")
-        #print(state)
-        #return
+        print("ENDVALIDS")
+        if executable.size() == 0:
+            print("zero valid actions")
+            print(state)
+            return
 
-        #print(executable.get(num_action % executable.size()))
+        print(executable.get(num_action % executable.size()))
         apply(executable.get(num_action % executable.size()), state)
 
 fun test_game_setup()-> Bool:

@@ -218,7 +218,7 @@ cls Player:
         self.pay_tool( building_type.tool_cost() )
         
     fun spades_needed() -> Int:
-        let cluster_spades = [0,1,2,1,2,1,2]
+        let cluster_spades = [0,1,2,1,2,1,2,3,3,3,3]
         return cluster_spades[self.num_buildings()]      
 
     fun can_build_workshop() -> Bool :
