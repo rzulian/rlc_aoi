@@ -5,6 +5,7 @@ import discipline
 import enum_range
 import scenario
 import player_action
+import player
 
 const NUM_INNOVATION_TILES_KIND = 20
 
@@ -58,9 +59,27 @@ cls InnovationTiles:
     fun make_available(InnovationTileKind kind):
         self.tiles[kind.value].available = true
         self.tiles[kind.value].in_play = true
+        self.tiles[kind.value].required_books = [0,0,0,0,5]
 
     fun draw_innovation_tile(InnovationTileKind kind):
         self.tiles[kind.value].available = false
+
+fun apply_innovation_tile_immediate_bonus(Player player, InnovationTileKind kind) -> Void:
+    if kind == InnovationTileKind::colleges:
+        player.gain_vp(player.schools.value * 5)
+    else if kind == InnovationTileKind::libraries:
+        let high1 = 0
+        let high2 = 0
+        for i in range(4):
+            if player.discipline_level[i].value >= high1:
+                high2 = high1
+                high1 = player.discipline_level[i].value
+            else if player.discipline_level[i] >= high2:
+                high2 = player.discipline_level[i].value
+        player.gain_vp(high1 + high2)
+    else if kind == InnovationTileKind::steam_power:
+        return
+    return
 
 
 fun make_innovation_tile(InnovationTileKind kind)->InnovationTile:

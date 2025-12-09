@@ -201,6 +201,7 @@ act action_phase(ctx State state, ctx Player player) -> ActionPhase:
                 subaction*(state, state.get_current_player() ) book_pay_phase_frame = book_pay_phase(state , state.get_current_player())
                 player.get_innovation_tile( kind )
                 state.innovation_tiles.draw_innovation_tile(kind)
+                apply_innovation_tile_immediate_bonus(player, kind)
                 return
 
             act pass_round()
@@ -316,6 +317,23 @@ fun fuzz(Vector<Byte> input):
 
         print(executable.get(num_action % executable.size()))
         apply(executable.get(num_action % executable.size()), state)
+
+fun print_available_actions( Game game):
+    let x : AnyGameAction
+    let enumeration = enumerate(x)
+    let executable : Vector<AnyGameAction>
+    let i = 0
+    print("VALIDS")
+    while i < enumeration.size():
+      if can apply(enumeration.get(i), game):
+        print(enumeration.get(i))
+        executable.append(enumeration.get(i))
+      i = i + 1
+    print("ENDVALIDS")
+    if executable.size() == 0:
+        print("zero valid actions")
+        print(game)
+
 
 fun test_game_setup()-> Bool:
     let game = play(1, Scenario::test)
@@ -737,5 +755,57 @@ fun test_get_additional_innovation_tile()->Bool:
     assert(player.books[Discipline::engineering.value] == 2 ,"payed discipline engineering books")
     assert(player.innovation_tiles.get(1) == InnovationTileKind::dummy1, "got the innovation tile")
     assert(!game.state.innovation_tiles[InnovationTileKind::dummy1].available, "innovation tile is not available")
+
+    return true
+
+
+fun test_innovation_tile_libraries()->Bool:
+    let game = play(1, Scenario::sc1)
+    ref player = game.state.players[0]
+
+    player.books[Discipline::banking.value] = 5
+    player.books[Discipline::law.value] = 5
+    player.books[Discipline::engineering.value] = 5
+    player.books[Discipline::medicine.value] = 5
+
+    player.discipline_level[Discipline::banking.value] = 7
+    player.discipline_level[Discipline::law.value] = 5
+    player.discipline_level[Discipline::engineering.value] = 6
+    player.discipline_level[Discipline::medicine.value] = 1
+
+
+    game.get_round_bonus_tile(RoundBonusTileKind::coins)
+    #print_available_actions(game)
+    game.pass_conversion()
+    game.develop_innovation(InnovationTileKind::libraries)
+
+    let num_books : BInt<0,7>
+    num_books = 5
+    let VP = player.VP
+    game.pay_book(Discipline::law, num_books)
+    assert( player.VP == VP + 7 + 6, "got VP for 2 top disciplines")
+
+    return true
+
+
+fun test_innovation_tile_colleges()->Bool:
+    let game = play(1, Scenario::sc1)
+    ref player = game.state.players[0]
+
+    player.books[Discipline::banking.value] = 5
+    player.books[Discipline::law.value] = 5
+    player.books[Discipline::engineering.value] = 5
+    player.books[Discipline::medicine.value] = 5
+    player.schools = 2
+    game.get_round_bonus_tile(RoundBonusTileKind::coins)
+    #print_available_actions(game)
+    game.pass_conversion()
+    game.develop_innovation(InnovationTileKind::colleges)
+
+    let num_books : BInt<0,7>
+    num_books = 5
+    let VP = player.VP
+    game.pay_book(Discipline::law, num_books)
+    assert( player.VP == VP + 10, "got VP for 2 schools")
 
     return true
