@@ -32,6 +32,9 @@ enum RoundScoreTileKind:
     rs_tile3:
         Discipline discipline = Discipline::law
         Int steps = 3
+    rs_tile8:
+        Discipline discipline = Discipline::law
+        Int steps = 3
     rs_tile12:
         Discipline discipline = Discipline::banking
         Int steps = 3
@@ -47,6 +50,8 @@ enum RoundScoreTileKind:
             return 3
         if (self == RoundScoreTileKind::rs_tile3 or self == RoundScoreTileKind::rs_tile12) and action == Action::workshop:
             return 2
+        if self == RoundScoreTileKind::rs_tile8 and action == Action::sailing_terraforming:
+            return 3
         return 0
 
     fun end_round_bonus(Resource resource) -> Int:
@@ -55,7 +60,7 @@ enum RoundScoreTileKind:
             return 3
         if self == RoundScoreTileKind::rs_tile2 and  resource == Resource::book:
             return 1
-        if self == RoundScoreTileKind::rs_tile3 and resource == Resource::scholar:
+        if (self == RoundScoreTileKind::rs_tile3 or self == RoundScoreTileKind::rs_tile8)  and resource == Resource::scholar:
             return 1
         if self == RoundScoreTileKind::rs_tile12 and resource == Resource::power:
             return 4

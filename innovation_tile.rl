@@ -78,7 +78,15 @@ fun apply_innovation_tile_immediate_bonus(Player player, InnovationTileKind kind
                 high2 = player.discipline_level[i].value
         player.gain_vp(high1 + high2)
     else if kind == InnovationTileKind::steam_power:
-        return
+        if player.terraforming_track_level<2:
+            player.upgrade_terraforming(false)
+        if player.sailing_track_level<3:
+            player.upgrade_sailing(false)
+        if player.scholars.value > 0:
+            player.gain_scholar(1)
+
+
+
     return
 
 

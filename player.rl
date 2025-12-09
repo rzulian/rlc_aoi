@@ -45,7 +45,8 @@ cls Player:
     BoundedVector<InnovationTileKind, 3> innovation_tiles
     BInt<0,6> cities
     BInt<0,6> spades
-    BInt<0,4> terraforming_track_level
+    BInt<0,3> terraforming_track_level
+    BInt<0,4> sailing_track_level
     Int VP
     Float URP
     Float phase_production_URP
@@ -60,6 +61,7 @@ cls Player:
     Int city_income
     Int competency_tile_income
     Int palace_income
+    Int terraforming_sailing_income
     Bool has_passed
     Float urp_for_vp
     Int send_scholar_vp
@@ -307,8 +309,8 @@ cls Player:
         self.gain_spade( num_spades )
 
     fun terraforming_cost() -> Int:
-        # track level 1 -> 3 tools
-        return 4 - self.terraforming_track_level.value
+        # track level 0 -> 3 tools
+        return 3 - self.terraforming_track_level.value
 
     fun can_get_competency_tile(CompetencyTileKind kind) -> Bool:
         # check if the player has already the tile
@@ -320,11 +322,29 @@ cls Player:
     fun can_upgrade_terraforming() -> Bool:
         return self.scholars_on_hand>0 and self.coins>=5 and self.tools>=1 and self.terraforming_track_level <= 2
 
-    fun upgrade_terraforming() -> Void:
-        self.pay_scholar( 1 )
-        self.pay_tool( 1 )
-        self.pay_coin( 5 )
+    fun can_upgrade_sailing() -> Bool:
+        return self.scholars_on_hand>0 and self.coins>=4 and self.sailing_track_level <= 3
+
+    fun upgrade_sailing(Bool has_to_pay) -> Void:
+        if has_to_pay:
+            self.pay_scholar( 1 )
+            self.pay_coin( 4 )
+        self.sailing_track_level = self.sailing_track_level + 1
+        self.terraforming_sailing_income = self.terraforming_sailing_income + 1
+        if self.sailing_track_level == 1:
+            self.gain_vp(2)
+        if self.sailing_track_level == 2:
+            self.book_income = self.book_income + 2
+        if self.sailing_track_level == 2:
+            self.gain_vp(4)
+
+    fun upgrade_terraforming(Bool has_to_pay) -> Void:
+        if has_to_pay:
+            self.pay_scholar( 1 )
+            self.pay_tool( 1 )
+            self.pay_coin( 5 )
         self.terraforming_track_level = self.terraforming_track_level + 1
+        self.terraforming_sailing_income = self.terraforming_sailing_income + 1
         if self.terraforming_track_level == 1:
             self.book_income = self.book_income + 2
         if self.terraforming_track_level == 2:
@@ -352,7 +372,7 @@ cls Player:
         self.coins = self.coins - self.coins_for_innovation_tile(tile)
 
     fun get_innovation_tile( InnovationTileKind kind ):
-        self.innovation_tiles.append(kind) #TODO add immediate bonus
+        self.innovation_tiles.append(kind)
 
     fun books_for_innovation_tile(InnovationTile tile) -> Int:
         #additional cost for innovation tile after first
@@ -417,10 +437,12 @@ fun make_player() -> Player:
     player.city_income = 0
     player.competency_tile_income = 0
     player.palace_income = 0
+    player.terraforming_sailing_income = 0
     player.palace_upgrade_to_guild = false
     player.has_passed = false
 
-    player.terraforming_track_level = 1
+    player.terraforming_track_level = 0
+    player.sailing_track_level = 0
     for i in range(4):
         player.discipline_level[i] = 0
         player.books[i] = 0

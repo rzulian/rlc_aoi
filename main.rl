@@ -186,8 +186,17 @@ act action_phase(ctx State state, ctx Player player) -> ActionPhase:
                 return
 
             act upgrade_terraforming(){player.can_upgrade_terraforming()}
-                player.upgrade_terraforming()
+                player.upgrade_terraforming(true)
                 player.gain_vp(state.get_round_score_bonus(Action::sailing_terraforming))
+                player.terraforming_sailing_income = 0
+                # if books income
+                subaction*(state, state.get_current_player() ) player_frame = income_phase(state , state.get_current_player())
+                return
+
+            act upgrade_sailing(){player.can_upgrade_sailing()}
+                player.upgrade_sailing(true)
+                player.gain_vp(state.get_round_score_bonus(Action::sailing_terraforming))
+                player.terraforming_sailing_income = 0
                 # if books income
                 subaction*(state, state.get_current_player() ) player_frame = income_phase(state , state.get_current_player())
                 return
@@ -202,6 +211,10 @@ act action_phase(ctx State state, ctx Player player) -> ActionPhase:
                 player.get_innovation_tile( kind )
                 state.innovation_tiles.draw_innovation_tile(kind)
                 apply_innovation_tile_immediate_bonus(player, kind)
+                player.gain_vp(player.terraforming_sailing_income * state.get_round_score_bonus(Action::sailing_terraforming))
+                player.terraforming_sailing_income = 0
+                # if books income
+                subaction*(state, state.get_current_player() ) player_frame = income_phase(state , state.get_current_player())
                 return
 
             act pass_round()
@@ -796,6 +809,7 @@ fun test_innovation_tile_colleges()->Bool:
     player.books[Discipline::law.value] = 5
     player.books[Discipline::engineering.value] = 5
     player.books[Discipline::medicine.value] = 5
+    game.state.round_score_display[0] = RoundScoreTileKind::rs_tile1 #5vp innovation tile
     player.schools = 2
     game.get_round_bonus_tile(RoundBonusTileKind::coins)
     #print_available_actions(game)
@@ -808,4 +822,30 @@ fun test_innovation_tile_colleges()->Bool:
     game.pay_book(Discipline::law, num_books)
     assert( player.VP == VP + 10, "got VP for 2 schools")
 
+    return true
+
+
+fun test_innovation_tile_steam_power()->Bool:
+    let game = play(1, Scenario::sc1)
+    ref player = game.state.players[0]
+    game.state.round_score_display[0] = RoundScoreTileKind::rs_tile8 #3vp for terraforming/sailing
+    player.books[Discipline::banking.value] = 5
+    player.books[Discipline::law.value] = 5
+    player.books[Discipline::engineering.value] = 5
+    player.books[Discipline::medicine.value] = 5
+    game.get_round_bonus_tile(RoundBonusTileKind::coins)
+    #print_available_actions(game)
+    game.pass_conversion()
+    game.develop_innovation(InnovationTileKind::steam_power)
+
+    let num_books : BInt<0,7>
+    num_books = 5
+    let VP = player.VP
+    game.pay_book(Discipline::law, num_books)
+    assert( player.VP == VP + 2 + 3 + 3, "got 2VP for sailing + 3 +3 for round score")
+    assert( player.sailing_track_level == 1, "sailing")
+    assert( player.terraforming_track_level == 1, "terraforming")
+    assert( player.scholars_on_hand == 1, "got scholar")
+    assert( player.book_income == 2, "has to get books")
+    assert( can game.gain_book(Discipline::law), "can get book")
     return true
