@@ -66,6 +66,7 @@ cls Player:
     Float urp_for_vp
     Int send_scholar_vp
     Bool palace_upgrade_to_guild
+    Bool special_action_professors
 
     BoundedVector<Building, 18> buildings
     BInt<0,14>[NUM_DISCIPLINES] discipline_level
@@ -134,8 +135,9 @@ cls Player:
         self.coins = self.coins - num_coins
 
     fun gain_scholar( Int num_scholars):
-        self.scholars_on_hand = self.scholars_on_hand + num_scholars
-        self.scholars = self.scholars - num_scholars
+        if self.scholars>0: #special action professors can trigger without scholars
+            self.scholars_on_hand = self.scholars_on_hand + num_scholars
+            self.scholars = self.scholars - num_scholars
 
     fun pay_scholar( Int num_scholars): 
         self.scholars_on_hand = self.scholars_on_hand - num_scholars

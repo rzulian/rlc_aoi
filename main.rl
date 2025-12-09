@@ -216,7 +216,10 @@ act action_phase(ctx State state, ctx Player player) -> ActionPhase:
                 # if books income
                 subaction*(state, state.get_current_player() ) player_frame = income_phase(state , state.get_current_player())
                 return
-
+            act special_action_professors() {player.special_action_professors}
+                player.gain_scholar(1)
+                player.gain_vp(3)
+                return
             act pass_round()
                 player.has_passed = true
                 return
@@ -848,4 +851,35 @@ fun test_innovation_tile_steam_power()->Bool:
     assert( player.scholars_on_hand == 1, "got scholar")
     assert( player.book_income == 2, "has to get books")
     assert( can game.gain_book(Discipline::law), "can get book")
+    return true
+
+fun test_innovation_tile_professors()->Bool:
+    let game = play(1, Scenario::sc1)
+    ref player = game.state.players[0]
+    game.state.round_score_display[0] = RoundScoreTileKind::rs_tile1
+    player.books[Discipline::banking.value] = 5
+    player.books[Discipline::law.value] = 5
+    player.books[Discipline::engineering.value] = 5
+    player.books[Discipline::medicine.value] = 5
+    game.get_round_bonus_tile(RoundBonusTileKind::coins)
+
+    game.pass_conversion()
+    game.develop_innovation(InnovationTileKind::professors)
+    let num_books : BInt<0,7>
+    num_books = 5
+    game.pay_book(Discipline::law, num_books)
+    game.pass_conversion()
+
+    game.pass_conversion()
+    assert( can game.special_action_professors(), "can professors")
+    game.pass_round()
+    game.pass_conversion()
+
+    game.get_round_bonus_tile(RoundBonusTileKind::big)
+    game.pass_conversion()
+    let VP = player.VP
+    let scholars = player.scholars_on_hand
+    game.special_action_professors()
+    assert( player.VP == VP + 3 , "professors VP")
+    assert( player.scholars_on_hand == scholars + 1, "new scholar")
     return true

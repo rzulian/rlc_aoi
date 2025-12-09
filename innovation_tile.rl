@@ -84,10 +84,14 @@ fun apply_innovation_tile_immediate_bonus(Player player, InnovationTileKind kind
             player.upgrade_sailing(false)
         if player.scholars.value > 0:
             player.gain_scholar(1)
-
-
-
+    else if kind == InnovationTileKind::professors:
+        player.special_action_professors = true
     return
+
+fun apply_innovation_tile_income_bonus(Player player):
+    for kind in player.innovation_tiles:
+        if  kind == InnovationTileKind::professors:
+            player.special_action_professors = true
 
 
 fun make_innovation_tile(InnovationTileKind kind)->InnovationTile:
