@@ -434,7 +434,7 @@ fun test_game_scholar_income_no_scholar()-> Bool:
     return player.scholars_on_hand == 0 and player.scholars == 0
 
 
-fun test_game_build_palace()-> Bool:
+fun test_build_palace_tile_17_10vp()-> Bool:
     let game = play(1, Scenario::test)
     ref player = game.state.players[0]
     let kind = PalaceTileKind::power2_vp10
@@ -450,7 +450,7 @@ fun test_game_build_palace()-> Bool:
     assert( player.powers[0] == power -2 , "got 2 power round bonus")
     return true
 
-fun test_game_free_upgrade_to_guild()-> Bool:
+fun test_palace_tile_4_free_upgrade_to_guild()-> Bool:
     let game = play(1, Scenario::test)
     ref player = game.state.players[0]
     let kind = PalaceTileKind::power2_upgrade_to_guild
@@ -469,7 +469,7 @@ fun test_game_free_upgrade_to_guild()-> Bool:
     game.pass_round()
 
     game.get_round_bonus_tile(RoundBonusTileKind::dummy2)
-    assert (player.palace_upgrade_to_guild, "is available in new round")
+    assert (player.palace_upgrade_to_guild and can game.free_upgrade_to_guild(), "is available in new round")
     return true
 
 fun test_game_build_university()-> Bool:

@@ -3,7 +3,6 @@ import math.numeric
 import range
 import action
 import enum_utils
-import enum_range
 import player
 
 const NUM_CITY_TILE_KIND = 7

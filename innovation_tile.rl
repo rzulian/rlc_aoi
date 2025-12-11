@@ -2,7 +2,6 @@ import bounded_arg
 import collections.vector
 import range
 import discipline
-import enum_range
 import scenario
 import player_action
 import player
@@ -33,13 +32,6 @@ enum InnovationTileKind:
 
     fun equal(InnovationTileKind other) -> Bool:
         return self.value == other.value
-
-    fun action_bonus(Action action) -> Int:
-        # vp bonus for a specific action for this innovation tile
-        #TODO clean this action bonus
-        if self == InnovationTileKind::dummy1 and action == Action::send_scholar:
-            return 0
-        return 0
 
 cls InnovationTile:
     Bool in_play

@@ -2,7 +2,6 @@ import bounded_arg
 import collections.vector
 import range
 import discipline
-import enum_range
 import player_action
 import scenario
 

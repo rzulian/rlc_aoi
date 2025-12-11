@@ -3,7 +3,6 @@ import collections.vector
 import range
 import discipline
 import scenario
-import enum_range
 import player
 
 const NUM_COMPETENCY_TILES_KIND = 12
