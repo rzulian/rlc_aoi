@@ -236,6 +236,10 @@ act action_phase(ctx State state, ctx Player player) -> ActionPhase:
                 player.gain_vp(3)
                 player.special_action_professors = false
                 return
+            act special_action_one_spade() {player.special_action_one_spade}
+                player.gain_spade(1)
+                player.special_action_one_spade = false
+                return
             act pass_round()
                 player.has_passed = true
                 return
@@ -559,6 +563,18 @@ fun test_get_round_bonus_tile()-> Bool:
     assert( !can game.get_round_bonus_tile(RoundBonusTileKind::dummy1), "cannot get same tile")
     game.get_round_bonus_tile(RoundBonusTileKind::dummy2)
     game.pass_round()
+    return true
+
+fun test_get_round_bonus_tile_spade_book()-> Bool:
+    let game = play(1, Scenario::sc1)
+    ref player = game.state.players[0]
+    game.get_round_bonus_tile(RoundBonusTileKind::spade_book)
+    game.gain_book(Discipline::law)
+    game.pass_conversion()
+
+    game.special_action_one_spade()
+    assert( player.spades == 1, "has one spade")
+    assert( !player.special_action_one_spade  , "used special action one spade")
     return true
 
 fun test_game_send_scholar()-> Bool:

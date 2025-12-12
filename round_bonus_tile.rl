@@ -73,6 +73,8 @@ fun apply_round_bonus_tile_income_bonus(Player player):
     else if player.round_bonus_tile == RoundBonusTileKind::spade_book:
         player.add_book_income(1)
         player.special_action_one_spade = true
+    else if player.round_bonus_tile == RoundBonusTileKind::guild:
+        player.add_power_income(3)
     return
 
 fun apply_round_bonus_tile_action_bonus(Player player, Action action) -> Int:
