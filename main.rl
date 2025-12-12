@@ -15,7 +15,8 @@ fun do_move_advance_discipline(State state, Player player, Discipline discipline
     let new_level = state.discipline_tracks[discipline].next_level( starting_level, num_levels)
     player.gain_power( power )
     player.discipline_level[discipline.value] = new_level
-    player.gain_vp((new_level-starting_level) * state.get_round_score_bonus(Action::science_step))
+    for i in range(new_level-starting_level):
+        apply_action_bonus(state, player, Action::science_step)
 
 fun do_move_get_competency_tile(State state, Player player, CompetencyTileKind kind) -> Void:
     state.competency_tiles[kind].draw_competency_tile()
@@ -46,6 +47,17 @@ fun do_move_get_round_bonus_tile(State state, Player player, RoundBonusTileKind 
     let coin_bonus = state.round_bonus_tiles.get_coin_bonus(kind)
     player.gain_coin(coin_bonus)
 
+fun apply_action_bonus(State state, Player player, Action action) -> Void:
+    # apply bonus for that action from round bonus tile,round score tile, final round score tile and competency tiles
+
+    let bonus = player.round_bonus_tile.action_bonus(action)
+    bonus = bonus +  state.round_score_display[state.round.value].action_bonus(action)
+    if state.round.value == FINAL_ROUND:
+        bonus = bonus + state.round_score_display.final_round_score_tile.action_bonus(action)
+    for tile in player.competency_tiles:
+        bonus = bonus + tile.action_bonus(action)
+    player.gain_vp(bonus)
+
 act income_phase(ctx State state, ctx Player player) -> IncomePhase:
     while player.has_income_phase():
         actions:
@@ -74,7 +86,7 @@ act build_phase(ctx State state, ctx Player player) -> BuildPhase:
                 state.city_tiles.draw_city_tile(city_tile_kind)
                 player.city_tiles.append(city_tile_kind)
                 apply_city_tile_immediate_bonus(player, city_tile_kind)
-                player.gain_vp(state.get_round_score_bonus(Action::city))
+                apply_action_bonus(state, player, Action::city)
                 player.city_income = player.city_income - 1
             act get_palace_tile(PalaceTileKind palace_tile_kind){player.palace_income > 0 and state.palace_tiles.has_palace_tile(palace_tile_kind)}
                 state.palace_tiles.draw_palace_tile(palace_tile_kind)
@@ -121,34 +133,34 @@ act action_phase(ctx State state, ctx Player player) -> ActionPhase:
         actions:
             act build_workshop() {player.can_build_workshop() }
                 player.build_workshop()
-                player.gain_vp(state.get_round_score_bonus(Action::workshop))
+                apply_action_bonus(state, player, Action::workshop)
                 #TODO workshop on border
                 subaction*(state, state.get_current_player() ) build_phase = build_phase(state , state.get_current_player())
                 return
             act build_guild() {player.can_build_guild()}
                 player.build_guild()
-                player.gain_vp(state.get_round_score_bonus(Action::guild))
+                apply_action_bonus(state, player, Action::guild)
                 subaction*(state, state.get_current_player() ) build_phase = build_phase(state , state.get_current_player())
                 return
             act free_upgrade_to_guild() {player.palace_upgrade_to_guild}
                 player.build_free_guild()
                 player.palace_upgrade_to_guild = false
-                player.gain_vp(state.get_round_score_bonus(Action::guild))
+                apply_action_bonus(state, player, Action::guild)
                 subaction*(state, state.get_current_player() ) build_phase = build_phase(state , state.get_current_player())
                 return
             act build_school() {player.can_build_school() }
                 player.build_school()
-                player.gain_vp(state.get_round_score_bonus(Action::school))
+                apply_action_bonus(state, player, Action::school)
                 subaction*(state, state.get_current_player() ) build_phase = build_phase(state , state.get_current_player())
                 return
             act build_palace() {player.can_build_palace() }
                 player.build_palace()
-                player.gain_vp(state.get_round_score_bonus(Action::big))
+                apply_action_bonus(state, player, Action::big)
                 subaction*(state, state.get_current_player() ) build_phase = build_phase(state , state.get_current_player())
                 return
             act build_university() {player.can_build_university() }
                 player.build_university()
-                player.gain_vp(state.get_round_score_bonus(Action::big))
+                apply_action_bonus(state, player, Action::big)
                 subaction*(state, state.get_current_player() ) build_phase = build_phase(state , state.get_current_player())
                 return
 
@@ -177,17 +189,19 @@ act action_phase(ctx State state, ctx Player player) -> ActionPhase:
                 let num_levels = state.discipline_tracks[discipline].steps_for_send_scholar()
                 do_move_advance_discipline(state, player, discipline, num_levels)
                 player.send_scholar(1)
+                apply_action_bonus(state, player, Action::send_scholar)
                 state.discipline_tracks[discipline].send_scholar()
                 return
 
             act return_scholar(Discipline discipline){player.scholars_on_hand.value > 0 }
                 do_move_advance_discipline(state, player, discipline, 1)
                 player.return_scholar(1)
+                apply_action_bonus(state, player, Action::send_scholar)
                 return
 
             act upgrade_terraforming(){player.can_upgrade_terraforming()}
                 player.upgrade_terraforming(true)
-                player.gain_vp(state.get_round_score_bonus(Action::sailing_terraforming))
+                apply_action_bonus(state, player, Action::sailing_terraforming)
                 player.terraforming_sailing_income = 0
                 # if books income
                 subaction*(state, state.get_current_player() ) player_frame = income_phase(state , state.get_current_player())
@@ -195,7 +209,7 @@ act action_phase(ctx State state, ctx Player player) -> ActionPhase:
 
             act upgrade_sailing(){player.can_upgrade_sailing()}
                 player.upgrade_sailing(true)
-                player.gain_vp(state.get_round_score_bonus(Action::sailing_terraforming))
+                apply_action_bonus(state, player, Action::sailing_terraforming)
                 player.terraforming_sailing_income = 0
                 # if books income
                 subaction*(state, state.get_current_player() ) player_frame = income_phase(state , state.get_current_player())
@@ -211,7 +225,8 @@ act action_phase(ctx State state, ctx Player player) -> ActionPhase:
                 player.get_innovation_tile( kind )
                 state.innovation_tiles.draw_innovation_tile(kind)
                 apply_innovation_tile_immediate_bonus(player, kind)
-                player.gain_vp(player.terraforming_sailing_income * state.get_round_score_bonus(Action::sailing_terraforming))
+                for i in range(player.terraforming_sailing_income):
+                    apply_action_bonus(state, player, Action::sailing_terraforming)
                 player.terraforming_sailing_income = 0
                 # if books income
                 subaction*(state, state.get_current_player() ) player_frame = income_phase(state , state.get_current_player())
@@ -219,6 +234,7 @@ act action_phase(ctx State state, ctx Player player) -> ActionPhase:
             act special_action_professors() {player.special_action_professors}
                 player.gain_scholar(1)
                 player.gain_vp(3)
+                player.special_action_professors = false
                 return
             act pass_round()
                 player.has_passed = true
@@ -871,7 +887,11 @@ fun test_innovation_tile_professors()->Bool:
     game.pass_conversion()
 
     game.pass_conversion()
-    assert( can game.special_action_professors(), "can professors")
+    game.special_action_professors()
+    game.pass_conversion()
+
+    game.pass_conversion()
+    assert( !can game.special_action_professors(), "cannot redo professors")
     game.pass_round()
     game.pass_conversion()
 

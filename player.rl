@@ -67,6 +67,7 @@ cls Player:
     Int send_scholar_vp
     Bool palace_upgrade_to_guild
     Bool special_action_professors
+    Bool special_action_one_spade
 
     BoundedVector<Building, 18> buildings
     BInt<0,14>[NUM_DISCIPLINES] discipline_level
@@ -135,9 +136,9 @@ cls Player:
         self.coins = self.coins - num_coins
 
     fun gain_scholar( Int num_scholars):
-        if self.scholars>0: #special action professors can trigger without scholars
-            self.scholars_on_hand = self.scholars_on_hand + num_scholars
-            self.scholars = self.scholars - num_scholars
+        let available_scholars = min( self.scholars.value, num_scholars)
+        self.scholars_on_hand = self.scholars_on_hand + available_scholars
+        self.scholars = self.scholars - available_scholars
 
     fun pay_scholar( Int num_scholars): 
         self.scholars_on_hand = self.scholars_on_hand - num_scholars
@@ -145,11 +146,9 @@ cls Player:
 
     fun return_scholar( Int num_scholars):
         self.pay_scholar(num_scholars)
-        self.gain_vp(self.send_scholar_vp)
 
     fun send_scholar( Int num_scholars):
         self.scholars_on_hand = self.scholars_on_hand - num_scholars
-        self.gain_vp(self.send_scholar_vp)
 
     fun gain_book( Discipline discipline, Int num_books):
         self.books[discipline.value] = self.books[discipline.value] + num_books
@@ -203,6 +202,9 @@ cls Player:
 
     fun add_power_income(Int amount):
         self.power_income = self.power_income + amount
+
+    fun add_scholar_income(Int amount):
+        self.scholar_income = self.scholar_income + amount
 
     fun add_book_income(Int amount):
         self.book_income = self.book_income + amount
@@ -401,6 +403,7 @@ cls Player:
         apply_competency_tile_income_bonus(self)
         apply_palace_tile_income_bonus(self)
         apply_round_bonus_tile_income_bonus(self)
+        apply_innovation_tile_income_bonus(self)
 
         #scenario 11 power bonus on every phase
         self.power_income = self.power_income + 6

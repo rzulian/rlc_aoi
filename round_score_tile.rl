@@ -82,7 +82,7 @@ enum FinalRoundScoreTileKind:
         if self == FinalRoundScoreTileKind::frs_guild and action == Action::guild:
             return 3
         if (self == FinalRoundScoreTileKind::frs_workshop_border) and action == Action::workshop_on_border:
-            return 2
+            return 3
         if (self == FinalRoundScoreTileKind::frs_workshop) and action == Action::workshop:
             return 2
         return 0

@@ -114,29 +114,6 @@ cls State:
             player.has_passed = false
         return
 
-    fun get_round_score_bonus(Action action) -> Int:
-        let frs_bonus = 0
-        if self.round.value == FINAL_ROUND:
-            frs_bonus = self.round_score_display.final_round_score_tile.action_bonus(action)
-
-        return frs_bonus + self.round_score_display[self.round.value].action_bonus(action)
-
-    fun get_round_score_tile_end_round_bonus():
-        #no round bonus in final round
-        if self.round.value == FINAL_ROUND:
-            return
-        let round_score_tile = self.round_score_display[self.round.value]
-        for player in self.players:
-            let level = player.discipline_level[round_score_tile.discipline().value]
-            let multiplier = level.value / round_score_tile.steps()
-            player.gain_tool(multiplier*round_score_tile.end_round_bonus(Resource::tool))
-            player.gain_coin(multiplier*round_score_tile.end_round_bonus(Resource::coin))
-            player.gain_power(multiplier*round_score_tile.end_round_bonus(Resource::power))
-            player.gain_scholar(multiplier*round_score_tile.end_round_bonus(Resource::scholar))
-            player.book_income = player.book_income + multiplier*round_score_tile.end_round_bonus(Resource::book)
-            player.gain_spade(multiplier*round_score_tile.end_round_bonus(Resource::spade))
-
-
     fun pretty_print_state():
         let to_print : String
         let player_id = 0 

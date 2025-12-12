@@ -29,6 +29,11 @@ enum CompetencyTileKind:
     fun equal(CompetencyTileKind other) -> Bool:
         return self.value == other.value
 
+    fun action_bonus(Action action) -> Int:
+        if self == CompetencyTileKind::send_scholar_vp and action == Action::send_scholar:
+            return 2
+        return 0
+
 cls CompetencySpace:
     Int num_tiles
     Discipline discipline
@@ -59,8 +64,7 @@ fun apply_competency_tile_immediate_bonus( Player player, CompetencyTileKind kin
         player.gain_coin(2)
         player.gain_tool(1)
         player.gain_vp(5)
-    else if kind == CompetencyTileKind::send_scholar_vp:
-        player.send_scholar_vp = 2
+
 
 fun apply_competency_tile_income_bonus(Player player) -> Void:
     for tile in player.competency_tiles:

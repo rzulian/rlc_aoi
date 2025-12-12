@@ -27,13 +27,11 @@ enum RoundBonusTileKind:
         return self.value == other.value
 
     fun action_bonus(Action action) -> Int:
-        # vp bonus for a specific action for this round score tile
+        # vp bonus for a specific action for this round bonus tile
         if self == RoundBonusTileKind::send_scholar and action == Action::send_scholar:
             return 2
         if self == RoundBonusTileKind::guild and action == Action::guild:
             return 3
-        if self == RoundBonusTileKind::big and action == Action::big:
-            return 4
         return 0
 
 cls RoundBonusTile:
@@ -66,12 +64,23 @@ cls RoundBonusTiles:
         self.tiles[kind.value].coin_bonus = self.tiles[kind.value].coin_bonus + 1
 
 fun apply_round_bonus_tile_income_bonus(Player player):
+    if player.round_bonus_tile == RoundBonusTileKind::send_scholar:
+        player.add_scholar_income(1)
+    else if player.round_bonus_tile == RoundBonusTileKind::big:
+        player.add_tool_income(1)
+    else if player.round_bonus_tile == RoundBonusTileKind::coins:
+        player.add_coin_income(6)
+    else if player.round_bonus_tile == RoundBonusTileKind::spade_book:
+        player.add_book_income(1)
+        player.special_action_one_spade = true
     return
 
 fun apply_round_bonus_tile_action_bonus(Player player, Action action) -> Int:
     return player.round_bonus_tile.action_bonus(action)
 
 fun apply_round_bonus_tile_pass_bonus(Player player):
+    if player.round_bonus_tile == RoundBonusTileKind::big:
+        player.gain_vp((player.palaces.value+player.universities.value)*4)
     return
 
 
