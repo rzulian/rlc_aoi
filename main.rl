@@ -142,7 +142,7 @@ act action_phase(ctx State state, ctx Player player) -> ActionPhase:
                 apply_action_bonus(state, player, Action::guild)
                 subaction*(state, state.get_current_player() ) build_phase = build_phase(state , state.get_current_player())
                 return
-            act free_upgrade_to_guild() {player.palace_upgrade_to_guild}
+            act palace_free_upgrade_to_guild() {player.can_build_free_guild() and player.palace_upgrade_to_guild}
                 player.build_free_guild()
                 player.palace_upgrade_to_guild = false
                 apply_action_bonus(state, player, Action::guild)
@@ -187,6 +187,33 @@ act action_phase(ctx State state, ctx Player player) -> ActionPhase:
                 apply_action_bonus(state, player, Action::spade)
                 apply_action_bonus(state, player, Action::spade)
                 return
+
+            act book_action(frm BookActionTileKind kind){
+                state.book_action_tiles[kind].available,
+                player.has_books(kind.books())
+                }
+                player.books_to_pay = kind.books()
+                subaction*(state, state.get_current_player() ) book_pay_phase_frame = book_pay_phase(state , state.get_current_player())
+                state.book_action_tiles.use(kind)
+                if kind == BookActionTileKind::science_steps:
+                    act advance_two_science_steps(Discipline discipline)
+                        do_move_advance_discipline( state, player, discipline, 2)
+                else if kind == BookActionTileKind::power:
+                    player.gain_power(5)
+                else if kind == BookActionTileKind::points_guild:
+                    player.gain_vp(2*player.guilds.value)
+                else if kind == BookActionTileKind::free_guild:
+                    player.build_free_guild()
+                    apply_action_bonus(state, player, Action::guild)
+                    subaction*(state, state.get_current_player() ) build_phase = build_phase(state , state.get_current_player())
+                else if kind == BookActionTileKind::coins:
+                    player.gain_coin(6)
+                else if kind == BookActionTileKind::spades:
+                    player.gain_spade(3)
+                    for i in range(3):
+                        apply_action_bonus(state, player, Action::spade)
+                return
+
 
             act send_scholar(Discipline discipline){player.scholars_on_hand.value > 0 and state.discipline_tracks[discipline].can_send_scholar() }
                 let num_levels = state.discipline_tracks[discipline].steps_for_send_scholar()
@@ -487,13 +514,13 @@ fun test_palace_tile_4_free_upgrade_to_guild()-> Bool:
     let coins = player.coins
     let tools = player.tools
     let guilds = player.guilds
-    game.free_upgrade_to_guild()
+    game.palace_free_upgrade_to_guild()
     assert( player.coins == coins and player.tools == tools and player.guilds == guilds + 1, "didnt pay for the guild")
     assert (!player.palace_upgrade_to_guild, "cannot use it again during round")
     game.pass_round()
 
     game.get_round_bonus_tile(RoundBonusTileKind::dummy2)
-    assert (player.palace_upgrade_to_guild and can game.free_upgrade_to_guild(), "is available in new round")
+    assert (player.palace_upgrade_to_guild and can game.palace_free_upgrade_to_guild(), "is available in new round")
     return true
 
 fun test_game_build_university()-> Bool:
@@ -922,4 +949,32 @@ fun test_innovation_tile_professors()->Bool:
     game.special_action_professors()
     assert( player.VP == VP + 3 , "professors VP")
     assert( player.scholars_on_hand == scholars + 1, "new scholar")
+    return true
+
+
+fun test_book_actions()->Bool:
+    let game = play(1, Scenario::test)
+    ref player = game.state.players[0]
+    player.books[Discipline::banking.value] = 5
+    player.books[Discipline::law.value] = 5
+    player.books[Discipline::engineering.value] = 5
+    player.books[Discipline::medicine.value] = 5
+    let num_books : BInt<0,7>
+    num_books = 1
+    game.get_round_bonus_tile(RoundBonusTileKind::dummy1)
+    let coins = player.coins
+    game.book_action(BookActionTileKind::coins)
+    game.pay_book(Discipline::banking,num_books)
+    game.pay_book(Discipline::law,num_books)
+    assert(player.coins == coins + 6, "got 6 coins")
+    assert(!game.state.book_action_tiles[BookActionTileKind::coins].available, "book action is not more available")
+    game.pass_round()
+    game.get_round_bonus_tile(RoundBonusTileKind::dummy2)
+    assert(game.state.book_action_tiles[BookActionTileKind::coins].available, "book action is available")
+    let level = player.discipline_level[Discipline::law.value]
+    game.book_action(BookActionTileKind::science_steps)
+    game.pay_book(Discipline::banking, num_books)
+    game.advance_two_science_steps(Discipline::law)
+    assert(player.discipline_level[Discipline::law.value] == level + 2, "got 2 science steps")
+
     return true

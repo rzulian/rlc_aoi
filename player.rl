@@ -229,9 +229,12 @@ cls Player:
 
     fun can_build_workshop() -> Bool :
         return self.workshops < NUM_WORKSHOPS and self.can_pay_building( BuildingType::workshop) and self.spades >= self.spades_needed()
-    
+
+    fun can_build_free_guild() -> Bool :
+        return self.guilds < NUM_GUILDS and self.workshops > 0
+
     fun can_build_guild() -> Bool :
-        return self.guilds < NUM_GUILDS and self.workshops > 0 and self.can_pay_building( BuildingType::guild)
+        return self.can_build_free_guild() and self.can_pay_building( BuildingType::guild)
 
     fun can_build_school() -> Bool :
         return self.schools < NUM_SCHOOLS and self.guilds > 0 and self.can_pay_building( BuildingType::school)
@@ -252,16 +255,14 @@ cls Player:
     fun build_free_workshop() -> Void :
         self.workshops = self.workshops + 1
 
-    fun build_guild() -> Void :
-        self.guilds = self.guilds + 1
-        self.workshops = self.workshops - 1
-        self.pay_building(BuildingType::guild)
-        self.update_cities()
-
     fun build_free_guild() -> Void :
         self.guilds = self.guilds + 1
         self.workshops = self.workshops - 1
         self.update_cities()
+
+    fun build_guild() -> Void :
+        self.pay_building(BuildingType::guild)
+        self.build_free_guild()
 
     fun build_school() -> Void :
         self.schools = self.schools + 1

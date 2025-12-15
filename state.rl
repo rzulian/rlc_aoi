@@ -14,6 +14,7 @@ import scenario
 import round_score_tile
 import round_bonus_tile
 import innovation_tile
+import book_action_tile
 
 const FINAL_ROUND = 5
 
@@ -42,6 +43,7 @@ cls State:
     RoundScoreDisplay round_score_display
     RoundBonusTiles round_bonus_tiles
     InnovationTiles innovation_tiles
+    BookActionTiles book_action_tiles
     Scenario scenario
 
 
@@ -59,7 +61,7 @@ cls State:
         self.round_score_display = make_round_score_display(scenario)
         self.round_bonus_tiles = make_round_bonus_tiles(scenario)
         self.innovation_tiles = make_innovation_tiles(scenario)
-
+        self.book_action_tiles = make_book_action_tiles(scenario)
 
         # setup players
         for i in range(self.num_players.value):
@@ -107,6 +109,9 @@ cls State:
         self.power_action_scholar= true
         self.power_action_1spade = true
         self.power_action_2spades= true
+
+        for kind in range(BookActionTileKind::none):
+            self.book_action_tiles[kind].available = self.book_action_tiles[kind].in_play
 
         #assign urp_for_vp
         for player in self.players:
