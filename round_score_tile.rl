@@ -31,9 +31,24 @@ enum RoundScoreTileKind:
     rs_tile3:
         Discipline discipline = Discipline::law
         Int steps = 3
+    rs_tile4:
+        Discipline discipline = Discipline::engineering
+        Int steps = 1
+    rs_tile6:
+        Discipline discipline = Discipline::engineering
+        Int steps = 4
+    rs_tile7:
+        Discipline discipline = Discipline::medicine
+        Int steps = 2
     rs_tile8:
         Discipline discipline = Discipline::law
         Int steps = 3
+    rs_tile9:
+        Discipline discipline = Discipline::medicine
+        Int steps = 4
+    rs_tile11:
+        Discipline discipline = Discipline::banking
+        Int steps = 2
     rs_tile12:
         Discipline discipline = Discipline::banking
         Int steps = 3
@@ -45,12 +60,18 @@ enum RoundScoreTileKind:
         # vp bonus for a specific action for this round score tile
         if self == RoundScoreTileKind::rs_tile1 and action == Action::innovation_tile:
             return 5
-        if self == RoundScoreTileKind::rs_tile2 and action == Action::guild:
+        if (self == RoundScoreTileKind::rs_tile2 or self == RoundScoreTileKind::rs_tile9) and action == Action::guild:
             return 3
         if (self == RoundScoreTileKind::rs_tile3 or self == RoundScoreTileKind::rs_tile12) and action == Action::workshop:
             return 2
         if self == RoundScoreTileKind::rs_tile8 and action == Action::sailing_terraforming:
             return 3
+        if self == RoundScoreTileKind::rs_tile11 and action == Action::big:
+            return 5
+        if self == RoundScoreTileKind::rs_tile4 and action == Action::spade:
+            return 2
+        if self == RoundScoreTileKind::rs_tile6 and action == Action::city:
+            return 5
         return 0
 
     fun end_round_bonus(Resource resource) -> Int:
@@ -63,6 +84,12 @@ enum RoundScoreTileKind:
             return 1
         if self == RoundScoreTileKind::rs_tile12 and resource == Resource::power:
             return 4
+        if (self == RoundScoreTileKind::rs_tile9 or self == RoundScoreTileKind::rs_tile6) and resource == Resource::spade:
+            return 1
+        if self == RoundScoreTileKind::rs_tile11 and resource == Resource::tool:
+            return 2
+        if self == RoundScoreTileKind::rs_tile4 and resource == Resource::coin:
+            return 1
         return 0
 
 enum FinalRoundScoreTileKind:
@@ -113,6 +140,13 @@ fun make_round_score_display(Scenario scenario) -> RoundScoreDisplay:
 fun make_scenario1_round_score_display() -> RoundScoreDisplay:
     #TODO implement initial assignment
     let display : RoundScoreDisplay
+    display[0] = RoundScoreTileKind::rs_tile9
+    display[1] = RoundScoreTileKind::rs_tile3
+    display[2] = RoundScoreTileKind::rs_tile11
+    display[3] = RoundScoreTileKind::rs_tile4
+    display[4] = RoundScoreTileKind::rs_tile6
+    display[5] = RoundScoreTileKind::rs_tile12
+    display.assign_final_round_score_tile(FinalRoundScoreTileKind::frs_school)
     return display
 
 
