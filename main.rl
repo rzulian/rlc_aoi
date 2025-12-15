@@ -179,10 +179,13 @@ act action_phase(ctx State state, ctx Player player) -> ActionPhase:
             act power_action_1spade(){ player.has_power(4)  }
                 state.power_action_1spade = false
                 player.convert_power_to_spades( 4, 1 )
+                apply_action_bonus(state, player, Action::spade)
                 return
             act power_action_2spades(){ player.has_power(6)  }
                 state.power_action_2spades = false
                 player.convert_power_to_spades( 6, 2 )
+                apply_action_bonus(state, player, Action::spade)
+                apply_action_bonus(state, player, Action::spade)
                 return
 
             act send_scholar(Discipline discipline){player.scholars_on_hand.value > 0 and state.discipline_tracks[discipline].can_send_scholar() }
@@ -239,6 +242,7 @@ act action_phase(ctx State state, ctx Player player) -> ActionPhase:
             act special_action_one_spade() {player.special_action_one_spade}
                 player.gain_spade(1)
                 player.special_action_one_spade = false
+                apply_action_bonus(state, player, Action::spade)
                 return
             act pass_round()
                 player.has_passed = true
