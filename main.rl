@@ -275,12 +275,12 @@ act action_phase(ctx State state, ctx Player player) -> ActionPhase:
                 player.has_passed = true
                 return
 
-
-
-
+@classes
+act play() -> Game:
+    subaction* game = base_play( 1, Scenario::sc1)
 
 @classes
-act play(Int num_players, Scenario scenario) -> Game:
+act base_play(Int num_players, Scenario scenario) -> Base:
 
     frm state : State
     state.setup_game(num_players, scenario)
@@ -336,79 +336,33 @@ act play(Int num_players, Scenario scenario) -> Game:
 
         state.round = state.round + 1
 
-
 fun get_current_player(Game g) -> Int:
-    return g.state.current_player.value
+    return g.game.state.current_player.value
 
 fun score(Game g, Int player_id) -> Float:
-    return g.state.players[player_id].score(g.state.round.value) / 100.0
+    return g.game.state.players[player_id].score(g.game.state.round.value) / 100.0
     
 fun get_num_players() -> Int:
     return NUM_PLAYERS
 
 fun pretty_print(Game g):
-    g.state.pretty_print_state()
+    g.game.state.pretty_print_state()
 
 fun main() -> Int:
-    let game = play(1, Scenario::test)
+    let game = base_play(1, Scenario::test)
     ref player = game.state.players[0]
     game.pass_round()
     return 0
 
-fun fuzz(Vector<Byte> input):
-    let state = play(1, Scenario::test)
-    let x : AnyGameAction
-    let enumeration = enumerate(x)
-    let index = 0
-    while index + 8 < input.size() and !state.is_done():
-        let num_action : Int
-        from_byte_vector(num_action, input, index)
-        if num_action < 0:
-          num_action = num_action * -1 
-        if num_action < 0:
-          num_action = 0 
-
-        let executable : Vector<AnyGameAction>
-        let i = 0
-        print("VALIDS")
-        while i < enumeration.size():
-          if can apply(enumeration.get(i), state):
-            #print(enumeration.get(i))
-            executable.append(enumeration.get(i))
-          i = i + 1
-        print("ENDVALIDS")
-        if executable.size() == 0:
-            print("zero valid actions")
-            print(state)
-            return
-
-        print(executable.get(num_action % executable.size()))
-        apply(executable.get(num_action % executable.size()), state)
-
-fun print_available_actions( Game game):
-    let x : AnyGameAction
-    let enumeration = enumerate(x)
-    let executable : Vector<AnyGameAction>
-    let i = 0
-    print("VALIDS")
-    while i < enumeration.size():
-      if can apply(enumeration.get(i), game):
-        print(enumeration.get(i))
-        executable.append(enumeration.get(i))
-      i = i + 1
-    print("ENDVALIDS")
-    if executable.size() == 0:
-        print("zero valid actions")
-        print(game)
 
 
 fun test_game_setup()-> Bool:
-    let game = play(1, Scenario::test)
+    let game = base_play(1, Scenario::test)
     ref player = game.state.players[0]
     return player.workshops == 2
 
 fun test_game_build_workshop()-> Bool:
-    let game = play(1, Scenario::test)
+    let game = base_play(1, Scenario::test)
     ref player = game.state.players[0]
     player.powers[2]=12
     game.get_round_bonus_tile(RoundBonusTileKind::dummy1)
@@ -419,7 +373,7 @@ fun test_game_build_workshop()-> Bool:
     return player.workshops == 3 and player.spades==0
 
 fun test_game_can_pass_round_with_action()-> Bool:
-    let game = play(1, Scenario::default)
+    let game = base_play(1, Scenario::default)
     ref player = game.state.players[0]
     player.powers[2]=12
     game.state.round_bonus_tiles.make_available(RoundBonusTileKind::dummy1)
@@ -429,7 +383,7 @@ fun test_game_can_pass_round_with_action()-> Bool:
     return true
 
 fun test_game_can_convert_after_action()-> Bool:
-    let game = play(1, Scenario::default)
+    let game = base_play(1, Scenario::default)
     ref player = game.state.players[0]
     player.powers[2]=12
     game.state.round_bonus_tiles.make_available(RoundBonusTileKind::dummy1)
@@ -445,7 +399,7 @@ fun test_game_can_convert_after_action()-> Bool:
 
 fun test_game_build_guild()-> Bool:
     # check also power income
-    let game = play(1, Scenario::test)
+    let game = base_play(1, Scenario::test)
     ref player = game.state.players[0]
     player.powers[0] = 1
     game.get_round_bonus_tile(RoundBonusTileKind::dummy1)
@@ -453,7 +407,7 @@ fun test_game_build_guild()-> Bool:
     return player.guilds == 1 and player.powers[0] == 0
  
 fun test_game_build_school()-> Bool:
-    let game = play(1, Scenario::test)
+    let game = base_play(1, Scenario::test)
     ref player = game.state.players[0]
     game.get_round_bonus_tile(RoundBonusTileKind::dummy1)
     game.build_guild()
@@ -461,7 +415,7 @@ fun test_game_build_school()-> Bool:
     return player.schools == 1 and player.guilds == 0
 
 fun test_game_scholar_income()-> Bool:
-    let game = play(1, Scenario::test)
+    let game = base_play(1, Scenario::test)
     ref player = game.state.players[0]
     game.get_round_bonus_tile(RoundBonusTileKind::dummy1)
     game.build_guild()
@@ -473,7 +427,7 @@ fun test_game_scholar_income()-> Bool:
 
 fun test_game_scholar_income_no_scholar()-> Bool:
     # has no scholars available, gets nothing
-    let game = play(1, Scenario::test)
+    let game = base_play(1, Scenario::test)
     ref player = game.state.players[0]
     game.get_round_bonus_tile(RoundBonusTileKind::dummy1)
     game.state.players[0].scholars=0
@@ -486,7 +440,7 @@ fun test_game_scholar_income_no_scholar()-> Bool:
 
 
 fun test_build_palace_tile_17_10vp()-> Bool:
-    let game = play(1, Scenario::test)
+    let game = base_play(1, Scenario::test)
     ref player = game.state.players[0]
     let kind = PalaceTileKind::power2_vp10
     game.get_round_bonus_tile(RoundBonusTileKind::dummy1)
@@ -502,7 +456,7 @@ fun test_build_palace_tile_17_10vp()-> Bool:
     return true
 
 fun test_palace_tile_4_free_upgrade_to_guild()-> Bool:
-    let game = play(1, Scenario::test)
+    let game = base_play(1, Scenario::test)
     ref player = game.state.players[0]
     let kind = PalaceTileKind::power2_upgrade_to_guild
     game.get_round_bonus_tile(RoundBonusTileKind::dummy1)
@@ -524,7 +478,7 @@ fun test_palace_tile_4_free_upgrade_to_guild()-> Bool:
     return true
 
 fun test_game_build_university()-> Bool:
-    let game = play(1, Scenario::test)
+    let game = base_play(1, Scenario::test)
     ref player = game.state.players[0]
     player.powers[0]=5
     player.powers[1]=7
@@ -539,7 +493,7 @@ fun test_game_build_university()-> Bool:
 
 
 fun test_game_power_actions()-> Bool:
-    let game = play(1, Scenario::test)
+    let game = base_play(1, Scenario::test)
     ref player = game.state.players[0]
     game.get_round_bonus_tile(RoundBonusTileKind::dummy1)
 
@@ -559,7 +513,7 @@ fun test_game_power_actions()-> Bool:
     return true
 
 fun test_game_power_action_spade()-> Bool:
-    let game = play(1, Scenario::test)
+    let game = base_play(1, Scenario::test)
     ref player = game.state.players[0]
     game.get_round_bonus_tile(RoundBonusTileKind::dummy1)
     player.tools=0
@@ -577,7 +531,7 @@ fun test_game_power_action_spade()-> Bool:
 
 
 fun test_URP()-> Bool:
-    let game = play(1, Scenario::test)
+    let game = base_play(1, Scenario::test)
     ref player = game.state.players[0]
     game.get_round_bonus_tile(RoundBonusTileKind::dummy1)
     game.pass_round()
@@ -587,7 +541,7 @@ fun test_URP()-> Bool:
     return true
 
 fun test_get_round_bonus_tile()-> Bool:
-    let game = play(1, Scenario::test)
+    let game = base_play(1, Scenario::test)
     ref player = game.state.players[0]
     game.get_round_bonus_tile(RoundBonusTileKind::dummy1)
     game.pass_round()
@@ -597,7 +551,7 @@ fun test_get_round_bonus_tile()-> Bool:
     return true
 
 fun test_get_round_bonus_tile_spade_book()-> Bool:
-    let game = play(1, Scenario::sc1)
+    let game = base_play(1, Scenario::sc1)
     ref player = game.state.players[0]
     game.get_round_bonus_tile(RoundBonusTileKind::spade_book)
     game.gain_book(Discipline::law)
@@ -609,7 +563,7 @@ fun test_get_round_bonus_tile_spade_book()-> Bool:
     return true
 
 fun test_game_send_scholar()-> Bool:
-    let game = play(1, Scenario::test)
+    let game = base_play(1, Scenario::test)
     ref player = game.state.players[0]
     game.get_round_bonus_tile(RoundBonusTileKind::dummy1)
     player.powers[0]=4
@@ -623,7 +577,7 @@ fun test_game_send_scholar()-> Bool:
     return true
 
 fun test_game_return_scholar()-> Bool:
-    let game = play(1, Scenario::test)
+    let game = base_play(1, Scenario::test)
     ref player = game.state.players[0]
     game.get_round_bonus_tile(RoundBonusTileKind::dummy1)
     player.powers[0]=4
@@ -636,7 +590,7 @@ fun test_game_return_scholar()-> Bool:
 
 fun test_game_city()-> Bool:
     # test game_tile and round bonus for tile 4
-    let game = play(1, Scenario::test)
+    let game = base_play(1, Scenario::test)
     ref player = game.state.players[0]
     game.get_round_bonus_tile(RoundBonusTileKind::dummy1)
     player.powers[0]=5
@@ -678,7 +632,7 @@ fun test_game_city()-> Bool:
     return  true
 
 fun test_game_income_phase_science_step()->Bool:
-    let game = play(1, Scenario::test)
+    let game = base_play(1, Scenario::test)
     ref player = game.state.players[0]
     game.get_round_bonus_tile(RoundBonusTileKind::dummy1)
     game.build_guild()
@@ -693,7 +647,7 @@ fun test_game_income_phase_science_step()->Bool:
     return true
 
 fun test_game_income_phase_gain_book()->Bool:
-    let game = play(1, Scenario::test)
+    let game = base_play(1, Scenario::test)
     ref player = game.state.players[0]
     game.get_round_bonus_tile(RoundBonusTileKind::dummy1)
     game.state.competency_tiles = make_competency_tiles(Scenario::default)
@@ -708,7 +662,7 @@ fun test_game_income_phase_gain_book()->Bool:
     return true
 
 fun test_game_send_scholar_vp()->Bool:
-    let game = play(1, Scenario::test)
+    let game = base_play(1, Scenario::test)
     ref player = game.state.players[0]
     game.get_round_bonus_tile(RoundBonusTileKind::dummy1)
     game.build_guild()
@@ -722,7 +676,7 @@ fun test_game_send_scholar_vp()->Bool:
     return true
 
 fun test_game_discipline_level_round_pass_vp()->Bool:
-    let game = play(1, Scenario::test)
+    let game = base_play(1, Scenario::test)
     ref player = game.state.players[0]
     game.get_round_bonus_tile(RoundBonusTileKind::dummy1)
 
@@ -742,7 +696,7 @@ fun test_game_discipline_level_round_pass_vp()->Bool:
 
 
 fun test_game_round_score_action_bonus_vp()->Bool:
-    let game = play(1, Scenario::test)
+    let game = base_play(1, Scenario::test)
     ref player = game.state.players[0]
     game.get_round_bonus_tile(RoundBonusTileKind::dummy1)
 
@@ -754,7 +708,7 @@ fun test_game_round_score_action_bonus_vp()->Bool:
     return true
 
 fun test_game_round_score_end_round_bonus()->Bool:
-    let game = play(1, Scenario::test)
+    let game = base_play(1, Scenario::test)
     ref player = game.state.players[0]
     game.get_round_bonus_tile(RoundBonusTileKind::dummy1)
 
@@ -766,7 +720,7 @@ fun test_game_round_score_end_round_bonus()->Bool:
     return true
 
 fun test_game_final_round_score_bonus()->Bool:
-    let game = play(1, Scenario::test)
+    let game = base_play(1, Scenario::test)
     ref player = game.state.players[0]
     game.state.round = 5 #move to last round
     game.state.round_score_display.assign_final_round_score_tile( FinalRoundScoreTileKind::frs_guild) #3vp for guild
@@ -778,7 +732,7 @@ fun test_game_final_round_score_bonus()->Bool:
 
 fun test_get_innovation_tile()->Bool:
     # books and additional cost
-    let game = play(1, Scenario::test)
+    let game = base_play(1, Scenario::test)
     ref player = game.state.players[0]
 
     player.books[Discipline::banking.value] = 2
@@ -809,7 +763,7 @@ fun test_get_innovation_tile()->Bool:
 
 fun test_get_additional_innovation_tile()->Bool:
     # books and additional cost (books 5 standard + 1 )
-    let game = play(1, Scenario::test)
+    let game = base_play(1, Scenario::test)
     ref player = game.state.players[0]
 
     player.books[Discipline::banking.value] = 3
@@ -839,7 +793,7 @@ fun test_get_additional_innovation_tile()->Bool:
 
 
 fun test_innovation_tile_libraries()->Bool:
-    let game = play(1, Scenario::sc1)
+    let game = base_play(1, Scenario::sc1)
     ref player = game.state.players[0]
 
     player.books[Discipline::banking.value] = 5
@@ -868,7 +822,7 @@ fun test_innovation_tile_libraries()->Bool:
 
 
 fun test_innovation_tile_colleges()->Bool:
-    let game = play(1, Scenario::sc1)
+    let game = base_play(1, Scenario::sc1)
     ref player = game.state.players[0]
 
     player.books[Discipline::banking.value] = 5
@@ -892,7 +846,7 @@ fun test_innovation_tile_colleges()->Bool:
 
 
 fun test_innovation_tile_steam_power()->Bool:
-    let game = play(1, Scenario::sc1)
+    let game = base_play(1, Scenario::sc1)
     ref player = game.state.players[0]
     game.state.round_score_display[0] = RoundScoreTileKind::rs_tile8 #3vp for terraforming/sailing
     player.books[Discipline::banking.value] = 5
@@ -917,7 +871,7 @@ fun test_innovation_tile_steam_power()->Bool:
     return true
 
 fun test_innovation_tile_professors()->Bool:
-    let game = play(1, Scenario::sc1)
+    let game = base_play(1, Scenario::sc1)
     ref player = game.state.players[0]
     game.state.round_score_display[0] = RoundScoreTileKind::rs_tile1
     player.books[Discipline::banking.value] = 5
@@ -953,7 +907,7 @@ fun test_innovation_tile_professors()->Bool:
 
 
 fun test_book_actions()->Bool:
-    let game = play(1, Scenario::test)
+    let game = base_play(1, Scenario::test)
     ref player = game.state.players[0]
     player.books[Discipline::banking.value] = 5
     player.books[Discipline::law.value] = 5

@@ -418,6 +418,8 @@ cls Player:
 
         self.phase_production_URP = float(self.power_income) * URP_POWER + float(self.coin_income) * URP_COIN + float(self.tool_income) * URP_TOOL + float(self.scholar_income) * URP_SCHOLAR
 
+    fun pretty_print():
+        print_indented(self)
 
 fun make_player() -> Player:
     let player : Player
@@ -454,8 +456,7 @@ fun make_player() -> Player:
         player.books[i] = 0
     return player
 
-fun pretty_print(Player player):
-    print_indented(player)
+
 
 fun test_player_coin_income() -> Bool:
     let player = make_player()

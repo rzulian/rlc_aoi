@@ -122,8 +122,9 @@ cls State:
     fun pretty_print_state():
         let to_print : String
         let player_id = 0 
-        print(self)
-        print(self.players)
+        print_indented(self)
+        for player in self.players:
+            player.pretty_print()
         print('\n')
 
 
