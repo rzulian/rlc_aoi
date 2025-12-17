@@ -405,12 +405,14 @@ fun test_game_can_convert_after_action()-> Bool:
     return true
 
 fun test_game_build_guild()-> Bool:
-    # check also power income
+    # check also power income from guild
     let game = base_play(1, Scenario::test)
     ref player = game.state.players[0]
     player.powers[0] = 1
     game.get_round_bonus_tile(RoundBonusTileKind::dummy1)
     game.build_guild()
+    game.pass_round()
+    game.get_round_bonus_tile(RoundBonusTileKind::dummy2)
     return player.guilds == 1 and player.powers[0] == 0
  
 fun test_game_build_school()-> Bool:

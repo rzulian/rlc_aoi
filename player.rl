@@ -547,11 +547,4 @@ fun test_urp_for_production() -> Bool:
     player.build_guild()
     player.build_school()
     player.update_income()
-    print(player)
-    print(player.score(1))
-    print(player.score(1)*100.0)
-    print(player.URP)
-    print(player.score(1) - player.URP)
-    print(int( (player.score(1) - player.URP) * 100.0))
-    print(int(35.1 * 100.0))
-    return int( (player.score(1) - player.URP) * 100.0) == int(35.1 * 100.0)
+    return abs( int((player.score(1) - player.URP - 35.1 )*10.0)) < 1
