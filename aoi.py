@@ -22,7 +22,7 @@ def main():
     while not state.is_done():
         state.pretty_print()
         player = state.state.game.state.get_current_player().contents
-        print(f"coins:{player.coins.value} tools:{player.tools.value} power:{player.powers[0].value}-{player.powers[1].value}-{player.powers[2].value} VP:{player.VP} URP:{player.URP}")
+        print(f"coins:{player.coins.value} tools:{player.tools.value} power:{player.powers[0].value}-{player.powers[1].value}-{player.powers[2].value} scholars:{player.scholars_on_hand.value} VP:{player.VP} URP:{player.URP}")
         for num,action in enumerate(state.legal_actions):
             print(f"{num}: {action}")
 

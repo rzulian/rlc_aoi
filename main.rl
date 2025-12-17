@@ -310,9 +310,12 @@ act base_play(Int num_players, Scenario scenario) -> Base:
         while state.has_players_in_turn_order():
             if !(state.scenario == Scenario::test): #exclude conversion before main action
                 subaction*(state, state.get_current_player() ) player_conversion = conversion_phase(state , state.get_current_player())
+
             subaction*(state, state.get_current_player() ) player_action = action_phase(state , state.get_current_player())
+
             if !(state.scenario == Scenario::test): #exclude conversion after main action
                 subaction*(state, state.get_current_player() ) player_conversion = conversion_phase(state , state.get_current_player())
+
             if state.get_current_player().has_passed:
                 #pass and get a new round bonus tile
                 apply_competency_tile_pass_bonus(state.get_current_player())
@@ -332,6 +335,10 @@ act base_play(Int num_players, Scenario scenario) -> Base:
         while state.has_players_in_turn_order() and state.round<FINAL_ROUND: #not in the final round
             do_move_get_round_score_tile_bonus(state, state.get_current_player(), state.round_score_display[state.round.value])
             subaction*(state, state.get_current_player() ) player_end_round = end_round_phase(state , state.get_current_player())
+            #scenario 11 power bonus on every phase
+            if (state.scenario == Scenario::sc1):
+                state.get_current_player().power_income = state.get_current_player().power_income + 6
+                state.get_current_player().vp_income = state.get_current_player().vp_income - 3
             state.mark_current_player_passed()
 
         state.round = state.round + 1
@@ -452,6 +459,7 @@ fun test_build_palace_tile_17_10vp()-> Bool:
     assert( player.palace == kind and player.VP == VP+10 and game.state.palace_tiles[kind] == 0, "tile has been draw")
     let power = player.powers[0]
     game.pass_round()
+    game.get_round_bonus_tile(RoundBonusTileKind::dummy2)
     assert( player.powers[0] == power -2 , "got 2 power round bonus")
     return true
 
@@ -627,7 +635,7 @@ fun test_game_city()-> Bool:
     let VP = player.VP
     game.pass_round()
     game.get_round_bonus_tile(RoundBonusTileKind::dummy2)
-    assert(player.VP == VP + 1*2 - 3,"got city round bonus vps")
+    assert(player.VP == VP + 1*2 ,"got city round bonus vps")
     assert(player.universities == 1 and player.guilds == 0 and player.schools == 2 and player.cities == 1, "first city after turn ")
     return  true
 
@@ -691,7 +699,7 @@ fun test_game_discipline_level_round_pass_vp()->Bool:
     game.pass_round()
     game.get_round_bonus_tile(RoundBonusTileKind::dummy2)
     # -3 is for power getting
-    assert(player.VP == VP + 2 - 3,"got discipline level vps")
+    assert(player.VP == VP + 2 ,"got discipline level vps")
     return true
 
 
@@ -712,10 +720,11 @@ fun test_game_round_score_end_round_bonus()->Bool:
     ref player = game.state.players[0]
     game.get_round_bonus_tile(RoundBonusTileKind::dummy1)
 
-    game.state.round_score_display[0] = RoundScoreTileKind::rs_tile1 #3powers for 2steps low
+    game.state.round_score_display[0] = RoundScoreTileKind::rs_tile1 #3powers for 2steps law
     player.discipline_level[Discipline::law.value] = 3
     let power0 = player.powers[0]
     game.pass_round()
+    game.get_round_bonus_tile(RoundBonusTileKind::dummy2)
     assert(player.powers[0] == power0 - 3 ,"got power bonus")
     return true
 

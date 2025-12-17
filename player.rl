@@ -18,15 +18,15 @@ const NUM_GUILDS = 4
 const NUM_SCHOOLS = 3
 const NUM_PALACES = 1
 const NUM_UNIVERSITIES = 1
-const URP_POWER = 0.7
-const URP_COIN = 1.0
-const URP_TOOL = 2.5
-const URP_SCHOLAR = 4.0
-const URP_SPADE = 5.0
-const URP_BOOK = 3.5
+const URP_POWER = 0.70
+const URP_COIN = 1.00
+const URP_TOOL = 2.50
+const URP_SCHOLAR = 4.00
+const URP_SPADE = 5.00
+const URP_BOOK = 3.50
 const URP_SCIENCE_STEP = 2.29
-const URP_COMPETENCY_TILE = 10.0
-const URP_PALACE = 40.0
+const URP_COMPETENCY_TILE = 10.00
+const URP_PALACE = 40.00
 const VP_CITY = 13
 
 cls Player:
@@ -406,10 +406,6 @@ cls Player:
         apply_round_bonus_tile_income_bonus(self)
         apply_innovation_tile_income_bonus(self)
 
-        #scenario 11 power bonus on every phase
-        self.power_income = self.power_income + 6
-        self.vp_income = self.vp_income - 3
-
         self.gain_coin(self.coin_income)
         self.gain_tool(self.tool_income)
         self.gain_power(self.power_income)
@@ -543,7 +539,6 @@ fun test_city_university() -> Bool:
 
 fun test_urp_for_production() -> Bool:
     # 1 workshop, 1 guild, 1 school -> 2 tool, 2 coins, 1 power, 1 scholar
-    # + 6power from standard gain
     let player = make_player()
     player.build_free_workshop()
     player.build_free_workshop()
@@ -552,4 +547,11 @@ fun test_urp_for_production() -> Bool:
     player.build_guild()
     player.build_school()
     player.update_income()
-    return int( (player.score(1) - player.URP) * 100.0) == int(47.7 * 100.0)
+    print(player)
+    print(player.score(1))
+    print(player.score(1)*100.0)
+    print(player.URP)
+    print(player.score(1) - player.URP)
+    print(int( (player.score(1) - player.URP) * 100.0))
+    print(int(35.1 * 100.0))
+    return int( (player.score(1) - player.URP) * 100.0) == int(35.1 * 100.0)

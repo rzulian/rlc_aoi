@@ -50,6 +50,8 @@ fun apply_palace_tile_income_bonus(Player player):
         if  player.palace == PalaceTileKind::power2_upgrade_to_guild:
             player.add_power_income(2)
             player.palace_upgrade_to_guild = true
+        else if  player.palace == PalaceTileKind::power2_vp10:
+            player.add_power_income(2)
 
 fun apply_palace_tile_pass_bonus(Player player):
         return
