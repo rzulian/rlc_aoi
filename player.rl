@@ -157,7 +157,7 @@ cls Player:
         self.books[discipline.value] = self.books[discipline.value] - num_books
 
     fun has_books( Int num_books ) -> Bool:
-        return self.books[Discipline::banking.value] + self.books[Discipline::law.value] + self.books[Discipline::engineering.value] + self.books[Discipline::medicine.value] > num_books
+        return self.books[Discipline::banking.value] + self.books[Discipline::law.value] + self.books[Discipline::engineering.value] + self.books[Discipline::medicine.value] >= num_books
 
     fun gain_power(Int power):
         let to_bowl2 = min( power, self.powers[0].value )

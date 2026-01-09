@@ -943,3 +943,23 @@ fun test_book_actions()->Bool:
     assert(player.discipline_level[Discipline::law.value] == level + 2, "got 2 science steps")
 
     return true
+
+
+fun test_min_book_book_actions()->Bool:
+    let game = base_play(1, Scenario::test)
+    ref player = game.state.players[0]
+    player.books[Discipline::banking.value] = 1
+    player.books[Discipline::law.value] = 1
+    player.books[Discipline::engineering.value] =0
+    player.books[Discipline::medicine.value] = 0
+    let num_books : BInt<0,7>
+    num_books = 1
+    game.get_round_bonus_tile(RoundBonusTileKind::dummy1)
+    let coins = player.coins
+    game.book_action(BookActionTileKind::coins)
+    game.pay_book(Discipline::banking,num_books)
+    game.pay_book(Discipline::law,num_books)
+    assert(player.coins == coins + 6, "got 6 coins")
+    assert(!game.state.book_action_tiles[BookActionTileKind::coins].available, "book action is not more available")
+    game.pass_round()
+    return true
