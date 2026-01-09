@@ -325,10 +325,10 @@ cls Player:
         return true
 
     fun can_upgrade_terraforming() -> Bool:
-        return self.scholars_on_hand>0 and self.coins>=5 and self.tools>=1 and self.terraforming_track_level <= 2
+        return self.scholars_on_hand>0 and self.coins>=5 and self.tools>=1 and self.terraforming_track_level < 2
 
     fun can_upgrade_sailing() -> Bool:
-        return self.scholars_on_hand>0 and self.coins>=4 and self.sailing_track_level <= 3
+        return self.scholars_on_hand>0 and self.coins>=4 and self.sailing_track_level < 3
 
     fun upgrade_sailing(Bool has_to_pay) -> Void:
         if has_to_pay:
@@ -340,7 +340,7 @@ cls Player:
             self.gain_vp(2)
         if self.sailing_track_level == 2:
             self.book_income = self.book_income + 2
-        if self.sailing_track_level == 2:
+        if self.sailing_track_level == 3:
             self.gain_vp(4)
 
     fun upgrade_terraforming(Bool has_to_pay) -> Void:

@@ -963,3 +963,52 @@ fun test_min_book_book_actions()->Bool:
     assert(!game.state.book_action_tiles[BookActionTileKind::coins].available, "book action is not more available")
     game.pass_round()
     return true
+
+fun test_upgrade_terraforming()->Bool:
+    let game = base_play(1, Scenario::test)
+    ref player = game.state.players[0]
+    player.gain_scholar(3)
+
+    game.get_round_bonus_tile(RoundBonusTileKind::dummy1)
+    let coins = player.coins
+    let tools = player.tools
+    let scholars = player.scholars_on_hand
+    # first level terraforming : 2 books
+    game.upgrade_terraforming()
+    assert(player.coins == coins - 5,"payed coins")
+    assert(player.tools == tools - 1,"payed tool")
+    assert(player.scholars_on_hand == scholars - 1,"payed scholars")
+    game.gain_book(Discipline::banking)
+    game.gain_book(Discipline::law)
+    game.pass_round()
+    game.get_round_bonus_tile(RoundBonusTileKind::dummy2)
+    let vp = player.VP
+    # second level terraforming : 6VP
+    game.upgrade_terraforming()
+    assert(player.VP == vp + 6,"got terraforming vps")
+    assert( !can game.upgrade_terraforming(), "max terraformig level reached")
+    return true
+
+fun test_upgrade_sailing()->Bool:
+    let game = base_play(1, Scenario::test)
+    ref player = game.state.players[0]
+    player.gain_scholar(3)
+    # first level sailing : 2 vp
+    game.get_round_bonus_tile(RoundBonusTileKind::dummy1)
+    let coins = player.coins
+    let scholars = player.scholars_on_hand
+    let vp = player.VP
+    game.upgrade_sailing()
+    assert(player.coins == coins - 4,"payed coins")
+    assert(player.scholars_on_hand == scholars - 1,"payed scholars")
+    assert(player.VP == vp + 2,"got sailing vps")
+    # second level sailing : 2 books
+    game.upgrade_sailing()
+    game.gain_book(Discipline::banking)
+    game.gain_book(Discipline::law)
+    let vp = player.VP
+    # third level sailing : 4VP
+    game.upgrade_sailing()
+    assert(player.VP == vp + 4,"got terraforming vps")
+    assert( !can game.upgrade_sailing(), "max sailing level reached")
+    return true
