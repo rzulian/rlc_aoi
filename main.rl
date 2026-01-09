@@ -321,9 +321,9 @@ act base_play(Int num_players, Scenario scenario) -> Base:
                 apply_competency_tile_pass_bonus(state.get_current_player())
                 apply_palace_tile_pass_bonus(state.get_current_player())
                 apply_round_bonus_tile_pass_bonus(state.get_current_player())
-
-                act get_round_bonus_tile(RoundBonusTileKind kind){state.round_bonus_tiles[kind].available and state.round_bonus_tiles[kind].in_play}
-                    do_move_get_round_bonus_tile( state, state.get_current_player(), kind)
+                if state.round<FINAL_ROUND:
+                    act get_round_bonus_tile(RoundBonusTileKind kind){state.round_bonus_tiles[kind].available and state.round_bonus_tiles[kind].in_play}
+                        do_move_get_round_bonus_tile( state, state.get_current_player(), kind)
                 state.mark_current_player_passed()
             else:
                 state.move_to_next_player()
