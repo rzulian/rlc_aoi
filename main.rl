@@ -93,6 +93,9 @@ act build_phase(ctx State state, ctx Player player) -> BuildPhase:
                 player.palace = palace_tile_kind
                 apply_palace_tile_immediate_bonus(player, palace_tile_kind)
                 player.palace_income = player.palace_income - 1
+            act gain_book(Discipline discipline){player.book_income > 0 }
+                player.gain_book(discipline, 1)
+                player.book_income = player.book_income - 1
             act pass_build_phase()
                 return
 
@@ -598,8 +601,7 @@ fun test_game_return_scholar()-> Bool:
     assert ( game.state.discipline_tracks[Discipline::law].first_space == 0 and player.discipline_level[Discipline::law.value] == 1 and player.powers[0] == 4 and player.scholars_on_hand == 1  and player.scholars == 6, "return 1 scholar")
     return true
 
-fun test_game_city()-> Bool:
-    # test game_tile and round bonus for tile 4
+fun create_city() -> Base:
     let game = base_play(1, Scenario::test)
     ref player = game.state.players[0]
     game.get_round_bonus_tile(RoundBonusTileKind::dummy1)
@@ -625,6 +627,13 @@ fun test_game_city()-> Bool:
     game.get_competency_tile(CompetencyTileKind::power4)
 
     game.build_university()
+    return game
+
+
+fun test_game_city_tile_vp6_6coins()-> Bool:
+    # test game_tile and round bonus for tile 4
+    let game = create_city()
+    ref player = game.state.players[0]
     assert(player.cities == 1, "first city")
     let tile_kind = CityTileKind::VP6_6COINS
     let VP = player.VP
@@ -640,6 +649,21 @@ fun test_game_city()-> Bool:
     assert(player.VP == VP + 1*2 ,"got city round bonus vps")
     assert(player.universities == 1 and player.guilds == 0 and player.schools == 2 and player.cities == 1, "first city after turn ")
     return  true
+
+fun test_game_city_tile_vp5_2books()-> Bool:
+    # test game_tile and round bonus for tile 2 books
+    let game = create_city()
+    ref player = game.state.players[0]
+    assert(player.cities == 1, "first city")
+    let tile_kind = CityTileKind::VP5_2BOOKS
+    let VP = player.VP
+    let book_income = player.book_income
+    game.get_city_tile(tile_kind)
+    assert( player.book_income - book_income == 2, "got book income" )
+    assert( player.VP - VP == 5, "got VP tile income" )
+    game.gain_book(Discipline::law)
+    game.gain_book(Discipline::banking)
+    return true
 
 fun test_game_income_phase_science_step()->Bool:
     let game = base_play(1, Scenario::test)
