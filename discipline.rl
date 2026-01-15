@@ -3,6 +3,7 @@ import collections.vector
 import range
 import math.numeric
 import serialization.print
+import player
 
 const NUM_DISCIPLINES = 4
 
@@ -51,6 +52,17 @@ cls DisciplineTracks:
 
     fun get(Discipline discipline) -> ref DisciplineTrack:
         return self.discipline_tracks[discipline.value]
+
+fun apply_discipline_tracks_income_bonus(Player player) -> Void:
+        if player.discipline_level[Discipline::banking.value]>=9:
+            player.add_coin_income(3)
+        else if player.discipline_level[Discipline::law.value]>=9:
+            player.add_power_income(6)
+        else if player.discipline_level[Discipline::engineering.value]>=9:
+            player.add_tool_income(1)
+        if player.discipline_level[Discipline::medicine.value]>=9:
+            player.add_vp_income(3)
+
 
 fun make_discipline_tracks()->DisciplineTracks:
     let tracks : DisciplineTracks

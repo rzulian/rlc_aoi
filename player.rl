@@ -409,6 +409,7 @@ cls Player:
         apply_palace_tile_income_bonus(self)
         apply_round_bonus_tile_income_bonus(self)
         apply_innovation_tile_income_bonus(self)
+        apply_discipline_tracks_income_bonus(self)
 
         self.gain_coin(self.coin_income)
         self.gain_tool(self.tool_income)
