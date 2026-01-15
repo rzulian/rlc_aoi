@@ -13,6 +13,12 @@ fun do_move_advance_discipline(State state, Player player, Discipline discipline
     let starting_level =  player.discipline_level[discipline.value].value
     let power = state.discipline_tracks[discipline].power_from_track( starting_level, num_levels)
     let new_level = state.discipline_tracks[discipline].next_level( starting_level, num_levels)
+    # cannot pass level 7 without a key TODO move to discipline
+    if starting_level<=7 and new_level>=8:
+        if player.city_keys > 0:
+           player.city_keys = player.city_keys - 1
+        else:
+           new_level = 7
     player.gain_power( power )
     player.discipline_level[discipline.value] = new_level
     for i in range(new_level-starting_level):
@@ -88,6 +94,7 @@ act build_phase(ctx State state, ctx Player player) -> BuildPhase:
                 apply_city_tile_immediate_bonus(player, city_tile_kind)
                 apply_action_bonus(state, player, Action::city)
                 player.city_income = player.city_income - 1
+                player.city_keys = player.city_keys + 1
             act get_palace_tile(PalaceTileKind palace_tile_kind){player.palace_income > 0 and state.palace_tiles.has_palace_tile(palace_tile_kind)}
                 state.palace_tiles.draw_palace_tile(palace_tile_kind)
                 player.palace = palace_tile_kind
@@ -612,6 +619,23 @@ fun test_game_return_scholar()-> Bool:
     game.return_scholar(Discipline::law)
     assert ( game.state.discipline_tracks[Discipline::law].first_space == 0 and player.discipline_level[Discipline::law.value] == 1 and player.powers[0] == 4 and player.scholars_on_hand == 1  and player.scholars == 6, "return 1 scholar")
     return true
+
+fun test_game_check_city_limit()-> Bool:
+    let game = base_play(1, Scenario::test)
+    ref player = game.state.players[0]
+    game.get_round_bonus_tile(RoundBonusTileKind::dummy1)
+    player.powers[0]=4
+    player.powers[1]=8
+    player.powers[2]=0
+    player.gain_scholar(2)
+    player.discipline_level[Discipline::law.value]=6
+    game.send_scholar(Discipline::law)
+    assert ( player.discipline_level[Discipline::law.value] == 7 and player.scholars_on_hand == 1 , "send 1 scholar and stop to level 7")
+    player.city_keys = 2
+    game.send_scholar(Discipline::law)
+    assert ( player.discipline_level[Discipline::law.value] == 9 and player.scholars_on_hand == 0 and player.city_keys == 1, "send another with city key")
+    return true
+
 
 fun create_city() -> Base:
     let game = base_play(1, Scenario::test)

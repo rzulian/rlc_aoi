@@ -44,6 +44,7 @@ cls Player:
     BoundedVector<CityTileKind, 6> city_tiles
     BoundedVector<InnovationTileKind, 3> innovation_tiles
     BInt<0,6> cities
+    BInt<0,6> city_keys
     BInt<0,6> spades
     BInt<0,3> terraforming_track_level
     BInt<0,4> sailing_track_level
@@ -441,6 +442,7 @@ fun make_player() -> Player:
     player.URP = 0.0
     player.phase_production_URP = 0.0
     player.cities = 0
+    player.city_keys = 0
     player.spades = 0
     player.science_step_income = 0
     player.city_income = 0
