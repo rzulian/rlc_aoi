@@ -309,6 +309,10 @@ cls Player:
         self.use_power( num_power )
         self.gain_scholar( num_scholars )
 
+    fun convert_power_to_book(Int num_power, Discipline discipline) -> Void :
+        self.use_power( num_power )
+        self.gain_book( discipline , 1)
+
     fun convert_power_to_spades( Int num_power, Int num_spades) -> Void :
         self.use_power( num_power )
         self.gain_spade( num_spades )

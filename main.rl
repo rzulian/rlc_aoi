@@ -116,6 +116,9 @@ act conversion_phase(ctx State state, ctx Player player) -> ConversionPhase:
                 player.convert_power_to_tools( 3 , 1)
             act convert_5power_to_scholar() {player.scholars.value > 0, player.has_power(5) }
                 player.convert_power_to_scholars( 5 , 1)
+            act convert_5power_to_book(Discipline discipline) { player.has_power(5) }
+                player.convert_power_to_book( 5, discipline)
+
 
             act sacrifice_power(BInt<1, 20> num_power) {player.powers[1].value >= num_power.value*2}
                 player.sacrifice_power( num_power.value )
@@ -370,6 +373,15 @@ fun test_game_setup()-> Bool:
     let game = base_play(1, Scenario::test)
     ref player = game.state.players[0]
     return player.workshops == 2
+
+fun test_game_convert_5powers_book()-> Bool:
+    let game = base_play(1, Scenario::sc1)
+    ref player = game.state.players[0]
+    player.powers[2]=12
+    game.get_round_bonus_tile(RoundBonusTileKind::big)
+    game.convert_5power_to_book(Discipline::law)
+    game.convert_5power_to_book(Discipline::banking)
+    return player.books[Discipline::law.value] == 1 and player.books[Discipline::banking.value] == 1 and player.powers[2]==2
 
 fun test_game_build_workshop()-> Bool:
     let game = base_play(1, Scenario::test)
