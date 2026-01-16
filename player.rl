@@ -232,7 +232,9 @@ cls Player:
         self.pay_tool( building_type.tool_cost() )
         
     fun spades_needed() -> Int:
-        let cluster_spades = [0,1,2,1,2,1,2,3,3,3,3]
+        let cluster_spades = [0,1,2,1,2,1,2,3,3,3,3,3,3,3,3,3,3,3,3,3]
+        if self.sailing_track_level.value > 0:
+            cluster_spades = [0,1,2,1,2,1,2,0,1,2,1,0,1,2,1,2,3,3,3,3]
         return cluster_spades[self.num_buildings()]      
 
     fun can_build_workshop() -> Bool :
