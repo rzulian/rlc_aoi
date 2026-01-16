@@ -459,6 +459,14 @@ fun test_game_scholar_income()-> Bool:
     game.build_guild()
     game.build_school()
     game.get_competency_tile(CompetencyTileKind::neutral_tower)
+    let x : AnyGameAction
+    let enumeration = enumerate(x)
+    let index = 0
+    let i = 0
+    #print("VALIDS")
+    for action in enumeration:
+        if can apply(action, game):
+            print(action)
 
 
     game.pass_round()
