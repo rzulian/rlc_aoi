@@ -39,8 +39,6 @@ cls CityTiles:
         return self.tiles[kind.value] > 0
 
 fun apply_city_tile_immediate_bonus(Player player, CityTileKind kind):
-        # TODO get discipline
-
         player.gain_vp(kind.bonus()[0])
         player.gain_tool(kind.bonus()[1])
         player.gain_coin(kind.bonus()[2])
@@ -48,6 +46,7 @@ fun apply_city_tile_immediate_bonus(Player player, CityTileKind kind):
         player.gain_scholar(kind.bonus()[4])
         player.add_book_income(kind.bonus()[5])
         player.gain_spade(kind.bonus()[6])
+        player.add_one_level_discipline_income(kind.bonus()[7])
 
 fun make_city_tiles() -> CityTiles:
     let tiles : CityTiles

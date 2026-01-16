@@ -63,6 +63,7 @@ cls Player:
     Int competency_tile_income
     Int palace_income
     Int terraforming_sailing_income
+    Int[4] one_level_discipline_income
     Bool has_passed
     Float urp_for_vp
     Int send_scholar_vp
@@ -127,7 +128,10 @@ cls Player:
 
     fun has_build_phase() -> Bool:
         # player can decide to get a competency tile, get a city tile, or palace tile
-        return (self.city_income + self.competency_tile_income + self.palace_income) > 0
+        let discipline_income = 0
+        for i in range(4):
+            discipline_income = discipline_income + self.one_level_discipline_income[i]
+        return (self.city_income + self.competency_tile_income + self.palace_income + self.book_income + discipline_income) > 0
 
     fun has_book_pay_phase() -> Bool:
         return self.books_to_pay>0
@@ -223,6 +227,9 @@ cls Player:
 
     fun add_vp_income(Int amount):
         self.vp_income = self.vp_income + amount
+
+    fun add_one_level_discipline_income(Int amount):
+        self.one_level_discipline_income = [amount,amount,amount,amount]
 
 
     fun can_pay_building(BuildingType building_type) -> Bool :
@@ -459,6 +466,7 @@ fun make_player() -> Player:
     player.competency_tile_income = 0
     player.palace_income = 0
     player.terraforming_sailing_income = 0
+    player.one_level_discipline_income = [0,0,0,0]
     player.palace_upgrade_to_guild = false
     player.has_passed = false
 

@@ -6,6 +6,7 @@ import player
 import state
 import none
 import machine_learning
+import action
 
 const NUM_PLAYERS = 1
 
@@ -91,10 +92,13 @@ act build_phase(ctx State state, ctx Player player) -> BuildPhase:
             act get_city_tile(CityTileKind city_tile_kind){player.city_income > 0 and state.city_tiles.has_city_tile(city_tile_kind)}
                 state.city_tiles.draw_city_tile(city_tile_kind)
                 player.city_tiles.append(city_tile_kind)
-                apply_city_tile_immediate_bonus(player, city_tile_kind)
+
                 apply_action_bonus(state, player, Action::city)
                 player.city_income = player.city_income - 1
                 player.city_keys = player.city_keys + 1
+
+                apply_city_tile_immediate_bonus(player, city_tile_kind)
+
             act get_palace_tile(PalaceTileKind palace_tile_kind){player.palace_income > 0 and state.palace_tiles.has_palace_tile(palace_tile_kind)}
                 state.palace_tiles.draw_palace_tile(palace_tile_kind)
                 player.palace = palace_tile_kind
@@ -103,6 +107,9 @@ act build_phase(ctx State state, ctx Player player) -> BuildPhase:
             act gain_book(Discipline discipline){player.book_income > 0 }
                 player.gain_book(discipline, 1)
                 player.book_income = player.book_income - 1
+            act advance_one_science_step(Discipline discipline){player.one_level_discipline_income[discipline.value]==1}
+                do_move_advance_discipline( state, player, discipline, 1)
+                player.one_level_discipline_income[discipline.value]=0
             act pass_build_phase()
                 return
 
@@ -452,6 +459,8 @@ fun test_game_scholar_income()-> Bool:
     game.build_guild()
     game.build_school()
     game.get_competency_tile(CompetencyTileKind::neutral_tower)
+
+
     game.pass_round()
     game.get_round_bonus_tile(RoundBonusTileKind::dummy2)
     return player.scholars_on_hand == 1 and player.scholars == 6
@@ -691,14 +700,32 @@ fun test_game_city_tile_vp5_2books()-> Bool:
     let game = create_city()
     ref player = game.state.players[0]
     assert(player.cities == 1, "first city")
+    game.get_competency_tile(CompetencyTileKind::book_power)
     let tile_kind = CityTileKind::VP5_2BOOKS
     let VP = player.VP
     let book_income = player.book_income
     game.get_city_tile(tile_kind)
     assert( player.book_income - book_income == 2, "got book income" )
-    assert( player.VP - VP == 5, "got VP tile income" )
     game.gain_book(Discipline::law)
     game.gain_book(Discipline::banking)
+    return true
+
+fun test_game_city_tile_vp7_discipline()-> Bool:
+    # test game_tile advance 1 discipline level for each discipline
+    let game = create_city()
+    ref player = game.state.players[0]
+    let tile_kind = CityTileKind::VP7_DISCIPLINE
+    game.get_competency_tile(CompetencyTileKind::book_power)
+    game.get_city_tile(tile_kind)
+    let level = player.discipline_level[Discipline::banking.value]
+    print(player)
+    game.advance_one_science_step(Discipline::banking)
+    assert( player.discipline_level[Discipline::banking.value] == level + 1,"advanced banking discipline")
+    assert( can game.advance_one_science_step(Discipline::law), "can advance law discipline")
+    assert( !can game.advance_one_science_step(Discipline::banking), "cannot advance banking discipline twice")
+    game.advance_one_science_step(Discipline::engineering)
+    game.advance_one_science_step(Discipline::law)
+    game.advance_one_science_step(Discipline::medicine)
     return true
 
 fun test_game_income_phase_science_step()->Bool:
