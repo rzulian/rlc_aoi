@@ -88,8 +88,7 @@ cls Player:
         return score
 
     fun num_buildings() -> Int:
-        #one workshop is not in the first cluster
-        return self.workshops.value + self.guilds.value + self.schools.value + self.palaces.value + self.universities.value - 1 
+        return self.workshops.value + self.guilds.value + self.schools.value + self.palaces.value + self.universities.value
     
     fun power_buildings() -> Int:
         return self.workshops.value *BuildingType::workshop.power() + self.guilds.value*BuildingType::guild.power() + self.schools.value*BuildingType::school.power()+ self.palaces.value*BuildingType::palace.power() + self.universities.value*BuildingType::university.power()
@@ -100,17 +99,19 @@ cls Player:
         let power_buildings = self.power_buildings()
         let num_buildings = self.num_buildings()
         let num_universities = self.universities.value
+        let exclude_workshop = 0
 
         while power_buildings > 6 :
-                if num_buildings >=3 and num_universities >= 1 :
+                if cities == 0:
+                    exclude_workshop = 1
+                if (num_buildings - exclude_workshop) >=3 and num_universities >= 1 :
                     num_buildings = num_buildings - 3
                     num_universities = num_universities - 1
-                    power_buildings = power_buildings - 6
-                else if num_buildings >=4 :
+                else if (num_buildings - exclude_workshop) >=4 :
                     num_buildings = num_buildings - 4
-                    power_buildings = power_buildings - 7
                 else:
                    break #it's not yet a city
+                power_buildings = power_buildings - 7
                 cities = cities + 1
 
         self.city_income = cities - self.cities.value
@@ -232,9 +233,9 @@ cls Player:
         self.pay_tool( building_type.tool_cost() )
         
     fun spades_needed() -> Int:
-        let cluster_spades = [0,1,2,1,2,1,2,3,3,3,3,3,3,3,3,3,3,3,3,3]
+        let cluster_spades = [0,0,1,2,1,2,1,2,3,3,3,3,3,3,3,3,3,3,3,3,3]
         if self.sailing_track_level.value > 0:
-            cluster_spades = [0,1,2,1,2,1,2,0,1,2,1,0,1,2,1,2,3,3,3,3]
+            cluster_spades = [0,0,1,2,1,2,1,2,0,1,2,1,0,1,2,1,2,3,3,3,3]
         return cluster_spades[self.num_buildings()]      
 
     fun can_build_workshop() -> Bool :
