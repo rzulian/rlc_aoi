@@ -98,14 +98,21 @@ cls Player:
         let cities = 0
 
         let power_buildings = self.power_buildings()
-        let num_buildings_cluster1 = self.num_buildings()
-        let power_buildings_cluster1 = power_buildings - BuildingType::workshop.power() #remove additional workshop from cluster1
-        let has_one_city = power_buildings_cluster1 >= 7 and ( num_buildings_cluster1>= 4 or (num_buildings_cluster1==3 and self.universities.value==1)) 
-        let has_two_cities = power_buildings  >= 14 and ( num_buildings_cluster1 +1 >= 8 or (num_buildings_cluster1 + 1 >=7 and self.universities.value==1))
-        if has_one_city:
-            cities = 1
-        if has_two_cities:
-            cities = 2
+        let num_buildings = self.num_buildings()
+        let num_universities = self.universities.value
+
+        while power_buildings > 6 :
+                if num_buildings >=3 and num_universities >= 1 :
+                    num_buildings = num_buildings - 3
+                    num_universities = num_universities - 1
+                    power_buildings = power_buildings - 6
+                else if num_buildings >=4 :
+                    num_buildings = num_buildings - 4
+                    power_buildings = power_buildings - 7
+                else:
+                   break #it's not yet a city
+                cities = cities + 1
+
         self.city_income = cities - self.cities.value
         self.cities.value = cities
 
