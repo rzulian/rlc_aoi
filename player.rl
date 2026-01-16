@@ -103,17 +103,19 @@ cls Player:
         let exclude_workshop = 0
 
         while power_buildings > 6 :
-                if cities == 0:
-                    exclude_workshop = 1
-                if (num_buildings - exclude_workshop) >=3 and num_universities >= 1 :
-                    num_buildings = num_buildings - 3
-                    num_universities = num_universities - 1
-                else if (num_buildings - exclude_workshop) >=4 :
-                    num_buildings = num_buildings - 4
-                else:
-                   break #it's not yet a city
-                power_buildings = power_buildings - 7
-                cities = cities + 1
+            exclude_workshop = 0
+            if cities == 0:
+                exclude_workshop = 1
+
+            if (num_buildings - exclude_workshop) >=3 and num_universities >= 1 :
+                num_buildings = num_buildings - 3
+                num_universities = num_universities - 1
+            else if (num_buildings - exclude_workshop) >=4 :
+                num_buildings = num_buildings - 4
+            else:
+               break #it's not yet a city
+            power_buildings = power_buildings - 7
+            cities = cities + 1
 
         self.city_income = cities - self.cities.value
         self.cities.value = cities
@@ -561,6 +563,31 @@ fun test_city_university() -> Bool:
     player.build_university()
     player.update_income()
     return player.cities == 1
+
+fun test_2cities() -> Bool:
+    let player = make_player()
+    player.coins = 20
+    player.tools = 20
+    player.build_free_workshop()
+    player.build_free_workshop()
+    player.build_guild()
+    player.build_palace()
+    player.build_guild()
+    player.build_school()
+    player.build_workshop()
+    player.build_guild()
+    player.build_school()
+    player.build_university()
+    player.build_workshop()
+    player.build_workshop()
+    player.build_guild()
+    player.build_workshop()
+    player.build_guild()
+    player.build_school()
+    player.build_school()
+    player.build_workshop()
+    player.update_cities()
+    return player.cities == 2
 
 fun test_urp_for_production() -> Bool:
     # 1 workshop, 1 guild, 1 school -> 2 tool, 2 coins, 1 power, 1 scholar

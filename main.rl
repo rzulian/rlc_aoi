@@ -459,14 +459,6 @@ fun test_game_scholar_income()-> Bool:
     game.build_guild()
     game.build_school()
     game.get_competency_tile(CompetencyTileKind::neutral_tower)
-    let x : AnyGameAction
-    let enumeration = enumerate(x)
-    let index = 0
-    let i = 0
-    #print("VALIDS")
-    for action in enumeration:
-        if can apply(action, game):
-            print(action)
 
 
     game.pass_round()
@@ -726,7 +718,6 @@ fun test_game_city_tile_vp7_discipline()-> Bool:
     game.get_competency_tile(CompetencyTileKind::book_power)
     game.get_city_tile(tile_kind)
     let level = player.discipline_level[Discipline::banking.value]
-    print(player)
     game.advance_one_science_step(Discipline::banking)
     assert( player.discipline_level[Discipline::banking.value] == level + 1,"advanced banking discipline")
     assert( can game.advance_one_science_step(Discipline::law), "can advance law discipline")
